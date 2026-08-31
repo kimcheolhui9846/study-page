@@ -94,27 +94,31 @@
 - Consumes: 없음 (첫 태스크)
 - Produces: `npm test`, `npm run check:secrets` 스크립트. 이후 모든 태스크가 이 둘에 의존한다.
 
-- [ ] **Step 1: 앱 뼈대 생성**
+- [x] **Step 1: 앱 뼈대 생성**
 
 빈 디렉터리가 아니므로 임시 폴더에 만들고 옮긴다.
 
 ```bash
-npx create-next-app@latest .tmp-scaffold \
-  --typescript --tailwind --eslint --app --src-dir=false \
+npx --yes create-next-app@latest tmp-scaffold \
+  --typescript --tailwind --eslint --app --no-src-dir \
   --import-alias "@/*" --use-npm --no-turbopack --yes
-cp -r .tmp-scaffold/. .
-rm -rf .tmp-scaffold
+
+# 뼈대가 만든 CLAUDE.md / README.md / .gitignore 로 내 것을 덮어쓰지 않는다
+rm -rf tmp-scaffold/.next tmp-scaffold/CLAUDE.md tmp-scaffold/README.md tmp-scaffold/.gitignore
+cp -r tmp-scaffold/. .
+rm -rf tmp-scaffold
 ```
 
-`.gitignore`가 덮어써졌다면 기존 것을 복원한다: `git checkout .gitignore`
+뼈대는 `AGENTS.md`도 만든다. 이건 `next dev`가 재생성하므로 지우지 말고 커밋한다.
+디렉터리 이름을 점으로 시작하면 npm 이름 규칙에 걸리므로 `tmp-scaffold`를 쓴다.
 
-- [ ] **Step 2: Vitest 설치 및 설정**
+- [x] **Step 2: Vitest 설치 및 설정**
 
 ```bash
 npm install -D vitest @vitejs/plugin-react
 ```
 
-`vitest.config.ts` 생성:
+`vitest.config.mts` 생성 (확장자가 `.ts`면 CJS로 로드되어 경고가 난다):
 
 ```ts
 import { defineConfig } from 'vitest/config'
@@ -127,7 +131,7 @@ export default defineConfig({
     testTimeout: 20_000,
   },
   resolve: {
-    alias: { '@': path.resolve(__dirname, '.') },
+    alias: { '@': path.resolve(import.meta.dirname, '.') },
   },
 })
 ```
@@ -140,7 +144,7 @@ export default defineConfig({
 "check:secrets": "node scripts/check-secrets.mjs"
 ```
 
-- [ ] **Step 3: 실패하는 테스트 작성**
+- [x] **Step 3: 실패하는 테스트 작성**
 
 `tests/check-secrets.test.ts`:
 
@@ -181,30 +185,38 @@ describe('findViolations', () => {
 })
 ```
 
-- [ ] **Step 4: 테스트가 실패하는지 확인**
+- [x] **Step 4: 테스트가 실패하는지 확인**
 
 Run: `npm test -- tests/check-secrets.test.ts`
 Expected: FAIL — `Cannot find module '../scripts/check-secrets.mjs'`
 
-- [ ] **Step 5: 최소 구현**
+- [x] **Step 5: 최소 구현**
 
 `scripts/check-secrets.mjs`:
 
+부정 목록(`node_modules`, `.next`, …)을 계속 늘리는 대신 **클라이언트 번들에 도달할 수
+있는 디렉터리만** 검사한다. `tests/`와 `scripts/`는 번들되지 않으므로 검사하지 않는다 —
+이 검사기의 테스트 자체가 `NEXT_PUBLIC_`을 픽스처로 쓰기 때문에 이 구분이 필요하다.
+
 ```js
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
-const SKIP = new Set(['node_modules', '.next', '.git', 'dist', 'coverage', '.tmp-scaffold'])
-const EXT = /\.(ts|tsx|js|jsx|mjs|cjs|json|yaml|yml)$/
+const SCAN_DIRS = ['app', 'components', 'lib']
+const EXT = /\.(ts|tsx|js|jsx|mjs|cjs)$/
 
 export function findViolations(root) {
   const out = []
-  walk(root)
+
+  for (const dirName of SCAN_DIRS) {
+    const dir = join(root, dirName)
+    if (existsSync(dir)) walk(dir)
+  }
+
   return out
 
   function walk(dir) {
     for (const name of readdirSync(dir)) {
-      if (SKIP.has(name)) continue
       const full = join(dir, name)
       if (statSync(full).isDirectory()) { walk(full); continue }
       if (!EXT.test(name)) continue
@@ -218,7 +230,10 @@ export function findViolations(root) {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+const invokedDirectly =
+  process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href
+
+if (invokedDirectly) {
   const violations = findViolations(process.cwd())
   if (violations.length > 0) {
     console.error('NEXT_PUBLIC_ 환경변수가 발견되었습니다. 이 프로젝트는 0개를 유지합니다.\n')
@@ -229,7 +244,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 ```
 
-- [ ] **Step 6: 테스트 통과 확인**
+- [x] **Step 6: 테스트 통과 확인**
 
 Run: `npm test -- tests/check-secrets.test.ts`
 Expected: PASS (3 tests)
@@ -237,7 +252,7 @@ Expected: PASS (3 tests)
 Run: `npm run check:secrets`
 Expected: `OK — NEXT_PUBLIC_ 없음`, 종료 코드 0
 
-- [ ] **Step 7: `.env.example` 작성**
+- [x] **Step 7: `.env.example` 작성**
 
 ```
 # 1주차에는 DATABASE_URL 과 AUTH_PASSWORD_HASH 만 있으면 된다.
@@ -250,7 +265,7 @@ AUTH_PASSWORD_HASH=
 APP_ENV=local
 ```
 
-- [ ] **Step 8: 커밋**
+- [x] **Step 8: 커밋**
 
 ```bash
 git checkout -b feat/scaffold
@@ -1472,8 +1487,6 @@ import { PostgresSessionStore } from '@/lib/session/postgres'
 import { verifyPassword } from '@/lib/auth/password'
 import { isLockedOut, recordAttempt } from '@/lib/auth/lockout'
 
-export const runtime = 'nodejs' // scrypt 와 randomBytes 가 필요하다
-
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null
 
@@ -1605,6 +1618,9 @@ function reqWithToken(token: string | null): Request {
 
 const okHandler = async () => new Response('통과', { status: 200 })
 
+/** 동적 세그먼트가 없는 라우트의 컨텍스트 */
+const noCtx = { params: Promise.resolve({}) }
+
 describe('readSidCookie', () => {
   it('여러 쿠키 중 sid 만 꺼낸다', () => {
     expect(readSidCookie(reqWithToken('abc123'))).toBe('abc123')
@@ -1618,14 +1634,14 @@ describe('가드', () => {
   it('유효한 세션은 핸들러까지 도달한다', async () => {
     const guard = makeGuard(store)
     const { token } = await store.create()
-    const res = await guard(okHandler)(reqWithToken(token))
+    const res = await guard(okHandler)(reqWithToken(token), noCtx)
     expect(res.status).toBe(200)
   })
 
   it('쿠키가 없으면 401 이고 핸들러가 실행되지 않는다', async () => {
     let ran = false
     const guard = makeGuard(store)
-    const res = await guard(async () => { ran = true; return new Response('') })(reqWithToken(null))
+    const res = await guard(async () => { ran = true; return new Response('') })(reqWithToken(null), noCtx)
     expect(res.status).toBe(401)
     expect(ran).toBe(false)
   })
@@ -1634,7 +1650,7 @@ describe('가드', () => {
     const guard = makeGuard(store)
     const { token } = await store.create()
     clock.advance(IDLE_TTL_MS + 1000)
-    const res = await guard(okHandler)(reqWithToken(token))
+    const res = await guard(okHandler)(reqWithToken(token), noCtx)
     expect(res.status).toBe(401)
     expect(res.headers.get('set-cookie')).toContain('sid=')
     expect(res.headers.get('set-cookie')).toMatch(/Max-Age=0|Expires=Thu, 01 Jan 1970/)
@@ -1644,7 +1660,7 @@ describe('가드', () => {
     const guard = makeGuard(store)
     const { token } = await store.create()
     await store.revoke(token)
-    const res = await guard(okHandler)(reqWithToken(token))
+    const res = await guard(okHandler)(reqWithToken(token), noCtx)
     expect(res.status).toBe(401)
   })
 
@@ -1653,7 +1669,7 @@ describe('가드', () => {
     const { token } = await store.create()
     const res = await guard(async (_req, session) =>
       Response.json({ expiresAt: session.expiresAt.toISOString() }),
-    )(reqWithToken(token))
+    )(reqWithToken(token), noCtx)
     expect(res.status).toBe(200)
     expect((await res.json()).expiresAt).toBe('2026-09-01T02:00:00.000Z')
   })
@@ -1675,7 +1691,16 @@ import { systemClock } from '../time'
 import { PostgresSessionStore } from './postgres'
 import type { Session, SessionStore } from './store'
 
-export type GuardedHandler = (req: Request, session: Session) => Promise<Response>
+/** Next 16 의 라우트 컨텍스트. params 는 Promise 다. */
+export interface RouteContext<P = Record<string, string>> {
+  params: Promise<P>
+}
+
+export type GuardedHandler<P = Record<string, string>> = (
+  req: Request,
+  session: Session,
+  ctx: RouteContext<P>,
+) => Promise<Response>
 
 export function readSidCookie(req: Request): string | null {
   const header = req.headers.get('cookie')
@@ -1701,17 +1726,21 @@ function unauthorized(): Response {
   )
 }
 
-/** 스토어를 주입받는 가드 팩토리. 테스트가 이걸 쓴다. */
+/**
+ * 스토어를 주입받는 가드 팩토리. 테스트가 이걸 쓴다.
+ * ctx 를 핸들러까지 그대로 넘긴다 — 동적 라우트의 params 가 여기 들어 있다.
+ */
 export function makeGuard(store: SessionStore) {
-  return (handler: GuardedHandler) => async (req: Request): Promise<Response> => {
-    const token = readSidCookie(req)
-    if (!token) return unauthorized()
+  return <P>(handler: GuardedHandler<P>) =>
+    async (req: Request, ctx: RouteContext<P>): Promise<Response> => {
+      const token = readSidCookie(req)
+      if (!token) return unauthorized()
 
-    const session = await store.verifyAndTouch(token)
-    if (!session) return unauthorized()
+      const session = await store.verifyAndTouch(token)
+      if (!session) return unauthorized()
 
-    return handler(req, session)
-  }
+      return handler(req, session, ctx)
+    }
 }
 
 /** 프로덕션 스토어가 묶인 가드. 라우트가 이걸 쓴다. */
@@ -1728,8 +1757,6 @@ import { db } from '@/lib/db/client'
 import { systemClock } from '@/lib/time'
 import { PostgresSessionStore } from '@/lib/session/postgres'
 import { readSidCookie } from '@/lib/session/guard'
-
-export const runtime = 'nodejs'
 
 /**
  * 종료 버튼과 pagehide 의 sendBeacon 이 함께 쓴다.
@@ -2362,8 +2389,6 @@ import { FakeLlmClient } from '@/lib/llm/fake'
 import { getOrCreateContent } from '@/lib/study/content'
 import { SUBJECTS, type Subject } from '@/lib/curriculum/schema'
 
-export const runtime = 'nodejs'
-
 // 1주차에는 가짜 클라이언트만 존재한다. 2주차에 OpenAiLlmClient 로 교체한다.
 const llm = new FakeLlmClient()
 
@@ -2373,10 +2398,10 @@ const STATUS_CODE: Record<string, number> = {
   cap_exceeded: 429,
 }
 
-export const POST = withSession(async (req) => {
-  const url = new URL(req.url)
-  const subject = url.pathname.split('/')[3] as Subject
-  if (!SUBJECTS.includes(subject)) {
+export const POST = withSession<{ subject: string }>(async (req, _session, ctx) => {
+  // Next 16 에서 params 는 Promise 다. URL 문자열을 자르지 않는다.
+  const { subject } = await ctx.params
+  if (!SUBJECTS.includes(subject as Subject)) {
     return NextResponse.json({ error: 'UNKNOWN_SUBJECT' }, { status: 404 })
   }
 
@@ -2386,7 +2411,9 @@ export const POST = withSession(async (req) => {
     return NextResponse.json({ error: 'INVALID_DAY' }, { status: 400 })
   }
 
-  const outcome = await getOrCreateContent({ db, clock: systemClock, llm }, subject, dayNo)
+  const outcome = await getOrCreateContent(
+    { db, clock: systemClock, llm }, subject as Subject, dayNo,
+  )
 
   if (outcome.status === 'ok') return NextResponse.json(outcome.content)
   return NextResponse.json({ error: outcome.status.toUpperCase() }, {
@@ -2472,7 +2499,7 @@ describe('세션 상태', () => {
     const req = new Request('http://localhost/api/session/status', {
       headers: { cookie: `sid=${token}` },
     })
-    const res = await makeGuard(store)(sessionStatusHandler)(req)
+    const res = await makeGuard(store)(sessionStatusHandler)(req, { params: Promise.resolve({}) })
     const body = await res.json()
 
     expect(body.expiresAt).toBe('2026-09-01T02:00:00.000Z')     // 절대 2시간
@@ -2481,7 +2508,7 @@ describe('세션 상태', () => {
 
   it('세션이 없으면 401 이다 — 카운트다운을 그릴 근거가 없다', async () => {
     const req = new Request('http://localhost/api/session/status')
-    const res = await makeGuard(store)(sessionStatusHandler)(req)
+    const res = await makeGuard(store)(sessionStatusHandler)(req, { params: Promise.resolve({}) })
     expect(res.status).toBe(401)
   })
 })
@@ -2512,7 +2539,6 @@ export const sessionStatusHandler: GuardedHandler = async (_req, session) =>
 import { withSession } from '@/lib/session/guard'
 import { sessionStatusHandler } from '@/lib/session/status'
 
-export const runtime = 'nodejs'
 export const GET = withSession(sessionStatusHandler)
 ```
 
@@ -2681,7 +2707,6 @@ import { PostgresSessionStore } from '@/lib/session/postgres'
 import { loadAll } from '@/lib/curriculum/load'
 import { SessionBar } from '@/components/SessionBar'
 
-export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export default async function Dashboard() {

@@ -153,6 +153,33 @@ Velog에는 공개된 공식 API가 없다. 웹 클라이언트가 쓰는 비공
 
 ---
 
+## 2026-08-31 — Next 16 이 계획과 다른 지점 두 곳
+
+뼈대를 세우고 `node_modules/next/dist/docs/` 를 읽어 확인한 것.
+
+1. **`export const runtime = 'nodejs'` 를 쓰지 않는다.** Next 16 에서 nodejs 가 기본값이고
+   Edge 런타임은 deprecated 다. 문서가 이 export 의 제거를 명시적으로 권한다.
+2. **동적 라우트의 `params` 는 Promise 이며 두 번째 인자(context)로 온다.**
+   따라서 `withSession` 가드가 context 를 핸들러까지 그대로 넘겨야 한다.
+   원래 계획은 `new URL(req.url).pathname.split('/')[3]` 로 세그먼트를 잘라 쓰려 했는데,
+   경로 구조가 바뀌면 조용히 깨지는 방식이었다.
+
+**교훈:** 프레임워크 메이저 버전이 학습 데이터보다 새로우면 추측하지 말고
+`node_modules/<pkg>/dist/docs/` 를 먼저 읽는다. 이 규칙을 `CLAUDE.md` 에 넣었다.
+
+---
+
+## 2026-08-31 — 비밀 검사를 부정 목록이 아니라 허용 목록으로
+
+`check:secrets` 를 "모든 파일에서 NEXT_PUBLIC_ 금지"로 짰더니 **검사기 자신의 테스트 파일을
+위반으로 잡았다** — 테스트가 `NEXT_PUBLIC_` 을 픽스처로 쓰기 때문이다.
+
+`node_modules`, `.next`, `tests`, `scripts` … 를 부정 목록에 계속 추가하는 대신
+검사 대상을 `app/`, `components/`, `lib/` 로 못박았다. 이게 실제 위험의 정의와 일치한다 —
+문제는 "이 문자열이 어딘가 있다"가 아니라 **"클라이언트 번들에 도달한다"** 이다.
+
+---
+
 ## 2026-08-31 — 1주차에 LLM을 연결하지 않는다
 
 보안·예산 계층을 먼저 완성하고 그 자리에는 가짜 LLM 클라이언트를 둔다.

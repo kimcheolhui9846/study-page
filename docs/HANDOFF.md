@@ -1,38 +1,39 @@
 # 핸드오프
 
-**갱신:** 2026-08-31 · **브랜치:** `feat/db-schema` · **PR:** #4
+**갱신:** 2026-08-31 · **브랜치:** `feat/time` · **PR:** #5
 
 > 이 파일은 **현재 상태**만 담는다. 매번 통째로 덮어쓴다.
 > 과거 결정의 이유는 `docs/DECISIONS.md`에 있다.
 
 ## 지금 상태
 
-**1주차 Task 1~2 완료.** 뼈대 + 비밀 검사 + DB 스키마가 서 있다.
+**1주차 Task 1~3 완료.** 뼈대 + 비밀 검사 + DB 스키마 + 시간 헬퍼가 서 있다.
 
 - Next 16.3.3 / React 19.2.8 / Tailwind 4 / Vitest 4.1.11
 - Drizzle 0.45.2 / PGlite 0.5.8 (테스트) / @neondatabase/serverless 1.1.0
 - 테이블 7개, 마이그레이션 `drizzle/0000_wonderful_silver_centurion.sql`
-- 테스트 **19개 통과** — `check-secrets` 7 + `db/constraints` 12
+- 테스트 **33개 통과** — `check-secrets` 7 + `db/constraints` 12 + `time` 14
 - `check:secrets` · `tsc --noEmit` · `build` 전부 통과
 
 **아직 Neon 계정이 없어도 된다.** 테스트는 PGlite 인메모리 Postgres에서 돈다.
 `DATABASE_URL`은 실제로 앱을 띄울 때(Task 10) 필요해진다.
 
-아직 없는 것: 시간 헬퍼, 커리큘럼 로더, 세션, 인증, 예산, LLM. Task 3~10이다.
+아직 없는 것: 커리큘럼 로더, 세션, 인증, 예산, LLM. Task 4~10이다.
 
 ## 바로 다음에 할 일
 
-계획의 **Task 3 (`feat/time`)** — `kstToday()` + 주입 가능한 `Clock`.
-작은 태스크지만 Task 5·8이 전부 여기에 의존한다.
+계획의 **Task 4 (`feat/curriculum`)** — zod 스키마 + YAML 로더 + Day 1~7 초안.
 
 ```bash
-git checkout main && git pull && git checkout -b feat/time
+git checkout main && git pull && git checkout -b feat/curriculum
 ```
 
-계획: `docs/plans/2026-08-31-week1-foundation.md` (Task 1~2는 완료 표시됨)
+계획: `docs/plans/2026-08-31-week1-foundation.md` (Task 1~3은 완료 표시됨)
 
 ## 알아둘 것
 
+- **날짜를 `new Date()`로 만들지 않는다.** `kstToday(clock.now())` 만 쓴다.
+  시각(instant)이 필요하면 `Clock` 을 주입받는다 — 테스트가 sleep 없이 시간을 민다.
 - **`lib/db/client.ts`는 import 시점에 `DATABASE_URL`이 없으면 던진다.** 의도한 동작이다 —
   런타임에 조용히 실패하는 것보다 빌드에서 큰 소리로 깨지는 게 낫다.
   테스트는 이 파일을 import 하지 않고 `tests/helpers/testDb.ts`를 쓴다.

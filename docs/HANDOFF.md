@@ -1,39 +1,45 @@
 # 핸드오프
 
-**갱신:** 2026-08-31 · **브랜치:** `feat/curriculum` · **PR:** #6
+**갱신:** 2026-08-31 · **브랜치:** `feat/session-store` · **PR:** #7
 
 > 이 파일은 **현재 상태**만 담는다. 매번 통째로 덮어쓴다.
 > 과거 결정의 이유는 `docs/DECISIONS.md`에 있다.
 
 ## 지금 상태
 
-**1주차 Task 1~4 완료.** 뼈대 + 비밀 검사 + DB 스키마 + 시간 헬퍼 + 커리큘럼 로더가 서 있다.
+**1주차 Task 1~5 완료.** 보안 계층의 첫 조각(세션 저장소)까지 서 있다.
 
 - Next 16.3.3 / React 19.2.8 / Tailwind 4 / Vitest 4.1.11
 - Drizzle 0.45.2 / PGlite 0.5.8 (테스트) / @neondatabase/serverless 1.1.0
 - 테이블 7개, 마이그레이션 `drizzle/0000_wonderful_silver_centurion.sql`
-- 테스트 **49개 통과** — check-secrets 7 + constraints 12 + time 14 + curriculum 16
+- 테스트 **66개 통과** — check-secrets 7 + constraints 12 + time 14 + curriculum 16 + session/store 17
+- 세션 만료 4경로(없음/유휴/절대/revoke) 전부 테스트로 증명됨
 - 커리큘럼 3과목 × Day 1~7 (초안. 사용자가 고쳐 쓸 것)
 - `check:secrets` · `tsc --noEmit` · `build` 전부 통과
 
 **아직 Neon 계정이 없어도 된다.** 테스트는 PGlite 인메모리 Postgres에서 돈다.
 `DATABASE_URL`은 실제로 앱을 띄울 때(Task 10) 필요해진다.
 
-아직 없는 것: 세션, 인증, 예산, LLM. Task 5~10이다.
+아직 없는 것: 인증, 가드, 예산, LLM, UI. Task 6~10이다.
 
 ## 바로 다음에 할 일
 
-계획의 **Task 5 (`feat/session-store`)** — `SessionStore` 인터페이스 + `PostgresSessionStore`
-+ 만료 4경로(없음/유휴/절대/revoke) 테스트. 여기부터 보안 계층이다.
+계획의 **Task 6 (`feat/auth`)** — scrypt 비밀번호 + 로그인 실패 잠금 + `POST /api/session`.
 
 ```bash
-git checkout main && git pull && git checkout -b feat/session-store
+git checkout main && git pull && git checkout -b feat/auth
 ```
 
-계획: `docs/plans/2026-08-31-week1-foundation.md` (Task 1~4는 완료 표시됨)
+Task 6은 스펙과 의도적으로 다르다(argon2id → scrypt). 계획 Task 6의 주석과
+`DECISIONS.md` 에 근거가 있다. 구현하면서 `DECISIONS.md` 에 항목을 추가할 것.
+
+계획: `docs/plans/2026-08-31-week1-foundation.md` (Task 1~5는 완료 표시됨)
 
 ## 알아둘 것
 
+- **테스트가 느려지고 있다.** DB 테스트마다 PGlite 인스턴스를 새로 만든다(~750ms).
+  현재 66개에 14초. 40초를 넘기면 파일당 인스턴스 하나를 재사용하고
+  테스트 사이에 TRUNCATE 하는 쪽으로 바꾼다. 지금은 격리가 더 중요하다.
 - **날짜를 `new Date()`로 만들지 않는다.** `kstToday(clock.now())` 만 쓴다.
   시각(instant)이 필요하면 `Clock` 을 주입받는다 — 테스트가 sleep 없이 시간을 민다.
 - **`lib/db/client.ts`는 import 시점에 `DATABASE_URL`이 없으면 던진다.** 의도한 동작이다 —

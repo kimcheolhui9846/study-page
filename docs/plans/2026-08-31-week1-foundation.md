@@ -1026,7 +1026,7 @@ day 번호가 1부터 연속인지 검증해 형식 오류가 배포 전에 잡�
   - `lib/session/store.ts` → `IDLE_TTL_MS`, `ABSOLUTE_TTL_MS`, `interface Session`, `interface SessionStore`
   - `lib/session/postgres.ts` → `class PostgresSessionStore implements SessionStore`, `hashToken(token: string): string`
 
-- [ ] **Step 1: 인터페이스 작성**
+- [x] **Step 1: 인터페이스 작성**
 
 `lib/session/store.ts`:
 
@@ -1051,7 +1051,7 @@ export interface SessionStore {
 }
 ```
 
-- [ ] **Step 2: 실패하는 테스트 작성**
+- [x] **Step 2: 실패하는 테스트 작성**
 
 `tests/session/store.test.ts`:
 
@@ -1122,11 +1122,19 @@ describe('세션 검증 — 차단 경로 4가지', () => {
 
   it('③ 절대 2시간을 넘기면 막는다 — 계속 활동해도', async () => {
     const { token } = await store.create()
-    // 10분마다 활동해서 유휴 만료는 계속 밀지만 절대 만료는 안 밀린다
-    for (let i = 0; i < 11; i++) {
-      clock.advance(10 * 60 * 1000)
+
+    // 10분마다 활동하면 유휴 만료(15분)는 계속 밀린다.
+    // 하지만 절대 만료는 안 밀리므로 2시간을 넘기는 순간 끊겨야 한다.
+    // 반복 횟수를 상수로 계산한다 — 손으로 세면 틀린다 (11회 = 110분 < 2시간)
+    const STEP_MS = 10 * 60 * 1000
+    const steps = Math.ceil(ABSOLUTE_TTL_MS / STEP_MS) + 1
+
+    for (let i = 0; i < steps; i++) {
+      clock.advance(STEP_MS)
       await store.verifyAndTouch(token)
     }
+
+    // 정말 2시간을 넘겼는지 먼저 확인한다 — 안 넘겼는데 통과하면 무의미한 테스트다
     expect(clock.now().getTime()).toBeGreaterThan(
       new Date('2026-09-01T00:00:00Z').getTime() + ABSOLUTE_TTL_MS,
     )
@@ -1147,12 +1155,12 @@ describe('revoke', () => {
 })
 ```
 
-- [ ] **Step 3: 테스트가 실패하는지 확인**
+- [x] **Step 3: 테스트가 실패하는지 확인**
 
 Run: `npm test -- tests/session/store.test.ts`
 Expected: FAIL — `Cannot find module '../../lib/session/postgres'`
 
-- [ ] **Step 4: 구현**
+- [x] **Step 4: 구현**
 
 `lib/session/postgres.ts`:
 
@@ -1230,7 +1238,7 @@ export class PostgresSessionStore implements SessionStore {
 }
 ```
 
-- [ ] **Step 5: 테스트 통과 확인**
+- [x] **Step 5: 테스트 통과 확인**
 
 Run: `npm test -- tests/session/store.test.ts`
 Expected: PASS (9 tests)
@@ -1238,7 +1246,7 @@ Expected: PASS (9 tests)
 Run: `npx tsc --noEmit`
 Expected: 에러 0개
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git checkout main && git pull && git checkout -b feat/session-store

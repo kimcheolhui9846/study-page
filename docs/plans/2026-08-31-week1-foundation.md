@@ -1609,7 +1609,7 @@ argon2 대신 node:crypto 의 scrypt 를 쓴다 — 네이티브 모듈이 없�
 > `makeGuard`는 테스트에서 가짜 스토어를 주입하기 위해 존재한다.
 > `withSession`은 프로덕션 스토어를 미리 묶어둔 편의 함수다.
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `tests/session/guard.test.ts`:
 
@@ -1700,12 +1700,12 @@ describe('가드', () => {
 })
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 Run: `npm test -- tests/session/guard.test.ts`
 Expected: FAIL — 모듈 없음
 
-- [ ] **Step 3: 가드 구현**
+- [x] **Step 3: 가드 구현**
 
 `lib/session/guard.ts`:
 
@@ -1730,8 +1730,13 @@ export function readSidCookie(req: Request): string | null {
   const header = req.headers.get('cookie')
   if (!header) return null
   for (const part of header.split(';')) {
-    const [name, ...rest] = part.trim().split('=')
-    if (name === 'sid') return rest.join('=') || null
+    const trimmed = part.trim()
+    const eq = trimmed.indexOf('=')
+    if (eq === -1) continue
+    // 이름은 정확히 'sid' 여야 한다. 'not_sid' 를 잘라 붙여 착각하면 안 된다.
+    if (trimmed.slice(0, eq) !== 'sid') continue
+    // 값에 '=' 가 있을 수 있다(base64url 패딩). 첫 '=' 뒤 전부가 값이다.
+    return trimmed.slice(eq + 1) || null
   }
   return null
 }
@@ -1771,7 +1776,7 @@ export function makeGuard(store: SessionStore) {
 export const withSession = makeGuard(new PostgresSessionStore(db, systemClock))
 ```
 
-- [ ] **Step 4: 종료 라우트 구현**
+- [x] **Step 4: 종료 라우트 구현**
 
 `app/api/session/end/route.ts`:
 
@@ -1799,12 +1804,12 @@ export async function POST(req: NextRequest) {
 }
 ```
 
-- [ ] **Step 5: 테스트 통과 확인**
+- [x] **Step 5: 테스트 통과 확인**
 
 Run: `npm test -- tests/session/guard.test.ts`
 Expected: PASS (7 tests)
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git checkout main && git pull && git checkout -b feat/session-guard

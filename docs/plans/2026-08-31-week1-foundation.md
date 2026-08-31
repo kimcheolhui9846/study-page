@@ -293,14 +293,14 @@ NEXT_PUBLIC_ 환경변수를 0개로 유지하는 검사를 추가한다.
   - `lib/db/types.ts` → `type Db`
   - `tests/helpers/testDb.ts` → `createTestDb(): Promise<{ db: Db; close(): Promise<void> }>`
 
-- [ ] **Step 1: 의존성 설치**
+- [x] **Step 1: 의존성 설치**
 
 ```bash
 npm install drizzle-orm @neondatabase/serverless
 npm install -D drizzle-kit @electric-sql/pglite
 ```
 
-- [ ] **Step 2: 스키마 작성**
+- [x] **Step 2: 스키마 작성**
 
 `lib/db/schema.ts`:
 
@@ -388,7 +388,7 @@ export const usageLedger = pgTable('usage_ledger', {
 })
 ```
 
-- [ ] **Step 3: 타입 별칭과 프로덕션 클라이언트**
+- [x] **Step 3: 타입 별칭과 프로덕션 클라이언트**
 
 `lib/db/types.ts`:
 
@@ -426,7 +426,7 @@ export default {
 } satisfies Config
 ```
 
-- [ ] **Step 4: 마이그레이션 SQL 생성**
+- [x] **Step 4: 마이그레이션 SQL 생성**
 
 `package.json`에 추가: `"db:generate": "drizzle-kit generate"`
 
@@ -436,7 +436,7 @@ Expected: `drizzle/0000_*.sql` 생성됨. 파일을 열어 `CREATE TABLE` 7개�
 `CONSTRAINT "status_valid" CHECK`, `one_row_per_day`/`one_day_per_date` UNIQUE 인덱스가
 들어 있는지 눈으로 확인한다.
 
-- [ ] **Step 5: PGlite 테스트 하네스 작성**
+- [x] **Step 5: PGlite 테스트 하네스 작성**
 
 `tests/helpers/testDb.ts`:
 
@@ -468,7 +468,7 @@ export async function createTestDb(): Promise<{ db: Db; close(): Promise<void> }
 }
 ```
 
-- [ ] **Step 6: 실패하는 제약 테스트 작성**
+- [x] **Step 6: 실패하는 제약 테스트 작성**
 
 `tests/db/constraints.test.ts`:
 
@@ -549,13 +549,13 @@ describe('summaries 제약', () => {
 })
 ```
 
-- [ ] **Step 7: 테스트 실행**
+- [x] **Step 7: 테스트 실행**
 
 Run: `npm test -- tests/db/constraints.test.ts`
 Expected: PASS (7 tests). 실패하면 `drizzle/*.sql`에 해당 제약이 실제로 들어갔는지 확인한다 —
 Step 4의 눈 확인을 건너뛰었다면 여기서 드러난다.
 
-- [ ] **Step 8: 커밋**
+- [x] **Step 8: 커밋**
 
 ```bash
 git checkout main && git pull && git checkout -b feat/db-schema

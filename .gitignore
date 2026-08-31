@@ -1,0 +1,26 @@
+# deps
+node_modules/
+.pnp
+.pnp.js
+
+# next
+.next/
+out/
+build/
+next-env.d.ts
+
+# env — 비밀은 절대 커밋하지 않는다
+.env
+.env.*
+!.env.example
+
+# vercel
+.vercel
+
+# 기타
+.DS_Store
+*.pem
+npm-debug.log*
+yarn-error.log*
+coverage/
+*.tsbuildinfo

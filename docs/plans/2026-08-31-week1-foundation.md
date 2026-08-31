@@ -1838,7 +1838,7 @@ beacon 은 중복 도착하거나 아예 안 올 수 있으므로 멱등하게 �
   - `lib/budget/caps.ts` → `dailyCallCap(): number`, `monthlyCostCapMicros(): number`
   - `lib/budget/reserve.ts` → `type Reservation = { periodKeys: string[] }`, `reserve(db, clock): Promise<Reservation | null>`, `rollback(db, r: Reservation): Promise<void>`, `recordUsage(db, clock, entry): Promise<void>`
 
-- [ ] **Step 1: 캡 모듈 구현**
+- [x] **Step 1: 캡 모듈 구현**
 
 `lib/budget/caps.ts`:
 
@@ -1857,7 +1857,7 @@ export function monthlyCostCapMicros(): number {
 }
 ```
 
-- [ ] **Step 2: 실패하는 테스트 작성**
+- [x] **Step 2: 실패하는 테스트 작성**
 
 `tests/budget/reserve.test.ts`:
 
@@ -1972,12 +1972,12 @@ describe('recordUsage', () => {
 })
 ```
 
-- [ ] **Step 3: 테스트가 실패하는지 확인**
+- [x] **Step 3: 테스트가 실패하는지 확인**
 
 Run: `npm test -- tests/budget/reserve.test.ts`
 Expected: FAIL — 모듈 없음
 
-- [ ] **Step 4: 구현**
+- [x] **Step 4: 구현**
 
 `lib/budget/reserve.ts`:
 
@@ -2080,7 +2080,7 @@ export async function recordUsage(db: Db, clock: Clock, entry: UsageEntry): Prom
 }
 ```
 
-- [ ] **Step 5: 테스트 통과 확인**
+- [x] **Step 5: 테스트 통과 확인**
 
 Run: `npm test -- tests/budget/reserve.test.ts`
 Expected: PASS (10 tests)
@@ -2089,7 +2089,11 @@ Expected: PASS (10 tests)
 `select`로 현재값을 읽고 `update`로 쓰는 형태면 그 사이에 레이스가 생긴다 —
 반드시 `UPDATE ... WHERE calls < cap ... RETURNING` 한 문장이어야 한다.
 
-- [ ] **Step 6: 커밋**
+**이 테스트가 진짜인지 한 번 확인할 것.** 예약을 일부러 `select` 후 `update` 로
+바꿔 돌려보고 실패하는지 본다. 실패하지 않으면 테스트가 아무것도 증명하지 않는 것이다.
+(실제로 해봤고 racy 구현에서는 10개가 전부 통과해 테스트가 실패했다)
+
+- [x] **Step 6: 커밋**
 
 ```bash
 git checkout main && git pull && git checkout -b feat/budget

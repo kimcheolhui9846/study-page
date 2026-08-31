@@ -1,21 +1,22 @@
 # 핸드오프
 
-**갱신:** 2026-08-31 · **브랜치:** `feat/session-guard` · **PR:** #9
+**갱신:** 2026-08-31 · **브랜치:** `feat/budget` · **PR:** #10
 
 > 이 파일은 **현재 상태**만 담는다. 매번 통째로 덮어쓴다.
 > 과거 결정의 이유는 `docs/DECISIONS.md`에 있다.
 
 ## 지금 상태
 
-**1주차 Task 1~7 완료.** 보안 계층(①겹)이 전부 서 있다.
+**1주차 Task 1~8 완료.** ①겹(세션)과 ③겹(예산 카운터)이 섰다.
 
 - Next 16.3.3 / React 19.2.8 / Tailwind 4 / Vitest 4.1.11
 - Drizzle 0.45.2 / PGlite 0.5.8 (테스트) / @neondatabase/serverless 1.1.0
 - 테이블 7개, 마이그레이션 `drizzle/0000_wonderful_silver_centurion.sql`
-- 테스트 **103개 통과** (9파일, 18초)
+- 테스트 **119개 통과** (10파일, 18초)
 - `POST /api/session` 동작 — scrypt 검증 + 실패 잠금 + httpOnly 쿠키 발급
 - `npm run hash:password` 로 `AUTH_PASSWORD_HASH` 생성 가능
 - `withSession()` 가드 + `POST /api/session/end` 동작
+- 원자적 예산 예약 — 동시 요청 10개가 캡 3에서 정확히 3번만 통과 (racy 구현으로 역검증함)
 - 세션 만료 4경로(없음/유휴/절대/revoke) 전부 테스트로 증명됨
 - 커리큘럼 3과목 × Day 1~7 (초안. 사용자가 고쳐 쓸 것)
 - `check:secrets` · `tsc --noEmit` · `build` 전부 통과
@@ -23,22 +24,22 @@
 **아직 Neon 계정이 없어도 된다.** 테스트는 PGlite 인메모리 Postgres에서 돈다.
 `DATABASE_URL`은 실제로 앱을 띄울 때(Task 10) 필요해진다.
 
-아직 없는 것: 예산 카운터(③겹), 멱등성 라우트(②겹), UI. Task 8~10이다.
+아직 없는 것: 멱등성 라우트(②겹), UI. Task 9~10이다.
 
 ## 바로 다음에 할 일
 
-계획의 **Task 8 (`feat/budget`)** — 원자적 예산 예약·롤백 + 사용량 원장.
-**폭주 루프에 대한 방어선(③겹)이다.** 1주차에서 가장 중요한 태스크다.
+계획의 **Task 9 (`feat/fake-llm`)** — `FakeLlmClient` + 4겹이 전부 붙은 콘텐츠 라우트.
+**1주차의 마지막 검증 태스크다.** 여기서 ②겹(멱등성)이 완성되고
+"같은 Day 를 10번 요청해도 LLM 호출 1회"가 단언된다.
 
 ```bash
-git checkout main && git pull && git checkout -b feat/budget
+git checkout main && git pull && git checkout -b feat/fake-llm
 ```
 
-핵심 단언: 동시 요청 10개가 캡 3에서 정확히 3번만 통과해야 한다.
-`select` 후 `update` 로 나뉘면 레이스가 생긴다 — 반드시
-`UPDATE ... WHERE calls < cap ... RETURNING` 한 문장이어야 한다.
+로직을 `lib/study/content.ts` 의 순수 함수로 빼서 Next 런타임 없이 테스트한다.
+라우트 파일은 얇은 어댑터다.
 
-계획: `docs/plans/2026-08-31-week1-foundation.md` (Task 1~7은 완료 표시됨)
+계획: `docs/plans/2026-08-31-week1-foundation.md` (Task 1~8은 완료 표시됨)
 
 ## 알아둘 것
 

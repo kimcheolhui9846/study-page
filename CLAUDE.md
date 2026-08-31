@@ -1,9 +1,20 @@
 # study-page 작업 규칙
 
+@AGENTS.md
+
 ## 세션 시작 시
 
 1. **`docs/HANDOFF.md`를 먼저 읽는다.** 코드를 보기 전에.
 2. 설계 근거가 필요하면 `docs/DECISIONS.md`와 `docs/specs/`를 본다.
+
+## Next.js 16
+
+이 프로젝트는 Next 16이다. 학습 데이터의 Next와 다르므로 **추측하지 말고
+`node_modules/next/dist/docs/`의 해당 문서를 읽는다.** 이미 확인한 차이:
+
+- `export const runtime = 'nodejs'`는 **기본값이고 문서가 제거를 권한다.** Edge 런타임은 deprecated다.
+- 라우트 핸들러의 `params`는 **Promise**이며 두 번째 인자(context)로 온다. `await` 해야 한다.
+- `cookies()`는 async다.
 
 ## 작업 종료 시 (PR 올리기 전 필수)
 

@@ -586,7 +586,7 @@ git commit -m "feat: DB 스키마와 제약 테스트
   - `lib/time.ts` → `kstToday(now: Date): string`, `kstMonth(now: Date): string`, `interface Clock { now(): Date }`, `systemClock: Clock`
   - `tests/helpers/clock.ts` → `fixedClock(iso: string): Clock & { advance(ms: number): void }`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `tests/time.test.ts`:
 
@@ -630,12 +630,12 @@ describe('fixedClock', () => {
 })
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 Run: `npm test -- tests/time.test.ts`
 Expected: FAIL — `Cannot find module '../lib/time'`
 
-- [ ] **Step 3: 최소 구현**
+- [x] **Step 3: 최소 구현**
 
 `lib/time.ts`:
 
@@ -676,12 +676,12 @@ export function fixedClock(iso: string): Clock & { advance(ms: number): void } {
 }
 ```
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Run: `npm test -- tests/time.test.ts`
 Expected: PASS (7 tests)
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git checkout main && git pull && git checkout -b feat/time

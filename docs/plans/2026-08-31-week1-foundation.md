@@ -709,13 +709,13 @@ Clock 은 세션 만료 테스트에서 sleep 을 없애기 위한 주입 지점
   - `lib/curriculum/schema.ts` → `SUBJECTS`, `type Subject`, `DayEntrySchema`, `CurriculumSchema`, `type DayEntry`, `type Curriculum`
   - `lib/curriculum/load.ts` → `loadCurriculum(subject: Subject): Curriculum`, `getDay(subject: Subject, dayNo: number): DayEntry | null`, `loadAll(): Record<Subject, Curriculum>`
 
-- [ ] **Step 1: 의존성 설치**
+- [x] **Step 1: 의존성 설치**
 
 ```bash
 npm install zod yaml
 ```
 
-- [ ] **Step 2: 실패하는 테스트 작성**
+- [x] **Step 2: 실패하는 테스트 작성**
 
 `tests/curriculum.test.ts`:
 
@@ -775,12 +775,12 @@ describe('실제 커리큘럼 파일', () => {
 })
 ```
 
-- [ ] **Step 3: 테스트가 실패하는지 확인**
+- [x] **Step 3: 테스트가 실패하는지 확인**
 
 Run: `npm test -- tests/curriculum.test.ts`
 Expected: FAIL — 모듈 없음
 
-- [ ] **Step 4: 스키마 구현**
+- [x] **Step 4: 스키마 구현**
 
 `lib/curriculum/schema.ts`:
 
@@ -806,7 +806,7 @@ export const CurriculumSchema = z.object({
   c.days.forEach((d, i) => {
     if (d.day !== i + 1) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',   // zod 4. z.ZodIssueCode 는 v3 API 다
         message: `day 번호는 1부터 연속이어야 합니다. ${i} 번째 항목의 day 가 ${d.day} 입니다`,
         path: ['days', i, 'day'],
       })
@@ -818,7 +818,7 @@ export type DayEntry = z.infer<typeof DayEntrySchema>
 export type Curriculum = z.infer<typeof CurriculumSchema>
 ```
 
-- [ ] **Step 5: 로더 구현**
+- [x] **Step 5: 로더 구현**
 
 `lib/curriculum/load.ts`:
 
@@ -856,7 +856,7 @@ export function loadAll(): Record<Subject, Curriculum> {
 }
 ```
 
-- [ ] **Step 6: 커리큘럼 파일 작성 (Day 1~7)**
+- [x] **Step 6: 커리큘럼 파일 작성 (Day 1~7)**
 
 > 이 내용은 **초안**이다. 사용자가 나중에 전부 고쳐 쓸 것을 전제로 한다.
 > 형식이 맞고 테스트가 통과하는 것이 이 단계의 목표다.
@@ -890,7 +890,7 @@ days:
   - day: 5
     topic: HTTP 캐시
     goal: ETag 와 Cache-Control 이 각각 어떤 문제를 푸는지 구분한다
-    keywords: [ETag, max-age, 조건부 요청, 304]
+    keywords: [ETag, max-age, 조건부 요청, "304"]  # 따옴표 필수 — YAML이 숫자로 읽는다
     difficulty: 2
   - day: 6
     topic: 데이터베이스 인덱스
@@ -993,12 +993,12 @@ days:
     difficulty: 3
 ```
 
-- [ ] **Step 7: 테스트 통과 확인**
+- [x] **Step 7: 테스트 통과 확인**
 
 Run: `npm test -- tests/curriculum.test.ts`
 Expected: PASS (8 tests)
 
-- [ ] **Step 8: 커밋**
+- [x] **Step 8: 커밋**
 
 ```bash
 git checkout main && git pull && git checkout -b feat/curriculum

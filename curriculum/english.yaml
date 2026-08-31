@@ -1,0 +1,49 @@
+# 이 파일은 초안이다. 내용은 자유롭게 고쳐 쓴다.
+#
+# goal 이 채점 기준이 된다. "~를 안다" 대신 "~를 설명할 수 있다 / 구분한다 / 든다" 처럼
+# 판정 가능한 문장으로 쓴다.
+
+subject: english
+label: 영어
+days:
+  - day: 1
+    topic: 가정법 과거와 과거완료
+    goal: 두 시제가 가리키는 시점 차이를 예문으로 구분한다
+    keywords: [if절, would have, 시제 일치, 반사실]
+    difficulty: 3
+
+  - day: 2
+    topic: 관계대명사의 제한적 용법과 계속적 용법
+    goal: 쉼표 유무가 의미를 어떻게 바꾸는지 설명한다
+    keywords: [which, that, 계속적 용법, 선행사]
+    difficulty: 2
+
+  - day: 3
+    topic: 분사구문
+    goal: 부사절을 분사구문으로 바꾸고 원래 접속사의 의미를 복원한다
+    keywords: [현재분사, 완료분사, 의미상 주어, 독립분사구문]
+    difficulty: 3
+
+  - day: 4
+    topic: 조동사의 추측 표현
+    goal: must / may / might / could 의 확신 강도를 순서대로 배열하고 근거를 댄다
+    keywords: [추측, 확신도, must have p.p., 과거 추측]
+    difficulty: 2
+
+  - day: 5
+    topic: 수동태를 쓰는 이유
+    goal: 능동태 대신 수동태를 선택해야 하는 상황 세 가지를 든다
+    keywords: [행위자 생략, 정보 구조, by구, 학술 문체]
+    difficulty: 2
+
+  - day: 6
+    topic: 관사 a / the / 무관사
+    goal: 첫 언급과 재언급에서 관사가 바뀌는 규칙을 예문에 적용한다
+    keywords: [한정성, 총칭 용법, 불가산명사, 고유명사]
+    difficulty: 4
+
+  - day: 7
+    topic: 전치사 in / on / at 의 공간과 시간
+    goal: 세 전치사의 공간 은유가 시간 표현으로 확장되는 방식을 설명한다
+    keywords: [점, 면, 공간, 은유적 확장]
+    difficulty: 2

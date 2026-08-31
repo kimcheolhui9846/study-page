@@ -1,0 +1,51 @@
+# 이 파일은 초안이다. 내용은 자유롭게 고쳐 쓴다.
+#
+# goal 이 채점 기준이 된다. "~를 안다" 대신 "~를 설명할 수 있다 / 구분한다 / 든다" 처럼
+# 판정 가능한 문장으로 쓴다. 이게 채점 품질의 절반을 결정한다.
+#
+# Day 추가는 배열 끝에 항목을 붙이면 된다. day 번호는 1부터 연속이어야 한다.
+
+subject: cs
+label: 컴퓨터 과학
+days:
+  - day: 1
+    topic: 프로세스와 스레드
+    goal: 컨텍스트 스위칭 비용이 왜 발생하는지 설명할 수 있다
+    keywords: [PCB, 컨텍스트 스위칭, 주소공간, TCB]
+    difficulty: 2
+
+  - day: 2
+    topic: 뮤텍스와 세마포어
+    goal: 두 동기화 도구의 소유권 개념 차이를 구분한다
+    keywords: [상호배제, 카운팅 세마포어, 데드락, 소유권]
+    difficulty: 3
+
+  - day: 3
+    topic: 가상 메모리와 페이징
+    goal: 페이지 폴트가 발생했을 때 OS가 하는 일을 순서대로 말할 수 있다
+    keywords: [페이지 테이블, TLB, 페이지 폴트, 스와핑]
+    difficulty: 3
+
+  - day: 4
+    topic: TCP 연결 수립과 종료
+    goal: 3-way handshake 의 각 단계가 무엇을 보장하는지 설명한다
+    keywords: [SYN, ACK, TIME_WAIT, 시퀀스 번호]
+    difficulty: 2
+
+  - day: 5
+    topic: HTTP 캐시
+    goal: ETag 와 Cache-Control 이 각각 어떤 문제를 푸는지 구분한다
+    keywords: [ETag, max-age, 조건부 요청, "304"]  # 따옴표 필수 — YAML이 숫자로 읽는다
+    difficulty: 2
+
+  - day: 6
+    topic: 데이터베이스 인덱스
+    goal: B-tree 인덱스가 어떤 쿼리에 안 먹는지 이유와 함께 말할 수 있다
+    keywords: [B-tree, 복합 인덱스, 선행 컬럼, 카디널리티]
+    difficulty: 3
+
+  - day: 7
+    topic: 트랜잭션 격리 수준
+    goal: 각 격리 수준에서 어떤 이상 현상이 허용되는지 대응시킨다
+    keywords: [더티 리드, 팬텀 리드, MVCC, 직렬화 가능]
+    difficulty: 4

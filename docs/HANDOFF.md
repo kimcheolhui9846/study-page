@@ -1,34 +1,36 @@
 # 핸드오프
 
-**갱신:** 2026-08-31 · **브랜치:** `feat/time` · **PR:** #5
+**갱신:** 2026-08-31 · **브랜치:** `feat/curriculum` · **PR:** #6
 
 > 이 파일은 **현재 상태**만 담는다. 매번 통째로 덮어쓴다.
 > 과거 결정의 이유는 `docs/DECISIONS.md`에 있다.
 
 ## 지금 상태
 
-**1주차 Task 1~3 완료.** 뼈대 + 비밀 검사 + DB 스키마 + 시간 헬퍼가 서 있다.
+**1주차 Task 1~4 완료.** 뼈대 + 비밀 검사 + DB 스키마 + 시간 헬퍼 + 커리큘럼 로더가 서 있다.
 
 - Next 16.3.3 / React 19.2.8 / Tailwind 4 / Vitest 4.1.11
 - Drizzle 0.45.2 / PGlite 0.5.8 (테스트) / @neondatabase/serverless 1.1.0
 - 테이블 7개, 마이그레이션 `drizzle/0000_wonderful_silver_centurion.sql`
-- 테스트 **33개 통과** — `check-secrets` 7 + `db/constraints` 12 + `time` 14
+- 테스트 **49개 통과** — check-secrets 7 + constraints 12 + time 14 + curriculum 16
+- 커리큘럼 3과목 × Day 1~7 (초안. 사용자가 고쳐 쓸 것)
 - `check:secrets` · `tsc --noEmit` · `build` 전부 통과
 
 **아직 Neon 계정이 없어도 된다.** 테스트는 PGlite 인메모리 Postgres에서 돈다.
 `DATABASE_URL`은 실제로 앱을 띄울 때(Task 10) 필요해진다.
 
-아직 없는 것: 커리큘럼 로더, 세션, 인증, 예산, LLM. Task 4~10이다.
+아직 없는 것: 세션, 인증, 예산, LLM. Task 5~10이다.
 
 ## 바로 다음에 할 일
 
-계획의 **Task 4 (`feat/curriculum`)** — zod 스키마 + YAML 로더 + Day 1~7 초안.
+계획의 **Task 5 (`feat/session-store`)** — `SessionStore` 인터페이스 + `PostgresSessionStore`
++ 만료 4경로(없음/유휴/절대/revoke) 테스트. 여기부터 보안 계층이다.
 
 ```bash
-git checkout main && git pull && git checkout -b feat/curriculum
+git checkout main && git pull && git checkout -b feat/session-store
 ```
 
-계획: `docs/plans/2026-08-31-week1-foundation.md` (Task 1~3은 완료 표시됨)
+계획: `docs/plans/2026-08-31-week1-foundation.md` (Task 1~4는 완료 표시됨)
 
 ## 알아둘 것
 
@@ -37,6 +39,8 @@ git checkout main && git pull && git checkout -b feat/curriculum
 - **`lib/db/client.ts`는 import 시점에 `DATABASE_URL`이 없으면 던진다.** 의도한 동작이다 —
   런타임에 조용히 실패하는 것보다 빌드에서 큰 소리로 깨지는 게 낫다.
   테스트는 이 파일을 import 하지 않고 `tests/helpers/testDb.ts`를 쓴다.
+- **YAML 은 따옴표 없는 숫자를 number 로 읽는다.** 커리큘럼 keyword 에 `304` 같은 값을 쓸 때
+  반드시 따옴표를 친다. zod 스키마가 잡아주지만 실수 자체를 줄이는 게 낫다.
 - 마이그레이션 SQL은 `--> statement-breakpoint`로 나뉜다. 테스트 하네스가 이걸로 쪼개 실행한다.
 - Next 16: `runtime = 'nodejs'` export 쓰지 않는다 / `params`는 Promise / `cookies()`는 async.
   추측하지 말고 `node_modules/next/dist/docs/`를 읽을 것.

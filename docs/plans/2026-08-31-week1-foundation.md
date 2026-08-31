@@ -407,10 +407,27 @@ import { drizzle } from 'drizzle-orm/neon-http'
 import * as schema from './schema'
 import type { Db } from './types'
 
-const url = process.env.DATABASE_URL
-if (!url) throw new Error('DATABASE_URL 이 설정되지 않았습니다')
+let instance: Db | null = null
 
-export const db = drizzle(url, { schema }) as unknown as Db
+function connect(): Db {
+  const url = process.env.DATABASE_URL
+  if (!url) throw new Error('DATABASE_URL 이 설정되지 않았습니다')
+  return drizzle(url, { schema }) as unknown as Db
+}
+
+/**
+ * 첫 사용 시점에 연결한다. import 만으로는 연결하지 않는다.
+ *
+ * Next 빌드는 라우트 모듈을 import 해서 설정을 수집한다. 모듈 최상위에서 던지면
+ * DATABASE_URL 없이는 빌드 자체가 불가능해져 CI 와 타입 검사가 막힌다.
+ */
+export const db = new Proxy({} as Db, {
+  get(_target, prop, receiver) {
+    instance ??= connect()
+    const value = Reflect.get(instance as object, prop, receiver)
+    return typeof value === 'function' ? value.bind(instance) : value
+  },
+})
 ```
 
 `drizzle.config.ts`:
@@ -1284,7 +1301,7 @@ SessionStore 인터페이스 뒤에 두어 나중에 Redis 구현체를 추가�
 > `node:crypto`의 `scrypt`는 표준 라이브러리이고 메모리 하드 KDF로서 충분하다.
 > 의존성 0개, 배포 위험 0개. 이 결정을 `docs/DECISIONS.md`에 기록한다 (Step 7).
 
-- [ ] **Step 1: 실패하는 비밀번호 테스트 작성**
+- [x] **Step 1: 실패하는 비밀번호 테스트 작성**
 
 `tests/auth/password.test.ts`:
 
@@ -1330,12 +1347,12 @@ describe('verifyPassword', () => {
 })
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 Run: `npm test -- tests/auth/password.test.ts`
 Expected: FAIL — 모듈 없음
 
-- [ ] **Step 3: 비밀번호 모듈 구현**
+- [x] **Step 3: 비밀번호 모듈 구현**
 
 `lib/auth/password.ts`:
 
@@ -1386,15 +1403,14 @@ console.log('\nAUTH_PASSWORD_HASH 에 아래 값을 넣으세요:\n')
 console.log(hashPassword(pw))
 ```
 
-`package.json`에 추가: `"hash:password": "npx tsx scripts/hash-password.mjs"`
-그리고 `npm install -D tsx`
+`npm install -D tsx` 후 `package.json` 에 추가: `"hash:password": "tsx scripts/hash-password.mjs"`
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Run: `npm test -- tests/auth/password.test.ts`
 Expected: PASS (7 tests)
 
-- [ ] **Step 5: 실패하는 잠금 테스트 작성**
+- [x] **Step 5: 실패하는 잠금 테스트 작성**
 
 `tests/auth/lockout.test.ts`:
 
@@ -1447,7 +1463,7 @@ describe('isLockedOut', () => {
 })
 ```
 
-- [ ] **Step 6: 잠금 모듈 구현**
+- [x] **Step 6: 잠금 모듈 구현**
 
 `lib/auth/lockout.ts`:
 
@@ -1483,7 +1499,7 @@ export async function recordAttempt(
 }
 ```
 
-- [ ] **Step 7: 로그인 라우트 구현**
+- [x] **Step 7: 로그인 라우트 구현**
 
 `app/api/session/route.ts`:
 
@@ -1531,7 +1547,7 @@ export async function POST(req: NextRequest) {
 }
 ```
 
-- [ ] **Step 8: 전체 테스트 통과 확인**
+- [x] **Step 8: 전체 테스트 통과 확인**
 
 Run: `npm test`
 Expected: PASS (여기까지 누적 38 tests)
@@ -1539,7 +1555,7 @@ Expected: PASS (여기까지 누적 38 tests)
 Run: `npx tsc --noEmit`
 Expected: 에러 0개
 
-- [ ] **Step 9: 결정 로그 갱신 후 커밋**
+- [x] **Step 9: 결정 로그 갱신 후 커밋**
 
 `docs/DECISIONS.md` 맨 아래에 추가:
 

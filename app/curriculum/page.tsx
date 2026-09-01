@@ -8,11 +8,10 @@ import { loadGraph } from '@/lib/curriculum/load'
 import { overview } from '@/lib/curriculum/overview'
 import { SUBJECTS, type Subject } from '@/lib/curriculum/schema'
 import type { TopicNode } from '@/lib/curriculum/graph'
+import { loadSettings } from '@/lib/plan/store'
 import { SessionBar } from '@/components/SessionBar'
 
 export const dynamic = 'force-dynamic'
-
-const TARGET_DAYS = 90
 
 const REQUIRED_STYLE = {
   core: { label: '핵심', className: 'text-ok' },
@@ -81,7 +80,9 @@ export default async function CurriculumPage({
     : null
 
   const graph = loadGraph()
-  const all = overview(graph, TARGET_DAYS)
+  // 목표 기간을 화면마다 다르게 박아두면 대시보드와 어긋난다. 설정이 진실이다.
+  const { targetDayCount } = await loadSettings(db)
+  const all = overview(graph, targetDayCount)
   const shown = active ? all.filter((s) => s.subject === active) : all
   const totalTopics = all.reduce((n, s) => n + s.topicCount, 0)
 

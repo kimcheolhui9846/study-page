@@ -41,3 +41,24 @@ export interface Clock {
 export const systemClock: Clock = {
   now: () => new Date(),
 }
+
+/**
+ * 날짜 문자열 산술.
+ *
+ * ★ Date 산술에 시간대가 끼어들지 않게 UTC 정오를 기준점으로 쓴다.
+ * KST(+09:00)든 어디든 정오에서 ±12시간 안에는 날짜가 안 바뀐다.
+ *
+ * 'YYYY-MM-DD' 만 다룬다 — 이 앱에서 날짜는 KST 달력의 하루이지 시각이 아니다.
+ */
+export function addDays(dateStr: string, days: number): string {
+  const base = new Date(`${dateStr}T12:00:00Z`)
+  base.setUTCDate(base.getUTCDate() + days)
+  return base.toISOString().slice(0, 10)
+}
+
+/** from 에서 to 까지 며칠. to 가 앞서면 음수다. */
+export function daysBetween(from: string, to: string): number {
+  const a = new Date(`${from}T12:00:00Z`).getTime()
+  const b = new Date(`${to}T12:00:00Z`).getTime()
+  return Math.round((b - a) / 86_400_000)
+}

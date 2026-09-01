@@ -1,4 +1,4 @@
-import { kstToday } from '../time'
+import { addDays, kstToday } from '../time'
 
 /**
  * 간격 반복 복습 예약.
@@ -13,13 +13,6 @@ export interface ReviewState {
   round: number
   /** 다음 복습 예정일 'YYYY-MM-DD'. null 이면 예정 없음 */
   nextReviewAt: string | null
-}
-
-function addDays(dateStr: string, days: number): string {
-  // 날짜 문자열만 다룬다. Date 산술에 시간대가 끼어들지 않게 UTC 정오를 기준점으로 쓴다.
-  const base = new Date(`${dateStr}T12:00:00Z`)
-  base.setUTCDate(base.getUTCDate() + days)
-  return base.toISOString().slice(0, 10)
 }
 
 /**

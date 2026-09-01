@@ -163,7 +163,7 @@ export function SessionBar({ label = 'STUDY', expiringNote }: SessionBarProps) {
               {stage === 'expired'
                 ? '세션이 닫혔다. 로그인 화면으로 돌아간다.'
                 : stage === 'warn'
-                  ? '2분 뒤 세션이 닫힌다. 아무 키나 누르면 15분으로 되돌아간다.'
+                  ? '아무 키나 누르면 다시 15분이 된다.'
                   : (expiringNote ?? '곧 세션이 닫힌다. 계속하려면 오른쪽 버튼을 누른다.')}
             </span>
           </>

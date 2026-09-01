@@ -62,4 +62,13 @@ body {
   color: var(--color-body);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+
+  /*
+   * 한국어는 어절 단위로 끊어야 읽힌다.
+   *
+   * 브라우저 기본값(word-break: normal)은 한국어를 음절 단위로 쪼갤 수 있어
+   * "다시 만들 수 없 / 고," 처럼 끊긴다. keep-all 이 그것을 막는다.
+   * 가운데 정렬에서 특히 눈에 띄어서 실제로 겪고 넣었다.
+   */
+  word-break: keep-all;
 }

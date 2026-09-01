@@ -143,7 +143,13 @@ export default async function Dashboard() {
           <Stat
             label="연속"
             value={d.streak === 0 ? '—' : `${d.streak}일`}
-            note={d.streak === 0 ? '오늘 시작하면 1일' : '어제까지 이어졌다'}
+            note={
+              d.streak === 0
+                ? '오늘 시작하면 1일'
+                : d.studiedToday
+                  ? '오늘까지 이어졌다'
+                  : `오늘 하면 ${d.streak + 1}일`
+            }
             tone={d.streak === 0 ? 'text-faint' : 'text-ink'}
           />
           <Stat

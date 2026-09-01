@@ -215,3 +215,18 @@ describe('복습 부담', () => {
     expect(reviewLoad(p, today, 30).upcoming).toBe(1)
   })
 })
+
+describe('연속 문구의 근거', () => {
+  it('★ 오늘 했는지와 연속 일수는 다른 사실이다', () => {
+    // 같은 2일이지만 화면 문구가 달라야 한다:
+    //   오늘 포함 → "오늘까지 이어졌다"
+    //   어제까지  → "오늘 하면 3일"
+    const withToday = ['2026-09-01', '2026-09-02']
+    const untilYesterday = ['2026-08-31', '2026-09-01']
+
+    expect(streakDays(withToday, '2026-09-02')).toBe(2)
+    expect(streakDays(untilYesterday, '2026-09-02')).toBe(2)
+    expect(new Set(withToday).has('2026-09-02')).toBe(true)
+    expect(new Set(untilYesterday).has('2026-09-02')).toBe(false)
+  })
+})

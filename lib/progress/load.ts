@@ -19,6 +19,8 @@ import {
 export interface Dashboard {
   subjects: SubjectProgress[]
   streak: number
+  /** 오늘 채점까지 끝낸 것이 있나. 연속 문구가 이걸 봐야 정확해진다 */
+  studiedToday: boolean
   pace: Pace
   recent: RecentScore[]
   reviews: { due: number; upcoming: number }
@@ -58,6 +60,7 @@ export async function loadDashboard(db: Db, clock: Clock): Promise<Dashboard> {
   return {
     subjects,
     streak: streakDays(activeDays, today),
+    studiedToday: activeDays.has(today),
     pace: paceOf({
       activeDays: activeDays.size,
       masteredTopics: subjects.reduce((n, s) => n + s.mastered, 0),

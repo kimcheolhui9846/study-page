@@ -10,6 +10,7 @@ import { attempts, studyDays } from '@/lib/db/schema'
 import { SessionBar } from '@/components/SessionBar'
 import { Passage } from '@/components/Passage'
 import { AnswerForm } from '@/components/AnswerForm'
+import { GradeResult } from '@/components/GradeResult'
 
 export const dynamic = 'force-dynamic'
 
@@ -76,9 +77,15 @@ export default async function StudyPage({ params }: PageProps<'/study/[subject]'
         />
 
         {graded ? (
-          <p className="mt-16 text-center text-[14px] leading-[1.7] text-muted">
-            채점 결과 화면은 Task 9 에서 붙인다.
-          </p>
+          <GradeResult
+            subject={subject}
+            dayNo={progress.dayNo}
+            attemptNo={graded.attemptNo}
+            attemptsLeft={ATTEMPT_CAP - tries.length}
+            questions={content.questions}
+            answers={graded.answers as Record<string, string>}
+            feedback={graded.feedback as never}
+          />
         ) : (
           <AnswerForm
             subject={subject}

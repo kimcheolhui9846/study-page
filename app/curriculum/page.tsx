@@ -26,7 +26,12 @@ function TopicRow({ t, graph }: { t: TopicNode; graph: ReturnType<typeof loadGra
   return (
     <li className="flex flex-col gap-2 border-t border-rule-soft py-5 first:border-t-0">
       <div className="flex items-baseline justify-between gap-4">
-        <h3 className="text-balance text-[15.5px] leading-snug text-ink">{t.title}</h3>
+        <Link
+          href={`/topic/${encodeURIComponent(t.id)}`}
+          className="text-balance text-[15.5px] leading-snug text-ink underline decoration-transparent underline-offset-4 transition-colors hover:decoration-rule-strong"
+        >
+          {t.title}
+        </Link>
         <span className={`shrink-0 font-mono text-[10.5px] tracking-[0.18em] ${req.className}`}>
           {req.label}
         </span>

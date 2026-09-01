@@ -1,0 +1,46 @@
+/**
+ * 답안 초안을 브라우저에 남긴다.
+ *
+ * 세션이 닫혀도 쓰던 답을 잃지 않게 하는 것이 목적이다. 세션 바의 만료
+ * 경고가 "쓰던 답은 브라우저에 남는다"고 말하는 근거가 이 파일이다.
+ * 이게 없으면 그 문장은 거짓말이다.
+ *
+ * localStorage 접근 자체가 던지는 환경이 있다(사생활 보호 모드, 사이트
+ * 데이터 차단). 초안은 편의 기능이므로 실패해도 화면이 죽으면 안 된다 —
+ * 전부 삼키고 빈 값을 준다.
+ */
+export type Answers = Record<string, string>
+
+export function draftKey(subject: string, dayNo: number): string {
+  return `study-page:draft:${subject}:${dayNo}`
+}
+
+export function loadDraft(subject: string, dayNo: number): Answers {
+  try {
+    const raw = localStorage.getItem(draftKey(subject, dayNo))
+    if (!raw) return {}
+
+    const parsed: unknown = JSON.parse(raw)
+    // 배열과 null 도 typeof 'object' 다. 순수 객체만 받는다.
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {}
+    return parsed as Answers
+  } catch {
+    return {}
+  }
+}
+
+export function saveDraft(subject: string, dayNo: number, answers: Answers): void {
+  try {
+    localStorage.setItem(draftKey(subject, dayNo), JSON.stringify(answers))
+  } catch {
+    // 저장 못 해도 화면은 계속 돈다
+  }
+}
+
+export function clearDraft(subject: string, dayNo: number): void {
+  try {
+    localStorage.removeItem(draftKey(subject, dayNo))
+  } catch {
+    // 무시
+  }
+}

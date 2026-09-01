@@ -39,8 +39,8 @@ export default async function LoginPage() {
             15분 동안 아무것도 하지 않으면 세션이 스스로 닫힌다.
           </p>
           <p className="text-[13px] leading-[1.75] text-muted">
-            <span className="text-body">[종료]</span>를 누르거나 창을 닫으면 그 즉시 서버에서
-            지워진다. 세션이 없는 동안에는 어떤 AI 호출도 일어나지 않는다.
+            <span className="text-body">[종료]</span>를 누르면 그 즉시 서버에서 지워지고, 창을
+            닫으면 30초 뒤에 지워진다. 세션이 없는 동안에는 어떤 AI 호출도 일어나지 않는다.
           </p>
         </div>
       </div>

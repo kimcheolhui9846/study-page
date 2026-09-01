@@ -107,10 +107,14 @@ export function SessionBar({ label = 'STUDY', expiringNote }: SessionBarProps) {
     return () => { for (const e of events) window.removeEventListener(e, onActivity) }
   }, [sync])
 
-  // 탭이 닫힐 때 최선 노력으로 세션을 끊는다.
-  // 보장되지 않는다 — 확실한 안전망은 서버의 유휴 15분 타임아웃이다.
+  // 탭이 사라질 때 유휴 만료를 30초로 당긴다. 파기하지 않는다.
+  //
+  // ★ pagehide 는 창을 닫을 때만이 아니라 새로고침과 전체 페이지 이동에서도
+  // 발생한다. 여기서 /api/session/end 를 부르면 새로고침이 곧 로그아웃이 된다
+  // (실제로 그랬다). 정말 닫았으면 30초 뒤 죽고, 새로고침이면 새 페이지의
+  // 첫 요청이 다시 15분으로 민다.
   useEffect(() => {
-    const onHide = () => { navigator.sendBeacon('/api/session/end') }
+    const onHide = () => { navigator.sendBeacon('/api/session/leaving') }
     window.addEventListener('pagehide', onHide)
     return () => window.removeEventListener('pagehide', onHide)
   }, [])

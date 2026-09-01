@@ -13,93 +13,93 @@
     body { margin: 0; font-family: "IBM Plex Sans KR", system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
     p, h1, h2, h3 { margin: 0; font-weight: 400; }
     input, textarea, button { font: inherit; }
-    a { color: #24765F; text-decoration: none; }
-    a:hover { color: #1A5A48; text-decoration: underline; }
+    a { color: #0E7C5A; text-decoration: none; }
+    a:hover { color: #0A5F45; text-decoration: underline; }
   </style>
 </helmet>
 
-<div style="min-height: 980px; display: flex; flex-direction: column; background: #FAF7F2;">
+<div style="min-height: 980px; display: flex; flex-direction: column; background: #F7F8FA;">
 
   <!-- 세션 바 -->
-  <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 52px; padding: 0 32px; background: #FFFDF9; border-bottom: 1px solid #E7E0D5;">
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 52px; padding: 0 32px; background: #FFFFFF; border-bottom: 1px solid #E7E9EE;">
     <div style="display: flex; align-items: center; gap: 10px;">
-      <span style="width: 7px; height: 7px; border-radius: 50%; background: #24765F; flex: none;"></span>
-      <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.1em; color: #3D382F;">CS · DAY 5</span>
+      <span style="width: 7px; height: 7px; border-radius: 50%; background: #0E7C5A; flex: none;"></span>
+      <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.1em; color: #3A3F47;">CS · DAY 5</span>
     </div>
     <div style="display: flex; align-items: center; gap: 18px;">
-      <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12.5px; color: #7A7266;">남은 시간 <span style="color: #23201C;">03:20</span></span>
-      <button style="height: 30px; padding: 0 14px; border: 1px solid #D8CFC0; border-radius: 3px; background: transparent; color: #3D382F; font-size: 12.5px; cursor: pointer;">종료</button>
+      <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12.5px; color: #6E747E;">남은 시간 <span style="color: #14161A;">03:20</span></span>
+      <button style="height: 30px; padding: 0 14px; border: 1px solid #D3D7DE; border-radius: 3px; background: transparent; color: #3A3F47; font-size: 12.5px; cursor: pointer;">종료</button>
     </div>
   </div>
 
   <div style="display: flex; flex-direction: column; flex-grow: 1; width: 100%; max-width: 800px; margin: 0 auto; padding: 52px 32px 44px;">
 
-    <div style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.14em; color: #9C948A;">마지막</div>
-    <h1 style="margin-top: 14px; font-family: 'Gowun Batang', Georgia, 'Times New Roman', serif; font-size: 36px; line-height: 1.3; color: #23201C;">Velog 로 보내기</h1>
+    <div style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.14em; color: #949BA6;">마지막</div>
+    <h1 style="margin-top: 14px; font-family: 'Gowun Batang', Georgia, 'Times New Roman', serif; font-size: 36px; line-height: 1.3; color: #14161A;">Velog 로 보내기</h1>
 
     <!-- 제목 · 태그 -->
     <div style="display: flex; flex-direction: column; gap: 26px; margin-top: 40px;">
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <label style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; letter-spacing: 0.12em; color: #7A7266;">제목</label>
-        <input type="text" value="캐시는 &quot;묻지 않기&quot;와 &quot;싸게 묻기&quot;다" style="height: 52px; padding: 0 2px; border: none; border-bottom: 1.5px solid #23201C; background: transparent; color: #23201C; font-family: 'Gowun Batang', Georgia, serif; font-size: 22px; outline: none;">
+        <label style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; letter-spacing: 0.12em; color: #6E747E;">제목</label>
+        <input type="text" value="캐시는 &quot;묻지 않기&quot;와 &quot;싸게 묻기&quot;다" style="height: 52px; padding: 0 2px; border: none; border-bottom: 1.5px solid #14161A; background: transparent; color: #14161A; font-family: 'Gowun Batang', Georgia, serif; font-size: 22px; outline: none;">
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <label style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; letter-spacing: 0.12em; color: #7A7266;">태그</label>
-        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 12px 2px; border-bottom: 1px solid #D8CFC0;">
-          <span style="padding: 6px 12px; background: #F1ECE3; border-radius: 2px; font-size: 13px; color: #3D382F;">CS</span>
-          <span style="padding: 6px 12px; background: #F1ECE3; border-radius: 2px; font-size: 13px; color: #3D382F;">HTTP</span>
-          <span style="padding: 6px 12px; background: #F1ECE3; border-radius: 2px; font-size: 13px; color: #3D382F;">캐시</span>
-          <span style="padding: 6px 12px; background: #F1ECE3; border-radius: 2px; font-size: 13px; color: #3D382F;">TIL</span>
-          <span style="font-size: 13px; color: #C4BAA9;">태그를 입력하고 엔터</span>
+        <label style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; letter-spacing: 0.12em; color: #6E747E;">태그</label>
+        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 12px 2px; border-bottom: 1px solid #D3D7DE;">
+          <span style="padding: 6px 12px; background: #EFF1F5; border-radius: 2px; font-size: 13px; color: #3A3F47;">CS</span>
+          <span style="padding: 6px 12px; background: #EFF1F5; border-radius: 2px; font-size: 13px; color: #3A3F47;">HTTP</span>
+          <span style="padding: 6px 12px; background: #EFF1F5; border-radius: 2px; font-size: 13px; color: #3A3F47;">캐시</span>
+          <span style="padding: 6px 12px; background: #EFF1F5; border-radius: 2px; font-size: 13px; color: #3A3F47;">TIL</span>
+          <span style="font-size: 13px; color: #B9BFC9;">태그를 입력하고 엔터</span>
         </div>
       </div>
 
       <!-- 미리보기 -->
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <label style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; letter-spacing: 0.12em; color: #7A7266;">보내질 내용</label>
-        <div style="display: flex; flex-direction: column; gap: 14px; padding: 26px 24px; background: #FFFDF9; border: 1px solid #E7E0D5; border-radius: 4px;">
-          <p style="font-size: 15px; line-height: 1.85; color: #3D382F;">오늘 가장 크게 바뀐 생각은, ETag 와 Cache-Control 이 나란히 놓인 두 선택지가 아니라는 것이다. 둘은 순서다.</p>
-          <p style="font-size: 15px; line-height: 1.85; color: #3D382F;">max-age 가 살아 있는 동안 브라우저는 서버에 아예 말을 걸지 않는다. 그 구간이 끝나야 비로소 ETag 를 들고 &ldquo;이거 아직 맞아?&rdquo;라고 묻는다.</p>
+        <label style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; letter-spacing: 0.12em; color: #6E747E;">보내질 내용</label>
+        <div style="display: flex; flex-direction: column; gap: 14px; padding: 26px 24px; background: #FFFFFF; border: 1px solid #E7E9EE; border-radius: 4px;">
+          <p style="font-size: 15px; line-height: 1.85; color: #3A3F47;">오늘 가장 크게 바뀐 생각은, ETag 와 Cache-Control 이 나란히 놓인 두 선택지가 아니라는 것이다. 둘은 순서다.</p>
+          <p style="font-size: 15px; line-height: 1.85; color: #3A3F47;">max-age 가 살아 있는 동안 브라우저는 서버에 아예 말을 걸지 않는다. 그 구간이 끝나야 비로소 ETag 를 들고 &ldquo;이거 아직 맞아?&rdquo;라고 묻는다.</p>
           <div style="display: flex; align-items: center; gap: 10px; padding-top: 4px;">
-            <div style="height: 1px; flex-grow: 1; background: #EDE6DA;"></div>
-            <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #C4BAA9;">전체 412자</span>
-            <div style="height: 1px; flex-grow: 1; background: #EDE6DA;"></div>
+            <div style="height: 1px; flex-grow: 1; background: #EFF1F5;"></div>
+            <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #B9BFC9;">전체 412자</span>
+            <div style="height: 1px; flex-grow: 1; background: #EFF1F5;"></div>
           </div>
         </div>
       </div>
 
       <!-- 공개 설정 -->
       <div style="display: flex; align-items: center; gap: 22px;">
-        <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; letter-spacing: 0.12em; color: #7A7266;">공개</span>
+        <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; letter-spacing: 0.12em; color: #6E747E;">공개</span>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="width: 13px; height: 13px; border: 4px solid #23201C; border-radius: 50%; background: #FAF7F2; flex: none;"></span>
-          <span style="font-size: 14px; color: #23201C;">전체 공개</span>
+          <span style="width: 13px; height: 13px; border: 4px solid #14161A; border-radius: 50%; background: #F7F8FA; flex: none;"></span>
+          <span style="font-size: 14px; color: #14161A;">전체 공개</span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="width: 13px; height: 13px; border: 1.5px solid #C4BAA9; border-radius: 50%; flex: none;"></span>
-          <span style="font-size: 14px; color: #7A7266;">비공개</span>
+          <span style="width: 13px; height: 13px; border: 1.5px solid #B9BFC9; border-radius: 50%; flex: none;"></span>
+          <span style="font-size: 14px; color: #6E747E;">비공개</span>
         </div>
       </div>
 
     </div>
 
     <!-- 리스크 공시 -->
-    <div style="display: flex; gap: 11px; margin-top: 34px; padding: 16px 18px; background: #F3ECDB; border-radius: 3px;">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex: none; margin-top: 4px;"><path d="M7 2.2L12.6 11.8H1.4L7 2.2Z" stroke="#83682C" stroke-width="1.4" stroke-linejoin="round"/><path d="M7 6V8.2" stroke="#83682C" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="10.2" r="0.8" fill="#83682C"/></svg>
-      <p style="font-size: 13.5px; line-height: 1.75; color: #3D382F;">Velog 에는 공식 공개 API 가 없다. 어느 날 예고 없이 막힐 수 있고, 그때 이 버튼은 실패한다. 실패하면 글은 그대로 남고 클립보드 복사로 떨어진다 &mdash; 쓴 글이 사라지는 경로는 없다.</p>
+    <div style="display: flex; gap: 11px; margin-top: 34px; padding: 16px 18px; background: #FBF0DA; border-radius: 3px;">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex: none; margin-top: 4px;"><path d="M7 2.2L12.6 11.8H1.4L7 2.2Z" stroke="#9A6B10" stroke-width="1.4" stroke-linejoin="round"/><path d="M7 6V8.2" stroke="#9A6B10" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="10.2" r="0.8" fill="#9A6B10"/></svg>
+      <p style="font-size: 13.5px; line-height: 1.75; color: #3A3F47;">Velog 에는 공식 공개 API 가 없다. 어느 날 예고 없이 막힐 수 있고, 그때 이 버튼은 실패한다. 실패하면 글은 그대로 남고 클립보드 복사로 떨어진다 &mdash; 쓴 글이 사라지는 경로는 없다.</p>
     </div>
 
     <div style="flex-grow: 1;"></div>
 
     <!-- 하단 -->
-    <div style="height: 1px; margin-top: 32px; background: #E7E0D5;"></div>
+    <div style="height: 1px; margin-top: 32px; background: #E7E9EE;"></div>
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 20px;">
-      <button style="height: 48px; padding: 0 20px; border: 1px solid #D8CFC0; border-radius: 3px; background: transparent; color: #3D382F; font-size: 14px; cursor: pointer;">클립보드에 복사</button>
+      <button style="height: 48px; padding: 0 20px; border: 1px solid #D3D7DE; border-radius: 3px; background: transparent; color: #3A3F47; font-size: 14px; cursor: pointer;">클립보드에 복사</button>
       <div style="display: flex; align-items: center; gap: 12px;">
-        <span style="font-size: 13px; color: #9C948A;">발행하면 오늘 CS 는 마감된다</span>
-        <button style="height: 48px; padding: 0 28px; border: none; border-radius: 3px; background: #23201C; color: #FAF7F2; font-size: 15px; font-weight: 500; cursor: pointer;">Velog 에 발행</button>
+        <span style="font-size: 13px; color: #949BA6;">발행하면 오늘 CS 는 마감된다</span>
+        <button style="height: 48px; padding: 0 28px; border: none; border-radius: 3px; background: #14161A; color: #F7F8FA; font-size: 15px; font-weight: 500; cursor: pointer;">Velog 에 발행</button>
       </div>
     </div>
 

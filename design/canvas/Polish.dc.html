@@ -13,93 +13,93 @@
     body { margin: 0; font-family: "IBM Plex Sans KR", system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
     p, h1, h2, h3 { margin: 0; font-weight: 400; }
     input, textarea, button { font: inherit; }
-    a { color: #24765F; text-decoration: none; }
-    a:hover { color: #1A5A48; text-decoration: underline; }
+    a { color: #0E7C5A; text-decoration: none; }
+    a:hover { color: #0A5F45; text-decoration: underline; }
   </style>
 </helmet>
 
-<div style="min-height: 1280px; display: flex; flex-direction: column; background: #FAF7F2;">
+<div style="min-height: 1280px; display: flex; flex-direction: column; background: #F7F8FA;">
 
   <!-- 세션 바 -->
-  <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 52px; padding: 0 32px; background: #FFFDF9; border-bottom: 1px solid #E7E0D5;">
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 52px; padding: 0 32px; background: #FFFFFF; border-bottom: 1px solid #E7E9EE;">
     <div style="display: flex; align-items: center; gap: 10px;">
-      <span style="width: 7px; height: 7px; border-radius: 50%; background: #24765F; flex: none;"></span>
-      <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.1em; color: #3D382F;">CS · DAY 5</span>
+      <span style="width: 7px; height: 7px; border-radius: 50%; background: #0E7C5A; flex: none;"></span>
+      <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.1em; color: #3A3F47;">CS · DAY 5</span>
     </div>
     <div style="display: flex; align-items: center; gap: 18px;">
-      <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12.5px; color: #7A7266;">남은 시간 <span style="color: #23201C;">04:58</span></span>
-      <button style="height: 30px; padding: 0 14px; border: 1px solid #D8CFC0; border-radius: 3px; background: transparent; color: #3D382F; font-size: 12.5px; cursor: pointer;">종료</button>
+      <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12.5px; color: #6E747E;">남은 시간 <span style="color: #14161A;">04:58</span></span>
+      <button style="height: 30px; padding: 0 14px; border: 1px solid #D3D7DE; border-radius: 3px; background: transparent; color: #3A3F47; font-size: 12.5px; cursor: pointer;">종료</button>
     </div>
   </div>
 
   <div style="display: flex; flex-direction: column; flex-grow: 1; width: 100%; max-width: 940px; margin: 0 auto; padding: 52px 32px 44px;">
 
-    <div style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.14em; color: #9C948A;">다듬기 1회차</div>
-    <h1 style="margin-top: 14px; font-family: 'Gowun Batang', Georgia, 'Times New Roman', serif; font-size: 36px; line-height: 1.3; color: #23201C;">무엇이 바뀌었는지 보고 고르기</h1>
-    <p style="margin-top: 12px; font-size: 14.5px; line-height: 1.7; color: #7A7266;">내용은 건드리지 않는다. 말투와 문장 흐름만 손본다. 마음에 안 들면 원문 그대로 발행하면 된다.</p>
+    <div style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.14em; color: #949BA6;">다듬기 1회차</div>
+    <h1 style="margin-top: 14px; font-family: 'Gowun Batang', Georgia, 'Times New Roman', serif; font-size: 36px; line-height: 1.3; color: #14161A;">무엇이 바뀌었는지 보고 고르기</h1>
+    <p style="margin-top: 12px; font-size: 14.5px; line-height: 1.7; color: #6E747E;">내용은 건드리지 않는다. 말투와 문장 흐름만 손본다. 마음에 안 들면 원문 그대로 발행하면 된다.</p>
 
     <!-- 나란히 -->
     <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 40px;">
 
       <!-- 원문 -->
-      <div style="display: flex; flex-direction: column; background: #FFFDF9; border: 1px solid #E7E0D5; border-radius: 4px;">
-        <div style="padding: 12px 20px; border-bottom: 1px solid #EDE6DA;">
-          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; letter-spacing: 0.1em; color: #9C948A;">내가 쓴 것</span>
+      <div style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #E7E9EE; border-radius: 4px;">
+        <div style="padding: 12px 20px; border-bottom: 1px solid #EFF1F5;">
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; letter-spacing: 0.1em; color: #949BA6;">내가 쓴 것</span>
         </div>
         <div style="display: flex; flex-direction: column; gap: 15px; padding: 24px 22px;">
-          <p style="font-family: 'Gowun Batang', Georgia, serif; font-size: 18px; line-height: 1.5; color: #23201C;">캐시는 &ldquo;묻지 않기&rdquo;와 &ldquo;싸게 묻기&rdquo;다</p>
-          <p style="font-size: 15px; line-height: 1.85; color: #7A7266;">오늘 제일 크게 바뀐 생각은 ETag 와 Cache-Control 이 같은 층에 있는 두 선택지가 아니라는 것이다. 둘은 순서다.</p>
-          <p style="font-size: 15px; line-height: 1.85; color: #7A7266;">max-age 가 살아 있는 동안은 브라우저가 서버에 아예 말을 걸지 않는다. 그게 끝나야 비로소 ETag 를 들고 &ldquo;이거 아직 맞아?&rdquo;라고 묻는다. 그래서 &ldquo;캐시 걸었는데 왜 요청이 나가지?&rdquo;의 답은 대개 max-age 를 안 건 것이다.</p>
-          <p style="font-size: 15px; line-height: 1.85; color: #7A7266;">그리고 304 는 대역폭만 아낀다. 왕복은 그대로 한 번 나간다. 이걸 뭉뚱그려서 &ldquo;싸다&rdquo;고만 말하면 나중에 지연 시간 얘기할 때 꼬인다.</p>
+          <p style="font-family: 'Gowun Batang', Georgia, serif; font-size: 18px; line-height: 1.5; color: #14161A;">캐시는 &ldquo;묻지 않기&rdquo;와 &ldquo;싸게 묻기&rdquo;다</p>
+          <p style="font-size: 15px; line-height: 1.85; color: #6E747E;">오늘 제일 크게 바뀐 생각은 ETag 와 Cache-Control 이 같은 층에 있는 두 선택지가 아니라는 것이다. 둘은 순서다.</p>
+          <p style="font-size: 15px; line-height: 1.85; color: #6E747E;">max-age 가 살아 있는 동안은 브라우저가 서버에 아예 말을 걸지 않는다. 그게 끝나야 비로소 ETag 를 들고 &ldquo;이거 아직 맞아?&rdquo;라고 묻는다. 그래서 &ldquo;캐시 걸었는데 왜 요청이 나가지?&rdquo;의 답은 대개 max-age 를 안 건 것이다.</p>
+          <p style="font-size: 15px; line-height: 1.85; color: #6E747E;">그리고 304 는 대역폭만 아낀다. 왕복은 그대로 한 번 나간다. 이걸 뭉뚱그려서 &ldquo;싸다&rdquo;고만 말하면 나중에 지연 시간 얘기할 때 꼬인다.</p>
         </div>
       </div>
 
       <!-- 다듬은 글 -->
-      <div style="display: flex; flex-direction: column; background: #FFFDF9; border: 1.5px solid #23201C; border-radius: 4px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11.5px 20px; border-bottom: 1px solid #EDE6DA;">
-          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; letter-spacing: 0.1em; color: #3D382F;">다듬은 것</span>
-          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #24765F;">3곳</span>
+      <div style="display: flex; flex-direction: column; background: #FFFFFF; border: 1.5px solid #14161A; border-radius: 4px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11.5px 20px; border-bottom: 1px solid #EFF1F5;">
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; letter-spacing: 0.1em; color: #3A3F47;">다듬은 것</span>
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #0E7C5A;">3곳</span>
         </div>
         <div style="display: flex; flex-direction: column; gap: 15px; padding: 24px 22px;">
-          <p style="font-family: 'Gowun Batang', Georgia, serif; font-size: 18px; line-height: 1.5; color: #23201C;">캐시는 &ldquo;묻지 않기&rdquo;와 &ldquo;싸게 묻기&rdquo;다</p>
-          <p style="font-size: 15px; line-height: 1.85; color: #3D382F;">오늘 가장 크게 바뀐 생각은, <span style="background: #E2EEE8; box-shadow: 0 1px 0 #24765F;">ETag 와 Cache-Control 이 나란히 놓인 두 선택지가 아니라는 것이다</span>. 둘은 순서다.</p>
-          <p style="font-size: 15px; line-height: 1.85; color: #3D382F;">max-age 가 살아 있는 동안 브라우저는 서버에 아예 말을 걸지 않는다. 그 구간이 끝나야 비로소 ETag 를 들고 &ldquo;이거 아직 맞아?&rdquo;라고 묻는다. <span style="background: #E2EEE8; box-shadow: 0 1px 0 #24765F;">그래서 &ldquo;캐시를 걸었는데 왜 요청이 나가지?&rdquo;라는 물음의 답은 대개 max-age 를 걸지 않은 것이다.</span></p>
-          <p style="font-size: 15px; line-height: 1.85; color: #3D382F;">그리고 304 가 아끼는 것은 대역폭뿐이다. 왕복은 그대로 한 번 나간다. <span style="background: #E2EEE8; box-shadow: 0 1px 0 #24765F;">이 둘을 뭉뚱그려 &ldquo;싸다&rdquo;고만 말해두면, 나중에 지연 시간을 이야기할 때 반드시 꼬인다.</span></p>
+          <p style="font-family: 'Gowun Batang', Georgia, serif; font-size: 18px; line-height: 1.5; color: #14161A;">캐시는 &ldquo;묻지 않기&rdquo;와 &ldquo;싸게 묻기&rdquo;다</p>
+          <p style="font-size: 15px; line-height: 1.85; color: #3A3F47;">오늘 가장 크게 바뀐 생각은, <span style="background: #DFF3EB; box-shadow: 0 1px 0 #0E7C5A;">ETag 와 Cache-Control 이 나란히 놓인 두 선택지가 아니라는 것이다</span>. 둘은 순서다.</p>
+          <p style="font-size: 15px; line-height: 1.85; color: #3A3F47;">max-age 가 살아 있는 동안 브라우저는 서버에 아예 말을 걸지 않는다. 그 구간이 끝나야 비로소 ETag 를 들고 &ldquo;이거 아직 맞아?&rdquo;라고 묻는다. <span style="background: #DFF3EB; box-shadow: 0 1px 0 #0E7C5A;">그래서 &ldquo;캐시를 걸었는데 왜 요청이 나가지?&rdquo;라는 물음의 답은 대개 max-age 를 걸지 않은 것이다.</span></p>
+          <p style="font-size: 15px; line-height: 1.85; color: #3A3F47;">그리고 304 가 아끼는 것은 대역폭뿐이다. 왕복은 그대로 한 번 나간다. <span style="background: #DFF3EB; box-shadow: 0 1px 0 #0E7C5A;">이 둘을 뭉뚱그려 &ldquo;싸다&rdquo;고만 말해두면, 나중에 지연 시간을 이야기할 때 반드시 꼬인다.</span></p>
         </div>
       </div>
 
     </div>
 
     <!-- 무엇을 왜 -->
-    <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 36px; padding: 26px 26px; background: #F3EFE7; border-radius: 4px;">
-      <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; letter-spacing: 0.12em; color: #7A7266;">무엇을 왜 고쳤나</span>
+    <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 36px; padding: 26px 26px; background: #F2F4F7; border-radius: 4px;">
+      <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; letter-spacing: 0.12em; color: #6E747E;">무엇을 왜 고쳤나</span>
 
       <div style="display: flex; gap: 12px;">
-        <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; color: #9C948A; flex: none; padding-top: 3px;">01</span>
-        <p style="font-size: 14.5px; line-height: 1.75; color: #3D382F;">&ldquo;같은 층에 있는&rdquo; → &ldquo;나란히 놓인&rdquo;. 앞 문장이 이미 층위를 말하고 있어서 같은 비유가 두 번 나왔다.</p>
+        <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; color: #949BA6; flex: none; padding-top: 3px;">01</span>
+        <p style="font-size: 14.5px; line-height: 1.75; color: #3A3F47;">&ldquo;같은 층에 있는&rdquo; → &ldquo;나란히 놓인&rdquo;. 앞 문장이 이미 층위를 말하고 있어서 같은 비유가 두 번 나왔다.</p>
       </div>
       <div style="display: flex; gap: 12px;">
-        <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; color: #9C948A; flex: none; padding-top: 3px;">02</span>
-        <p style="font-size: 14.5px; line-height: 1.75; color: #3D382F;">&ldquo;안 건 것이다&rdquo; → &ldquo;걸지 않은 것이다&rdquo;. 구어 축약이 글 전체의 문어체와 어긋났다.</p>
+        <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; color: #949BA6; flex: none; padding-top: 3px;">02</span>
+        <p style="font-size: 14.5px; line-height: 1.75; color: #3A3F47;">&ldquo;안 건 것이다&rdquo; → &ldquo;걸지 않은 것이다&rdquo;. 구어 축약이 글 전체의 문어체와 어긋났다.</p>
       </div>
       <div style="display: flex; gap: 12px;">
-        <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; color: #9C948A; flex: none; padding-top: 3px;">03</span>
-        <p style="font-size: 14.5px; line-height: 1.75; color: #3D382F;">마지막 문장에 &ldquo;반드시&rdquo;를 넣어 단정을 살렸다. 원문의 주장이 맞는데 어조가 그보다 약했다.</p>
+        <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; color: #949BA6; flex: none; padding-top: 3px;">03</span>
+        <p style="font-size: 14.5px; line-height: 1.75; color: #3A3F47;">마지막 문장에 &ldquo;반드시&rdquo;를 넣어 단정을 살렸다. 원문의 주장이 맞는데 어조가 그보다 약했다.</p>
       </div>
 
-      <div style="height: 1px; margin-top: 4px; background: #E2DCD1;"></div>
-      <p style="font-size: 13px; line-height: 1.7; color: #7A7266;">내용·사실·용어는 바꾸지 않았다. 바꿨다면 그건 버그이니 <span style="color: #23201C;">[원문 그대로]</span> 를 눌러라.</p>
+      <div style="height: 1px; margin-top: 4px; background: #E2E5EA;"></div>
+      <p style="font-size: 13px; line-height: 1.7; color: #6E747E;">내용·사실·용어는 바꾸지 않았다. 바꿨다면 그건 버그이니 <span style="color: #14161A;">[원문 그대로]</span> 를 눌러라.</p>
     </div>
 
     <div style="flex-grow: 1;"></div>
 
     <!-- 하단 -->
-    <div style="height: 1px; margin-top: 32px; background: #E7E0D5;"></div>
+    <div style="height: 1px; margin-top: 32px; background: #E7E9EE;"></div>
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 20px;">
-      <span style="font-size: 13px; color: #9C948A;">다시 다듬기 남은 횟수 <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; color: #3D382F;">1</span></span>
+      <span style="font-size: 13px; color: #949BA6;">다시 다듬기 남은 횟수 <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; color: #3A3F47;">1</span></span>
       <div style="display: flex; align-items: center; gap: 12px;">
-        <button style="height: 48px; padding: 0 20px; border: 1px solid #D8CFC0; border-radius: 3px; background: transparent; color: #3D382F; font-size: 14px; cursor: pointer;">원문 그대로</button>
-        <button style="height: 48px; padding: 0 28px; border: none; border-radius: 3px; background: #23201C; color: #FAF7F2; font-size: 15px; font-weight: 500; cursor: pointer;">다듬은 글로 발행</button>
+        <button style="height: 48px; padding: 0 20px; border: 1px solid #D3D7DE; border-radius: 3px; background: transparent; color: #3A3F47; font-size: 14px; cursor: pointer;">원문 그대로</button>
+        <button style="height: 48px; padding: 0 28px; border: none; border-radius: 3px; background: #14161A; color: #F7F8FA; font-size: 15px; font-weight: 500; cursor: pointer;">다듬은 글로 발행</button>
       </div>
     </div>
 

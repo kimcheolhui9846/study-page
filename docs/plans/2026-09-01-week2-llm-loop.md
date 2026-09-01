@@ -1551,7 +1551,7 @@ export function Passage({ title, bodyMd, keyTerms }: PassageProps) {
     <article className="mt-11 flex flex-col gap-5 rounded-card border border-rule bg-surface px-[34px] py-9">
       <h2 className="font-serif text-[26px] leading-snug text-ink">{title}</h2>
 
-      <div className="flex flex-col gap-5 text-[17px] leading-[1.8] text-body [&_code]:rounded-sm [&_code]:bg-[#F1ECE3] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[15px] [&_strong]:font-semibold [&_strong]:text-ink">
+      <div className="flex flex-col gap-5 text-[17px] leading-[1.8] text-body [&_code]:rounded-sm [&_code]:bg-chip [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[15px] [&_strong]:font-semibold [&_strong]:text-ink">
         <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
           {bodyMd}
         </Markdown>
@@ -2548,14 +2548,14 @@ export interface GradeResultProps {
 
 const Check = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="mt-[5px] shrink-0">
-    <path d="M2.5 7.4L5.5 10.4L11.5 3.6" stroke="#24765F" strokeWidth="1.6"
+    <path d="M2.5 7.4L5.5 10.4L11.5 3.6" stroke="var(--color-ok)" strokeWidth="1.6"
           strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 )
 
 const Dash = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="mt-[5px] shrink-0">
-    <path d="M3 7H11" stroke="#83682C" strokeWidth="1.8" strokeLinecap="round" />
+    <path d="M3 7H11" stroke="var(--color-warn)" strokeWidth="1.8" strokeLinecap="round" />
   </svg>
 )
 

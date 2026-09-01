@@ -38,10 +38,10 @@ export function LoginForm() {
 
   return (
     <form onSubmit={submit} className="contents">
-      <div className="mt-12 flex flex-col gap-2.5">
+      <div className="mt-14 flex flex-col gap-4">
         <label
           htmlFor="password"
-          className="font-mono text-[11.5px] tracking-[0.12em] text-muted"
+          className="font-mono text-[10.5px] tracking-[0.22em] text-faint"
         >
           비밀번호
         </label>
@@ -52,27 +52,29 @@ export function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           disabled={failure?.kind === 'locked'}
           autoFocus
-          className="h-[50px] border-b-[1.5px] border-ink bg-transparent px-0.5 text-xl tracking-[0.18em] text-ink outline-none disabled:border-rule-strong disabled:text-ghost"
+          className="h-12 rounded-control bg-surface text-center text-[19px] tracking-[0.3em] text-ink shadow-[inset_0_0_0_1px_var(--color-rule)] outline-none transition-shadow focus:shadow-[inset_0_0_0_1.5px_var(--color-ink)] disabled:text-ghost disabled:shadow-[inset_0_0_0_1px_var(--color-rule)]"
         />
       </div>
 
       <button
         type="submit"
         disabled={busy || password.length === 0 || failure?.kind === 'locked'}
-        className="mt-7 h-[50px] cursor-pointer rounded-control bg-ink text-[15px] font-medium tracking-[0.02em] text-paper disabled:cursor-not-allowed disabled:opacity-35"
+        className="mt-4 h-12 cursor-pointer rounded-control bg-ink text-[14px] font-medium tracking-[0.06em] text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25"
       >
         {busy ? '확인 중…' : '들어가기'}
       </button>
 
       {failure?.kind === 'wrong' && (
-        <p className="mt-4 text-[13px] leading-relaxed text-stop">비밀번호가 틀렸다.</p>
+        <p className="mt-5 text-[12.5px] leading-relaxed text-stop">비밀번호가 틀렸다.</p>
       )}
 
       {failure?.kind === 'locked' && (
-        <div className="mt-4 flex flex-col gap-1.5 rounded-control bg-stop-tint px-4 py-3.5">
-          <span className="font-mono text-[11px] tracking-[0.1em] text-stop">잠시 잠갔다</span>
-          <p className="text-[13px] leading-[1.75] text-body">
-            15분 안에 비밀번호를 5번 틀렸다. 다음 15분 동안은 맞는 비밀번호도 받지 않는다.
+        <div className="mt-5 flex flex-col gap-2 rounded-card bg-stop-tint px-5 py-4">
+          <span className="font-mono text-[10.5px] tracking-[0.18em] text-stop">잠시 잠갔다</span>
+          <p className="text-[12.5px] leading-[1.8] text-body">
+            15분 안에 비밀번호를 5번 틀렸다.
+            <br />
+            다음 15분 동안은 맞는 비밀번호도 받지 않는다.
           </p>
         </div>
       )}

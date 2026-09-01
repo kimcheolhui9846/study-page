@@ -20,27 +20,35 @@ export default async function LoginPage() {
   const dateLabel = kstDateLabel(systemClock.now())
 
   return (
-    <main className="flex flex-1 items-center justify-center px-6 py-16">
-      <div className="flex w-[400px] flex-col">
-        <div className="font-mono text-xs tracking-[0.14em] text-faint">{dateLabel}</div>
+    <main className="flex flex-1 items-center justify-center px-6 py-20">
+      {/* text-center 로 글자만 모은다. items-center 를 쓰면 입력란과 버튼이
+          내용 너비로 쪼그라든다. */}
+      <div className="flex w-[380px] flex-col text-center">
+        <div className="font-mono text-[11px] tracking-[0.22em] text-faint">{dateLabel}</div>
 
-        <h1 className="mt-[18px] font-serif text-[42px] leading-tight tracking-tight text-ink">
+        <h1 className="mt-6 font-serif text-[52px] leading-[1.1] tracking-[-0.03em] text-ink">
           오늘의 공부
         </h1>
 
-        <p className="mt-3 text-[15px] leading-[1.7] text-muted">영어 · 수학 · CS — 하루 한 번.</p>
+        <p className="mt-5 text-[14px] leading-[1.7] tracking-[0.01em] text-muted">
+          영어 · 수학 · CS
+        </p>
 
         <LoginForm />
 
-        <div className="mt-11 h-px bg-rule" />
+        <div className="mx-auto mt-16 h-px w-16 bg-rule" />
 
-        <div className="mt-[22px] flex flex-col gap-2.5">
-          <p className="text-[13px] leading-[1.75] text-muted">
-            15분 동안 아무것도 하지 않으면 세션이 스스로 닫힌다.
+        {/* 가운데 정렬에서는 고아 줄이 특히 눈에 띈다.
+            각 줄이 한 줄에 들어가도록 문구를 짧게 유지한다. */}
+        <div className="mt-7 flex flex-col gap-2">
+          <p className="text-[12.5px] leading-[1.9] text-faint">
+            15분 동안 아무것도 하지 않으면 세션이 닫힌다.
           </p>
-          <p className="text-[13px] leading-[1.75] text-muted">
-            <span className="text-body">[종료]</span>를 누르면 그 즉시 서버에서 지워지고, 창을
-            닫으면 30초 뒤에 지워진다. 세션이 없는 동안에는 어떤 AI 호출도 일어나지 않는다.
+          <p className="text-[12.5px] leading-[1.9] text-faint">
+            <span className="text-muted">[종료]</span>는 즉시, 창을 닫으면 30초 뒤에 지워진다.
+          </p>
+          <p className="text-[12.5px] leading-[1.9] text-faint">
+            세션이 없는 동안 AI 호출은 일어나지 않는다.
           </p>
         </div>
       </div>

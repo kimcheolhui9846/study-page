@@ -2,10 +2,12 @@ import { and, eq } from 'drizzle-orm'
 import { studyDays } from '../db/schema'
 import type { Db } from '../db/types'
 import { kstToday, type Clock } from '../time'
-import { getDay, type Subject } from '../curriculum/load'
+import { getDay, loadCurriculum, type Subject } from '../curriculum/load'
 import { recordUsage, reserve, rollback } from '../budget/reserve'
 import type { LlmClient } from '../llm/types'
-import { CONTENT_JSON_SCHEMA } from '../llm/schemas'
+import { CONTENT_JSON_SCHEMA, ContentSchema } from '../llm/schemas'
+import { CONTENT_SYSTEM, contentUserMessage } from '../llm/prompts'
+import { MODEL } from '../llm/pricing'
 
 export interface ContentDeps {
   db: Db
@@ -84,31 +86,36 @@ export async function getOrCreateContent(
   try {
     result = await llm.generate<unknown>({
       route: 'content',
-      system: '(2주차에 실제 프롬프트를 넣는다 — 스펙 §5.4)',
-      user: [
-        `과목: ${subject}`,
-        `Day: ${entry.day}`,
-        `주제: ${entry.topic}`,
-        `목표(goal): ${entry.goal}`,
-        `키워드: ${entry.keywords.join(', ')}`,
-        `난이도: ${entry.difficulty} / 5`,
-      ].join('\n'),
+      system: CONTENT_SYSTEM,
+      user: contentUserMessage(loadCurriculum(subject).label, entry),
       schemaName: 'study_content',
       jsonSchema: CONTENT_JSON_SCHEMA,
       maxTokens: 2000,
       temperature: 0.6,
     })
+
+    // Structured Outputs 가 형식을 보장하지만 우리 쪽에서도 본다.
+    // ★ 여기서 통과한 것만 DB 에 들어간다 — 한 번 들어가면 UNIQUE 제약 때문에
+    // 그 Day 는 평생 그 내용이다. 반쪽짜리를 저장하면 되살릴 방법이 없다.
+    const parsed = ContentSchema.safeParse(result.data)
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0]
+      throw new Error(
+        `콘텐츠 형식이 스키마와 다릅니다: ${issue?.path.join('.')} — ${issue?.message}`,
+      )
+    }
+    result = { ...result, data: parsed.data }
   } catch (err) {
     await rollback(db, reservation)
     await recordUsage(db, clock, {
-      route: 'content', subject, model: 'fake',
+      route: 'content', subject, model: MODEL,
       promptTokens: null, completionTokens: null, costMicros: 0, ok: false,
     })
     throw err
   }
 
   await recordUsage(db, clock, {
-    route: 'content', subject, model: 'fake',
+    route: 'content', subject, model: MODEL,
     promptTokens: result.promptTokens,
     completionTokens: result.completionTokens,
     costMicros: result.costMicros,

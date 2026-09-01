@@ -77,7 +77,8 @@
 | 7 | `feat/session-guard` | `withSession()` + 종료 라우트 |
 | 8 | `feat/budget` | 예약 · 롤백 · 사용량 기록 |
 | 9 | `feat/fake-llm` | 4겹이 전부 붙은 라우트 통합 테스트 |
-| 10 | `feat/ui-session` | 로그인 화면 · 카운트다운 · 종료 |
+| 9.5 | `design/canvas` | 디자인 캔버스 — 하루 학습 전체 흐름 아트보드 7장 |
+| 10 | `feat/ui-session` | 로그인 화면 · 카운트다운 · 종료 (9.5의 디자인을 구현) |
 
 ---
 
@@ -2128,7 +2129,7 @@ Preview/Local 캡을 3으로 낮게 둔다. 버셀은 PR마다 Preview 를 만�
 > 라우트 파일 자체는 얇게 두고, 4겹이 붙는 로직은 `lib/study/content.ts`의
 > 순수 함수로 뺀다. 그래야 Next.js 런타임 없이 테스트할 수 있다.
 
-- [ ] **Step 1: LLM 인터페이스 작성**
+- [x] **Step 1: LLM 인터페이스 작성**
 
 `lib/llm/types.ts`:
 
@@ -2182,7 +2183,7 @@ export class FakeLlmClient implements LlmClient {
 }
 ```
 
-- [ ] **Step 2: 실패하는 통합 테스트 작성**
+- [x] **Step 2: 실패하는 통합 테스트 작성**
 
 `tests/integration/content-route.test.ts`:
 
@@ -2237,7 +2238,8 @@ describe('예산 캡 — ③겹', () => {
     await getOrCreateContent(deps(), 'math', 1)
     expect(llm.calls).toBe(3)
 
-    clock.advance(24 * 60 * 60 * 1000)   // 하루 뒤 (one_day_per_date 회피)
+    // 주의: clock.advance 로 하루를 넘기면 일일 카운터도 리셋되므로 캡 테스트가 안 된다.
+    // 예산을 직접 소진시킨 뒤 요청해야 한다.
     const out = await getOrCreateContent(deps(), 'cs', 2)
     expect(out.status).toBe('cap_exceeded')
     expect(llm.calls).toBe(3)            // 늘지 않았다
@@ -2299,12 +2301,12 @@ describe('없는 Day', () => {
 })
 ```
 
-- [ ] **Step 3: 테스트가 실패하는지 확인**
+- [x] **Step 3: 테스트가 실패하는지 확인**
 
 Run: `npm test -- tests/integration/content-route.test.ts`
 Expected: FAIL — `lib/study/content` 없음
 
-- [ ] **Step 4: 구현**
+- [x] **Step 4: 구현**
 
 `lib/study/content.ts`:
 
@@ -2455,7 +2457,7 @@ export const POST = withSession<{ subject: string }>(async (req, _session, ctx) 
 })
 ```
 
-- [ ] **Step 5: 테스트 통과 확인**
+- [x] **Step 5: 테스트 통과 확인**
 
 Run: `npm test -- tests/integration/content-route.test.ts`
 Expected: PASS (9 tests)
@@ -2466,7 +2468,7 @@ Expected: 전체 PASS
 Run: `npm run check:secrets`
 Expected: `OK — NEXT_PUBLIC_ 없음`
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git checkout main && git pull && git checkout -b feat/fake-llm
@@ -2482,6 +2484,37 @@ FakeLlmClient 가 호출 횟수를 세므로 '같은 Day 를 10번 요청해도 
 expected_points 와 hint 가 응답에 섞여 나가지 않는지 검증한다.
 DB 에는 남아야 하고 클라이언트에는 나가면 안 된다."
 ```
+
+---
+
+## Task 9.5: 디자인 캔버스 — 하루 학습 전체 흐름
+
+**산출물:** 아트보드 7장이 올라간 디자인 캔버스(Artifact). 코드 없음.
+
+**왜 Task 10 앞인가:** Task 10 은 UI 구현 태스크다. 디자인이 먼저 있어야
+"동작하는 최소 화면"이 아니라 "의도한 화면"을 구현하게 된다.
+2~3주차 화면까지 미리 그려두면 그때는 구현만 하면 되고,
+흐름의 어색함(예: 채점 결과에서 정리본으로 넘어가는 지점)도 지금 발견된다.
+
+**아트보드 7장:**
+
+1. 로그인 — 비밀번호 하나. 유휴 15분 안내
+2. 대시보드 — 과목 3카드, 각 카드에 진도(Day N / 총 M)와 오늘 상태
+3. 학습 — 지문(마크다운 + KaTeX) + 서술형 문제 3개 입력란
+4. 채점 결과 — 문제별 맞은/놓친 포인트, 오개념, "이 채점이 틀렸다" 버튼
+5. 정리본 작성 — `summary_seed` 를 체크리스트로 띄운 에디터
+6. 다듬기 diff 승인 — 원문 / 다듬은 글 나란히, 무엇을 왜 고쳤는지
+7. 발행 — Velog 로 보내기 + 클립보드 폴백
+
+**모든 화면에 공통으로 들어가는 것:**
+
+- 상단 세션 바 — 남은 시간 카운트다운, 만료 2분 전 경고, [종료] 버튼
+- 429(캡 초과) / 401(세션 만료) 상태의 표시 방법
+
+**진행 방법:** `design` 스킬을 호출해 캔버스를 만든다.
+사용자가 캔버스에서 직접 다듬은 뒤 그 결과를 Task 10 이 구현한다.
+
+**완료 기준:** 캔버스 URL 이 나오고, 사용자가 7장을 확인했다.
 
 ---
 

@@ -3,9 +3,10 @@ import { eq } from 'drizzle-orm'
 import { createTestDb } from '../helpers/testDb'
 import { fixedClock } from '../helpers/clock'
 import {
-  ensureTodayPlan, readPlan, loadSettings, recordItemResult, completePlanIfDone,
+  ensureTodayPlan, readPlan, recordItemResult, completePlanIfDone,
   markStudying, saveAnswers,
 } from '../../lib/plan/store'
+import { loadSettings } from '../../lib/settings/store'
 import { applyManualScore } from '../../lib/mastery/apply'
 import { dailyPlans, planItems, topicProgress, users } from '../../lib/db/schema'
 import type { Db } from '../../lib/db/types'
@@ -22,13 +23,13 @@ afterEach(async () => { await close() })
 
 describe('설정', () => {
   it('없으면 기본값을 만들어 준다 — 90일 · 하루 60분', async () => {
-    expect(await loadSettings(db)).toEqual({ targetDayCount: 90, dailyStudyMinutes: 60 })
+    expect(await loadSettings(db)).toMatchObject({ targetDayCount: 90, dailyStudyMinutes: 60 })
     expect(await db.select().from(users)).toHaveLength(1)
   })
 
   it('있으면 그것을 쓴다', async () => {
     await db.insert(users).values({ targetDayCount: 30, dailyStudyMinutes: 25 })
-    expect(await loadSettings(db)).toEqual({ targetDayCount: 30, dailyStudyMinutes: 25 })
+    expect(await loadSettings(db)).toMatchObject({ targetDayCount: 30, dailyStudyMinutes: 25 })
   })
 })
 

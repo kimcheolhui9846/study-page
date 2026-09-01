@@ -1,6 +1,6 @@
 # 핸드오프
 
-**갱신:** 2026-09-02 · **브랜치:** `feat/dashboard` · PR #24·#25 머지됨
+**갱신:** 2026-09-02 · **브랜치:** `feat/settings` · PR #24·#25·#26 머지됨
 
 > 이 파일은 **현재 상태**만 담는다. 매번 통째로 덮어쓴다.
 > 과거 결정의 이유는 `docs/DECISIONS.md`에 있다.
@@ -11,7 +11,7 @@
 Topic 그래프로 갈아탔다. 설계는
 [`docs/specs/2026-09-01-adaptive-curriculum-design.md`](specs/2026-09-01-adaptive-curriculum-design.md).
 
-- 테스트 **490개 통과** (30파일, ~38초)
+- 테스트 **509개 통과** (31파일, ~41초)
 - `npm run build` 통과 — 라우트 14개
 - ✅ **실제 GPT 로 Day 2 를 완주했다** (2026-09-02) — 자료 생성 2회 + 채점 1회,
   누적 **$0.0018**. 진도·복습 예약·취약 개념까지 실제로 기록됐다.
@@ -21,7 +21,9 @@ Topic 그래프로 갈아탔다. 설계는
 ƒ /curriculum             Topic 목록 · 과목 필터 · 과목 간 선수 관계
 ƒ /today                  오늘 계획 · 진행 상황 · 전체 채점 버튼
 ƒ /today/[topicId]        Topic 학습 (자료 만들기 / 지문+답안 / 채점 결과)
+ƒ /settings               설정 (목표 기간 · 하루 시간 · 과목 비중)
 ƒ /login                  로그인
+ƒ /api/settings           POST 설정 저장         ← 0원
 ƒ /api/session            POST 로그인
 ƒ /api/session/end        POST [종료] → 즉시 파기
 ƒ /api/session/leaving    POST pagehide → 유휴 30초로 당김
@@ -151,7 +153,7 @@ Topic 을 추가할 때 그래프가 부팅에서 검증한다 — 중복 ID · 
 | | |
 |---|---|
 | **지금** | 복습 경로 실호출 확인 (09-03 예약됨) — 고친 문체도 여기서 같이 본다 |
-| 다음 | Topic 상세 화면 · 사용자 설정 화면 (`users` 테이블은 이미 있다) |
+| 다음 | Topic 상세 화면 |
 | | 커리큘럼 Topic 채우기 · 모바일 레이아웃 · `/admin/usage` |
 | 열린 결정 | 취약 Topic 독점 (위 2번) |
 

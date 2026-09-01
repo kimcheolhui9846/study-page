@@ -3,7 +3,8 @@ import { dailyPlans, planItems } from '../db/schema'
 import type { Db } from '../db/types'
 import { kstToday, type Clock } from '../time'
 import { loadGraph } from '../curriculum/load'
-import { loadProgressMap, loadSettings } from '../plan/store'
+import { loadProgressMap } from '../plan/store'
+import { loadSettings } from '../settings/store'
 import {
   paceOf, recentScores, reviewLoad, streakDays, subjectProgress,
   type Pace, type RecentScore, type SubjectProgress,

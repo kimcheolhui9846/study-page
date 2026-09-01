@@ -51,7 +51,7 @@ function Related({ r }: { r: RelatedTopic }) {
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-card bg-surface px-8 py-7 shadow-[inset_0_0_0_1px_var(--color-rule)]">
+    <div className="rounded-card bg-surface px-6 py-6 shadow-[inset_0_0_0_1px_var(--color-rule)] sm:px-8 sm:py-7">
       <h2 className="text-center font-mono text-[10px] tracking-[0.22em] text-faint">{title}</h2>
       <div className="mt-6">{children}</div>
     </div>
@@ -120,7 +120,7 @@ export default async function TopicPage(
     <>
       <SessionBar />
 
-      <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col px-8 pt-24 pb-20">
+      <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col px-5 pt-14 pb-16 sm:px-8 sm:pt-24 sm:pb-20">
         <div className="text-center">
           <Link
             href={`/curriculum?subject=${d.topic.subject}`}
@@ -129,7 +129,7 @@ export default async function TopicPage(
             {subjectLabel(graph, d.topic.subject as Subject)} · {d.topic.domainLabel}
           </Link>
 
-          <h1 className="mt-6 text-balance font-serif text-[40px] leading-[1.15] tracking-[-0.03em] text-ink">
+          <h1 className="mt-6 text-balance font-serif text-[32px] leading-[1.15] tracking-[-0.03em] text-ink sm:text-[40px]">
             {d.topic.title}
           </h1>
 
@@ -151,7 +151,7 @@ export default async function TopicPage(
 
           {/* ★ 「왜 오늘 또 나왔나」 · 「왜 안 나오나」의 답 */}
           {d.recovery && (
-            <div className="rounded-card bg-note px-8 py-6">
+            <div className="rounded-card bg-note px-6 py-5 sm:px-8 sm:py-6">
               <span className="font-mono text-[10px] tracking-[0.22em] text-muted">
                 지금 무엇을 하나
               </span>
@@ -162,7 +162,7 @@ export default async function TopicPage(
           )}
 
           {!d.unlocked && (
-            <div className="rounded-card bg-note px-8 py-6">
+            <div className="rounded-card bg-note px-6 py-5 sm:px-8 sm:py-6">
               <span className="font-mono text-[10px] tracking-[0.22em] text-warn">
                 아직 안 열렸다
               </span>

@@ -146,7 +146,7 @@ export function SessionBar({ label = 'STUDY', expiringNote }: SessionBarProps) {
 
   return (
     <div
-      className={`flex h-[52px] shrink-0 items-center justify-between gap-6 border-b px-8 ${skin.bar}`}
+      className={`flex h-[52px] shrink-0 items-center justify-between gap-3 border-b px-4 sm:gap-6 sm:px-8 ${skin.bar}`}
     >
       <div className="flex min-w-0 items-center gap-2.5">
         {stage === 'normal' ? (
@@ -170,9 +170,12 @@ export function SessionBar({ label = 'STUDY', expiringNote }: SessionBarProps) {
         )}
       </div>
 
-      <div className="flex shrink-0 items-center gap-[18px]">
+      <div className="flex shrink-0 items-center gap-3 sm:gap-[18px]">
         <span className={`font-mono text-[12.5px] ${skin.time}`}>
-          남은 시간 <span className="text-ink">{format(remaining)}</span>
+          {/* 좁은 화면에서는 라벨을 접는다. 숫자는 남긴다 —
+              세션이 언제 닫히는지는 폰에서도 알아야 한다. */}
+          <span className="hidden sm:inline">남은 시간 </span>
+          <span className="text-ink">{format(remaining)}</span>
         </span>
 
         {stage === 'critical' ? (

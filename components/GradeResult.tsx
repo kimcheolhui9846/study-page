@@ -62,7 +62,7 @@ export function GradeResult(props: GradeResultProps) {
           return (
             <div
               key={q.id}
-              className="flex flex-col rounded-card bg-surface px-7 pt-7 pb-6 shadow-[inset_0_0_0_1px_var(--color-rule)]"
+              className="flex flex-col rounded-card bg-surface px-5 pt-6 pb-5 shadow-[inset_0_0_0_1px_var(--color-rule)] sm:px-7 sm:pt-7 sm:pb-6"
             >
               <div className="flex items-baseline justify-between gap-4">
                 <span className="font-mono text-[10.5px] tracking-[0.22em] text-faint">
@@ -75,7 +75,7 @@ export function GradeResult(props: GradeResultProps) {
                 </span>
               </div>
 
-              <p className="mt-4 text-balance text-center font-serif text-[19px] leading-relaxed text-ink">
+              <p className="mt-4 text-balance text-center font-serif text-[17px] leading-relaxed text-ink sm:text-[19px]">
                 {question?.prompt}
               </p>
 
@@ -124,7 +124,7 @@ export function GradeResult(props: GradeResultProps) {
       </div>
 
       {feedback.summarySeed.length > 0 && (
-        <div className="mt-8 flex flex-col gap-3 rounded-card bg-note px-7 py-6">
+        <div className="mt-8 flex flex-col gap-3 rounded-card bg-note px-5 py-5 sm:px-7 sm:py-6">
           <span className="font-mono text-[10.5px] tracking-[0.18em] text-muted">
             정리본에 담을 것
           </span>
@@ -137,7 +137,7 @@ export function GradeResult(props: GradeResultProps) {
       )}
 
       {feedback.missingPrerequisites.length > 0 && (
-        <div className="mt-5 flex flex-col gap-2 rounded-card bg-note px-7 py-6">
+        <div className="mt-5 flex flex-col gap-2 rounded-card bg-note px-5 py-5 sm:px-7 sm:py-6">
           <span className="font-mono text-[10.5px] tracking-[0.18em] text-warn">
             먼저 봐야 할지도 모르는 것
           </span>

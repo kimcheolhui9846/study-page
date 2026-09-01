@@ -41,7 +41,7 @@ export function GradePlan({ ready, callsLeft }: GradePlanProps) {
   }
 
   return (
-    <div className="mt-12 flex flex-col items-center rounded-card bg-surface px-9 py-10 text-center shadow-[inset_0_0_0_1px_var(--color-rule)]">
+    <div className="mt-10 flex flex-col items-center rounded-card bg-surface px-6 py-8 text-center shadow-[inset_0_0_0_1px_var(--color-rule)] sm:mt-12 sm:px-9 sm:py-10">
       <p className="max-w-[400px] text-balance text-[14.5px] leading-[1.85] text-body">
         {ready}개를 한 번에 채점한다.
       </p>

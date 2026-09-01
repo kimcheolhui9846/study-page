@@ -93,7 +93,7 @@ export function AnswerForm({ topicId, questions, saved }: AnswerFormProps) {
               </span>
               {/* 문제는 짧으므로 가운데 정렬이 읽기를 해치지 않는다.
                   답안(아래 textarea)은 길어지므로 왼쪽에 둔다. */}
-              <p className="text-balance font-serif text-[20px] leading-relaxed text-ink">
+              <p className="text-balance font-serif text-[17.5px] leading-relaxed text-ink sm:text-[20px]">
                 {q.prompt}
               </p>
             </div>
@@ -103,7 +103,7 @@ export function AnswerForm({ topicId, questions, saved }: AnswerFormProps) {
               onChange={(e) => update(q.id, e.target.value)}
               rows={5}
               placeholder="여기에 답을 쓴다."
-              className="mt-5 rounded-card bg-surface px-5 py-4 text-[15.5px] leading-[1.85] text-body shadow-[inset_0_0_0_1px_var(--color-rule)] outline-none transition-shadow placeholder:text-ghost focus:shadow-[inset_0_0_0_1.5px_var(--color-ink)]"
+              className="mt-5 rounded-card bg-surface px-4 py-4 text-[15.5px] sm:px-5 leading-[1.85] text-body shadow-[inset_0_0_0_1px_var(--color-rule)] outline-none transition-shadow placeholder:text-ghost focus:shadow-[inset_0_0_0_1.5px_var(--color-ink)]"
             />
 
             <div className="mt-2.5 flex items-center justify-between">

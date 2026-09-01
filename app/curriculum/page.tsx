@@ -95,13 +95,13 @@ export default async function CurriculumPage({
     <>
       <SessionBar />
 
-      <main className="mx-auto flex w-full max-w-[760px] flex-1 flex-col px-8 pt-20 pb-20">
+      <main className="mx-auto flex w-full max-w-[760px] flex-1 flex-col px-5 pt-14 pb-16 sm:px-8 sm:pt-20 sm:pb-20">
         <div className="text-center">
           <div className="font-mono text-[11px] tracking-[0.22em] text-faint">
             주제 {totalTopics}개
           </div>
 
-          <h1 className="mt-6 font-serif text-[44px] leading-[1.1] tracking-[-0.03em] text-ink">
+          <h1 className="mt-6 font-serif text-[34px] leading-[1.1] tracking-[-0.03em] text-ink sm:text-[44px]">
             커리큘럼
           </h1>
 

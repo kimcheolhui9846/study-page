@@ -83,6 +83,12 @@ export function SessionBar({ label = 'STUDY', expiringNote }: SessionBarProps) {
     }
   }, [])
 
+  /*
+   * 규칙의 오탐이다. sync 는 async 라서 setState 가 await 뒤에 일어난다 —
+   * 효과 본문에서 동기적으로 부르는 것이 아니다. 규칙은 async 함수 안을
+   * 들여다보지 못한다.
+   */
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void sync() }, [sync])
 
   // 1초마다 다시 그리기만 한다. 서버에 묻지 않는다.

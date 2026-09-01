@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import { dailyPlans, planItems, topicProgress, users } from '../db/schema'
 import type { Db } from '../db/types'
 import { kstToday, type Clock } from '../time'
@@ -193,8 +193,10 @@ export async function saveAnswers(
     .where(and(
       eq(planItems.planId, planId),
       eq(planItems.topicId, topicId),
-      // 채점이 끝난 항목의 답을 덮어쓰지 않는다
-      eq(planItems.status, 'studying'),
+      // ★ pending 도 받는다. 자료가 이미 있는 Topic 은 「자료 만들기」를 거치지
+      // 않으므로 항목이 pending 에 머문다 — studying 만 받으면 그런 Topic 은
+      // 영원히 답을 못 쓴다. 막아야 하는 건 채점이 끝난 항목(done)이다.
+      inArray(planItems.status, ['pending', 'studying']),
     ))
 }
 

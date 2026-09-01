@@ -8,6 +8,7 @@ import { loadGraph } from '@/lib/curriculum/load'
 import { subjectLabel } from '@/lib/curriculum/overview'
 import { ensureTodayPlan, loadSettings, type StoredPlan } from '@/lib/plan/store'
 import { loadUsage } from '@/lib/budget/usage'
+import { loadMaterialKeys, materialKey } from '@/lib/llm/ensure'
 import { SessionBar } from '@/components/SessionBar'
 import { GradePlan } from '@/components/GradePlan'
 
@@ -21,15 +22,25 @@ const KIND_LABEL: Record<string, { label: string; className: string }> = {
 
 type Item = StoredPlan['items'][number]
 
-/** 항목이 지금 어디까지 왔는가. 화면의 한 줄이 이 판정에서 나온다. */
-function stageOf(item: Item): { label: string; className: string } {
+/**
+ * 항목이 지금 어디까지 왔는가. 화면의 한 줄이 이 판정에서 나온다.
+ *
+ * ★ 자료 유무는 항목의 status 가 아니라 실제 저장 여부로 본다.
+ * 어제 만들어둔 Topic 이 오늘 다시 뽑히면 항목은 pending 이지만 자료는 있다 —
+ * status 로 판단하면 화면이 "자료 없음"이라고 거짓말하고, 사용자는 쓰지도
+ * 않을 AI 호출을 각오하게 된다.
+ */
+function stageOf(item: Item, hasMaterial: boolean): { label: string; className: string } {
   if (item.status === 'done') return { label: `${item.score}점 · 채점됨`, className: 'text-ok' }
   if (item.answers) return { label: '답 씀 · 채점 대기', className: 'text-warn' }
-  if (item.status === 'studying') return { label: '자료 있음 · 답 쓰기', className: 'text-muted' }
+  if (hasMaterial) return { label: '자료 있음 · 답 쓰기', className: 'text-muted' }
   return { label: '자료 없음', className: 'text-faint' }
 }
 
-function ItemCard({ item, graph }: { item: Item; graph: ReturnType<typeof loadGraph> }) {
+function ItemCard(
+  { item, graph, hasMaterial }:
+  { item: Item; graph: ReturnType<typeof loadGraph>; hasMaterial: boolean },
+) {
   const topic = graph.topics.get(item.topicId)
   const kind = KIND_LABEL[item.kind] ?? { label: item.kind, className: 'text-muted' }
   const done = item.status === 'done'
@@ -45,7 +56,7 @@ function ItemCard({ item, graph }: { item: Item; graph: ReturnType<typeof loadGr
     )
   }
 
-  const stage = stageOf(item)
+  const stage = stageOf(item, hasMaterial)
 
   return (
     <li>
@@ -94,6 +105,9 @@ export default async function TodayPage() {
   const plan = await ensureTodayPlan(db, systemClock, callsLeft)
   const settings = await loadSettings(db)
   const graph = loadGraph()
+  const materials = await loadMaterialKeys(db)
+  const hasMaterial = (i: StoredPlan['items'][number]) =>
+    materials.has(materialKey(i.topicId, i.kind, i.round))
 
   const done = plan.items.filter((i) => i.status === 'done').length
   const allDone = plan.items.length > 0 && done === plan.items.length
@@ -101,6 +115,8 @@ export default async function TodayPage() {
   const ready = plan.items.filter((i) => i.status === 'studying' && i.answers).length
   // 남은 것이 하나라도 있으면 채점을 미룬다 — 채점은 하루에 한 번이다.
   const waiting = plan.items.filter((i) => i.status !== 'done' && !i.answers).length
+  // 아직 자료를 안 만든 항목. 여기에 오늘 쓸 호출이 남아 있다.
+  const toGenerate = plan.items.filter((i) => i.status !== 'done' && !hasMaterial(i)).length
 
   return (
     <>
@@ -139,7 +155,12 @@ export default async function TodayPage() {
 
             <ul className="mt-12 flex flex-col gap-5">
               {plan.items.map((item) => (
-                <ItemCard key={item.id} item={item} graph={graph} />
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  graph={graph}
+                  hasMaterial={hasMaterial(item)}
+                />
               ))}
             </ul>
           </>
@@ -164,8 +185,13 @@ export default async function TodayPage() {
         <div className="mx-auto mt-16 h-px w-16 bg-rule" />
 
         <div className="mt-6 flex flex-col items-center gap-3">
+          {/*
+            계획이 세워질 때의 예상(estimatedCalls)이 아니라 **지금부터** 쓸
+            호출 수를 적는다. 이미 만들어둔 자료는 다시 만들지 않으므로,
+            어제 남긴 Topic 이 오늘 다시 뽑히면 이 숫자가 예상보다 작다.
+          */}
           <span className="font-mono text-[10.5px] tracking-[0.22em] text-faint">
-            오늘 예상 AI 호출 {plan.estimatedCalls} · 남은 호출 {callsLeft}
+            앞으로 쓸 AI 호출 {toGenerate + (plan.items.length > done ? 1 : 0)} · 오늘 남은 {callsLeft}
           </span>
           <Link
             href="/"

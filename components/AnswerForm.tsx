@@ -70,8 +70,8 @@ export function AnswerForm({ topicId, questions, saved }: AnswerFormProps) {
 
     const body = await res.json().catch(() => ({}))
     setError(
-      body.error === 'NOT_STUDYING'
-        ? '이 주제는 지금 답을 받을 상태가 아니다. 「오늘의 학습」에서 다시 확인해라.'
+      body.error === 'ALREADY_GRADED'
+        ? '이 주제는 이미 채점이 끝났다. 「오늘의 학습」에서 결과를 볼 수 있다.'
         : '저장하지 못했다. 답은 브라우저에 남아 있으니 잠시 뒤 다시 시도해라.',
     )
     setBusy(false)

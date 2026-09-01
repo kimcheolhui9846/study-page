@@ -7,7 +7,7 @@ import {
 } from '../../lib/db/schema'
 import type { Db } from '../../lib/db/types'
 import { loadGraph } from '../../lib/curriculum/load'
-import { gradePlan } from '../../lib/llm/grade'
+import { gradePlan, reconcilePoints } from '../../lib/llm/grade'
 import { readPlan, type StoredPlan } from '../../lib/plan/store'
 import { FailingLlmClient, FakeLlmClient } from '../../lib/llm/fake'
 import type { EnsureDeps } from '../../lib/llm/ensure'
@@ -293,5 +293,122 @@ describe('프롬프트로 흘러드는 것', () => {
 
     expect(sent).toContain(`topic_id: ${A}`)
     expect(sent).toContain(`topic_id: ${B}`)
+  })
+})
+
+describe('루브릭에 맞춰 다시 세기', () => {
+  const RUBRIC = ['주어는 "The tall man"이다.', '동사는 "ran"이다.']
+
+  it('★ 같은 포인트가 양쪽에 있으면 놓친 것으로 본다 — 실제로 겪은 일이다', () => {
+    // 2026-09-02 실호출에서 모델이 포인트 2개짜리 문제를 3개로 만들었다.
+    // 「동사는 ran이다」를 맞음과 놓침 양쪽에 넣고, 틀린 답에 부분 점수를 줬다.
+    const r = reconcilePoints(RUBRIC, {
+      correct_points: ['주어는 "The tall man"이다.', '동사는 "ran"이다.'],
+      missed_points: ['동사는 "ran"이다.'],
+    })
+
+    expect(r.correct_points).toEqual(['주어는 "The tall man"이다.'])
+    expect(r.missed_points).toEqual(['동사는 "ran"이다.'])
+  })
+
+  it('★ 맞음 + 놓침은 언제나 루브릭 개수와 같다', () => {
+    const cases = [
+      { correct_points: [], missed_points: [] },
+      { correct_points: RUBRIC, missed_points: RUBRIC },
+      { correct_points: ['지어낸 포인트'], missed_points: [] },
+      { correct_points: RUBRIC, missed_points: [] },
+    ]
+    for (const c of cases) {
+      const r = reconcilePoints(RUBRIC, c)
+      expect(r.correct_points.length + r.missed_points.length).toBe(RUBRIC.length)
+    }
+  })
+
+  it('루브릭에 없는 포인트는 버린다 — 모델이 지어낸 것이다', () => {
+    const r = reconcilePoints(RUBRIC, {
+      correct_points: ['지어낸 포인트', '주어는 "The tall man"이다.'],
+      missed_points: [],
+    })
+    expect(r.correct_points).toEqual(['주어는 "The tall man"이다.'])
+    expect(r.missed_points).toEqual(['동사는 "ran"이다.'])
+  })
+
+  it('언급되지 않은 포인트는 놓친 것이다', () => {
+    const r = reconcilePoints(RUBRIC, { correct_points: [], missed_points: [] })
+    expect(r.correct_points).toEqual([])
+    expect(r.missed_points).toEqual(RUBRIC)
+  })
+
+  it('공백 차이는 같은 포인트로 본다', () => {
+    const r = reconcilePoints(['가  나   다'], {
+      correct_points: ['가 나 다'], missed_points: [],
+    })
+    expect(r.correct_points).toEqual(['가  나   다'])
+  })
+
+  it('돌려주는 문자열은 루브릭 원문이다 — 모델이 고쳐 쓴 문장이 아니라', () => {
+    const r = reconcilePoints(RUBRIC, {
+      correct_points: ['동사는  "ran"이다.'], missed_points: [],
+    })
+    expect(r.correct_points).toEqual(['동사는 "ran"이다.'])
+  })
+})
+
+describe('부풀린 채점을 계획 전체에서 막는다', () => {
+  it('★ 모델이 포인트를 부풀려도 점수의 분모가 루브릭 개수를 넘지 않는다', async () => {
+    const plan = await seedPlan([A])
+    // 문제마다 루브릭은 2개인데 모델이 3개로 부풀린다
+    const inflated = {
+      topics: [{
+        ...gradedTopic(A, 1),
+        questions: [1, 2, 3].map((i) => ({
+          id: `q${i}`,
+          correct_points: ['포인트 A', '포인트 B'],
+          missed_points: ['포인트 B'],
+          misconceptions: [],
+          feedback_ko: '설명이다. 이유도 적었다.',
+        })),
+      }],
+    }
+
+    const res = await gradePlan(deps(new FakeLlmClient(inflated)), plan)
+
+    expect(res.ok).toBe(true)
+    if (!res.ok) return
+    // 3문제 × 루브릭 2개 = 6. 모델이 9개를 냈어도 6이다.
+    expect(res.items[0]!.correctPoints + res.items[0]!.missedPoints).toBe(6)
+    // 다투는 포인트 B 는 놓친 것으로 간다
+    expect(res.items[0]!.correctPoints).toBe(3)
+  })
+
+  it('★ 저장되는 피드백도 정리된 것이다 — 화면과 점수가 어긋날 수 없다', async () => {
+    const plan = await seedPlan([A])
+    const inflated = {
+      topics: [{
+        ...gradedTopic(A, 1),
+        questions: [{
+          id: 'q1',
+          correct_points: ['포인트 A', '포인트 B'],
+          missed_points: ['포인트 B'],
+          misconceptions: [],
+          feedback_ko: '설명이다. 이유도 적었다.',
+        }],
+      }],
+    }
+
+    await gradePlan(deps(new FakeLlmClient(inflated)), plan)
+
+    const [row] = await db.select().from(planItems).where(eq(planItems.topicId, A))
+    const feedback = row!.feedback as { questions: Array<{ id: string; correct_points: string[]; missed_points: string[] }> }
+
+    // 모델은 q1 만 채점했지만 문제는 3개다. 나머지는 전부 놓침으로 남는다.
+    expect(feedback.questions).toHaveLength(3)
+    const q1 = feedback.questions.find((q) => q.id === 'q1')!
+    expect(q1.correct_points).toEqual(['포인트 A'])
+    expect(q1.missed_points).toEqual(['포인트 B'])
+
+    const q2 = feedback.questions.find((q) => q.id === 'q2')!
+    expect(q2.correct_points).toEqual([])
+    expect(q2.missed_points).toEqual(['포인트 A', '포인트 B'])
   })
 })

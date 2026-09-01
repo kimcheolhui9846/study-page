@@ -37,9 +37,11 @@ export const POST = withSession(async (req) => {
   if (!plan || !item) {
     return NextResponse.json({ error: 'NOT_IN_TODAYS_PLAN' }, { status: 404 })
   }
-  if (item.status !== 'studying') {
-    // 아직 자료를 안 만들었거나(pending) 이미 채점이 끝났다(done).
-    return NextResponse.json({ error: 'NOT_STUDYING' }, { status: 409 })
+  // ★ pending 도 받는다. 어제 만들어둔 자료가 있는 Topic 이 오늘 다시 뽑히면
+  // 「자료 만들기」를 거치지 않으므로 항목이 pending 에 머문다. 막아야 하는
+  // 것은 채점이 끝났거나 건너뛴 항목이다.
+  if (item.status === 'done' || item.status === 'skipped') {
+    return NextResponse.json({ error: 'ALREADY_GRADED' }, { status: 409 })
   }
 
   await saveAnswers(db, plan.id, topicId, answers)

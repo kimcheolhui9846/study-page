@@ -5,7 +5,10 @@ import {
 } from '../plan/store'
 import { MODEL } from './pricing'
 import { GRADE_SYSTEM, gradeUserMessage, type GradeTarget } from './prompts'
-import { GRADE_JSON_SCHEMA, GradeSchema, type GradeResult } from './schemas'
+import {
+  GRADE_JSON_SCHEMA, GradeSchema,
+  type GradeResult, type StudyMaterial,
+} from './schemas'
 import { loadStoredMaterial, type EnsureDeps } from './ensure'
 
 /**
@@ -40,7 +43,71 @@ export type GradePlanResult =
   | { ok: true; items: GradedItem[]; planCompleted: boolean }
   | { ok: false; code: GradeFailure; message: string }
 
-/** 채점 응답 한 Topic 분의 포인트를 센다. 숫자는 우리가 만든다. */
+const normalize = (s: string) => s.replace(/\s+/g, ' ').trim()
+
+/**
+ * ★ 모델의 판정을 **저장된 루브릭에 맞춰 다시 세운다.**
+ *
+ * 실제로 겪은 일: 채점 포인트가 2개인 문제에서 모델이 같은 포인트를
+ * correct_points 와 missed_points 양쪽에 넣어 3개로 만들었고, 틀린 답에
+ * 부분 점수가 붙었다. 분모가 부풀면 점수는 의미를 잃는다.
+ *
+ * 그래서 판정만 모델에게 받고 **집합은 우리가 만든다.**
+ *   - 루브릭에 없는 포인트는 버린다 (모델이 지어낸 것)
+ *   - 양쪽에 다 있으면 놓친 것으로 본다 (다투는 포인트에 점수를 주지 않는다)
+ *   - 언급되지 않은 포인트는 놓친 것이다
+ *
+ * 결과적으로 맞음 + 놓침은 항상 루브릭 개수와 같다.
+ */
+export function reconcilePoints(
+  rubric: string[],
+  claimed: { correct_points: string[]; missed_points: string[] },
+): { correct_points: string[]; missed_points: string[] } {
+  const asCorrect = new Set(claimed.correct_points.map(normalize))
+  const asMissed = new Set(claimed.missed_points.map(normalize))
+
+  const correct: string[] = []
+  const missed: string[] = []
+
+  for (const point of rubric) {
+    const key = normalize(point)
+    if (asCorrect.has(key) && !asMissed.has(key)) correct.push(point)
+    else missed.push(point)
+  }
+
+  return { correct_points: correct, missed_points: missed }
+}
+
+/**
+ * 한 Topic 의 채점을 루브릭에 맞춰 정리한다.
+ *
+ * 모델이 통째로 빠뜨린 문제는 그 루브릭 전부가 놓친 것이 된다 —
+ * 대답하지 않은 것을 맞았다고 볼 수는 없다.
+ */
+function reconcileTopic(
+  material: StudyMaterial, graded: GradeResult['topics'][number],
+): GradeResult['topics'][number] {
+  const byId = new Map(graded.questions.map((q) => [q.id, q]))
+
+  return {
+    ...graded,
+    questions: material.questions.map((q) => {
+      const g = byId.get(q.id)
+      const points = reconcilePoints(q.expected_points, {
+        correct_points: g?.correct_points ?? [],
+        missed_points: g?.missed_points ?? [],
+      })
+      return {
+        id: q.id,
+        ...points,
+        misconceptions: g?.misconceptions ?? [],
+        feedback_ko: g?.feedback_ko ?? '채점자가 이 문제를 다루지 않았다.',
+      }
+    }),
+  }
+}
+
+/** 정리된 결과의 포인트를 센다. 숫자는 우리가 만든다. */
 function countPoints(graded: GradeResult['topics'][number]): {
   correct: number; missed: number
 } {
@@ -148,19 +215,21 @@ export async function gradePlan(
     // 없는 점수를 지어내느니 다시 채점받게 두는 편이 낫다.
     if (!graded) continue
 
-    const { correct, missed } = countPoints(graded)
+    // ★ 저장하고 세는 것은 정리된 결과다. 화면과 점수가 어긋날 수 없다.
+    const reconciled = reconcileTopic(target.material, graded)
+    const { correct, missed } = countPoints(reconciled)
     const applied = await applyResult(deps.db, deps.clock, {
       topicId: target.topicId,
       correctPoints: correct,
       missedPoints: missed,
-      weakConcepts: graded.weakConcepts,
+      weakConcepts: reconciled.weakConcepts,
     })
 
     const item = plan.items.find((i) => i.topicId === target.topicId)!
     await recordItemResult(deps.db, plan.id, target.topicId, {
       attemptNo: 1,
       answers: item.answers,
-      feedback: graded,
+      feedback: reconciled,
       score: applied.score,
     })
 

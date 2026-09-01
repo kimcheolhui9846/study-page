@@ -5,7 +5,10 @@ import { fixedClock } from '../helpers/clock'
 import { budgetCounters, reviewItems, topicContents, usageLedger } from '../../lib/db/schema'
 import type { Db } from '../../lib/db/types'
 import { loadGraph } from '../../lib/curriculum/load'
-import { ensureMaterial, type EnsureDeps, type MaterialRequest } from '../../lib/llm/ensure'
+import {
+  ensureMaterial, loadMaterialKeys, materialKey,
+  type EnsureDeps, type MaterialRequest,
+} from '../../lib/llm/ensure'
 import { FailingLlmClient, FakeLlmClient } from '../../lib/llm/fake'
 import type { ProgressState } from '../../lib/plan/types'
 
@@ -278,5 +281,29 @@ describe('프롬프트로 흘러드는 것', () => {
 
     await ensureMaterial(deps(llm as never), REVIEW_1, noProgress)
     expect(system).toContain('처음부터 다시 가르치지 마라')
+  })
+})
+
+describe('자료 유무 조회 (화면이 정직하게 말하기 위한 것)', () => {
+  it('신규 자료의 키는 topicId 다', () => {
+    expect(materialKey(TOPIC, 'new', null)).toBe(TOPIC)
+    expect(materialKey(TOPIC, 'remediation', null)).toBe(TOPIC)
+  })
+
+  it('복습 자료의 키에는 회차가 붙는다', () => {
+    expect(materialKey(TOPIC, 'review', 2)).toBe(`${TOPIC}#2`)
+  })
+
+  it('★ 취약 재학습(round null)은 원래 자료를 쓰므로 키가 topicId 다', () => {
+    expect(materialKey(TOPIC, 'review', null)).toBe(TOPIC)
+  })
+
+  it('저장된 것만 담는다', async () => {
+    expect(await loadMaterialKeys(db)).toEqual(new Set())
+
+    await ensureMaterial(deps(new FakeLlmClient(CONTENT_PAYLOAD)), NEW, noProgress)
+    await ensureMaterial(deps(new FakeLlmClient(REVIEW_PAYLOAD)), REVIEW_1, noProgress)
+
+    expect(await loadMaterialKeys(db)).toEqual(new Set([TOPIC, `${TOPIC}#1`]))
   })
 })

@@ -201,3 +201,28 @@ export async function ensureMaterial(
 
   return { ok: true, material, generated: true }
 }
+
+/**
+ * 계획 항목들 중 자료가 이미 있는 것을 골라낸다.
+ *
+ * 「오늘의 학습」이 "자료 있음 / 없음"을 정직하게 말하기 위한 것이다.
+ * 항목의 status 로 판단하면 안 된다 — 어제 만들어둔 Topic 이 오늘 계획에
+ * 다시 뽑히면 새 항목은 pending 이지만 자료는 이미 있다.
+ *
+ * 반환값의 원소는 `topicId` 또는 `topicId#round` 다.
+ */
+export function materialKey(topicId: string, kind: string, round: number | null): string {
+  return kind === 'review' && round !== null ? `${topicId}#${round}` : topicId
+}
+
+export async function loadMaterialKeys(db: Db): Promise<Set<string>> {
+  const keys = new Set<string>()
+  for (const row of await db.select({ topicId: topicContents.topicId }).from(topicContents)) {
+    keys.add(row.topicId)
+  }
+  for (const row of await db.select({ topicId: reviewItems.topicId, round: reviewItems.round })
+    .from(reviewItems)) {
+    keys.add(`${row.topicId}#${row.round}`)
+  }
+  return keys
+}

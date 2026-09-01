@@ -2,7 +2,10 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { eq } from 'drizzle-orm'
 import { createTestDb } from '../helpers/testDb'
 import { fixedClock } from '../helpers/clock'
-import { ensureTodayPlan, readPlan, loadSettings, recordItemResult, completePlanIfDone } from '../../lib/plan/store'
+import {
+  ensureTodayPlan, readPlan, loadSettings, recordItemResult, completePlanIfDone,
+  markStudying, saveAnswers,
+} from '../../lib/plan/store'
 import { applyManualScore } from '../../lib/mastery/apply'
 import { dailyPlans, planItems, topicProgress, users } from '../../lib/db/schema'
 import type { Db } from '../../lib/db/types'
@@ -187,5 +190,47 @@ describe('계획 항목의 결과 기록', () => {
 
     const after = await readPlan(db, '2026-09-01')
     expect(after!.status).toBe('completed')
+  })
+})
+
+describe('답안 저장', () => {
+  it('★ pending 항목에도 답을 저장한다 — 자료가 이미 있으면 pending 에 머문다', async () => {
+    const plan = await ensureTodayPlan(db, clock, 20)
+    const item = plan.items[0]!
+    expect(item.status).toBe('pending')
+
+    await saveAnswers(db, plan.id, item.topicId, { q1: '내 답' })
+
+    const after = (await readPlan(db, plan.studyDate))!
+    const saved = after.items.find((i) => i.topicId === item.topicId)!
+    expect(saved.answers).toEqual({ q1: '내 답' })
+    expect(saved.status).toBe('studying')
+  })
+
+  it('★ 채점이 끝난 항목의 답은 덮어쓰지 않는다', async () => {
+    const plan = await ensureTodayPlan(db, clock, 20)
+    const item = plan.items[0]!
+
+    await saveAnswers(db, plan.id, item.topicId, { q1: '원래 답' })
+    await recordItemResult(db, plan.id, item.topicId, {
+      attemptNo: 1, answers: { q1: '원래 답' }, score: 80,
+    })
+    await saveAnswers(db, plan.id, item.topicId, { q1: '나중 답' })
+
+    const after = (await readPlan(db, plan.studyDate))!
+    const saved = after.items.find((i) => i.topicId === item.topicId)!
+    expect(saved.answers).toEqual({ q1: '원래 답' })
+    expect(saved.status).toBe('done')
+  })
+
+  it('markStudying 은 이미 끝난 항목을 되돌리지 않는다', async () => {
+    const plan = await ensureTodayPlan(db, clock, 20)
+    const item = plan.items[0]!
+
+    await recordItemResult(db, plan.id, item.topicId, { attemptNo: 1, score: 80 })
+    await markStudying(db, plan.id, item.topicId)
+
+    const after = (await readPlan(db, plan.studyDate))!
+    expect(after.items.find((i) => i.topicId === item.topicId)!.status).toBe('done')
   })
 })

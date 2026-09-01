@@ -74,9 +74,12 @@ export default async function TopicPage(
             {subjectLabel(graph, topic.subject)} · {topic.domainLabel}
           </div>
 
-          <h1 className="mt-6 text-balance font-serif text-[42px] leading-[1.15] tracking-[-0.03em] text-ink">
+          <Link
+            href={`/topic/${encodeURIComponent(topicId)}`}
+            className="mt-6 block text-balance font-serif text-[42px] leading-[1.15] tracking-[-0.03em] text-ink underline decoration-transparent underline-offset-8 transition-colors hover:decoration-rule-strong"
+          >
             {topic.title}
-          </h1>
+          </Link>
 
           <p className="mx-auto mt-5 max-w-[440px] text-balance text-[13.5px] leading-[1.8] text-muted">
             {topic.goal}

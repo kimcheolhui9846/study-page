@@ -2249,8 +2249,16 @@ Expected: PASS (13 tests)
 - [ ] **Step 5: ★ 제약을 역검증한다**
 
 `attempts` 의 CHECK 가 실제로 일하는지 확인한다.
-`lib/db/schema.ts` 에서 `check('attempt_cap', ...)` 줄을 잠시 주석 처리하고
-`npm run db:generate` 없이 테스트만 돌린다 (PGlite 는 스키마에서 직접 만든다):
+
+**★ `lib/db/schema.ts` 를 고쳐도 소용없다.** PGlite 하네스는 스키마 파일이
+아니라 `drizzle/0000_*.sql` 마이그레이션을 실행한다 (`tests/helpers/testDb.ts`).
+제약을 무력화할 곳은 마이그레이션이다:
+
+```bash
+MIG=$(ls drizzle/0000_*.sql)
+cp "$MIG" /tmp/mig.bak
+# CONSTRAINT "attempt_cap" CHECK (...) 를 CHECK (true) 로 바꾼다
+```
 
 Run: `npx vitest run tests/integration/grade.test.ts`
 Expected: **「세 번째는 attempt_cap」테스트만 FAIL**

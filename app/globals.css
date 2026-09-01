@@ -1,26 +1,51 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * 조용한 서재 — 디자인 캔버스에서 온 토큰이다.
+ * https://claude.ai/code/artifact/54e9838d-e75b-47cd-85a2-1e22ff749963
+ *
+ * 값을 바꾸면 캔버스(design/canvas/*.dc.html)도 함께 고친다.
+ * 이유는 docs/DECISIONS.md 의 "디자인 방향: 조용한 서재".
+ *
+ * 다크 모드를 두지 않는다. 따뜻한 종이색 자체가 이 디자인이라
+ * 색을 뒤집으면 남는 게 없다.
+ */
+@theme {
+  --color-paper: #faf7f2; /* 바탕 */
+  --color-surface: #fffdf9; /* 카드 */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-rule: #e7e0d5; /* 실선 */
+  --color-rule-soft: #ede6da;
+  --color-rule-strong: #d8cfc0;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-ink: #23201c; /* 제목·강조·기본 버튼 */
+  --color-body: #3d382f; /* 본문 */
+  --color-muted: #7a7266;
+  --color-faint: #9c948a;
+  --color-ghost: #c4baa9; /* 플레이스홀더 */
+
+  /* 상태색 셋 — oklch 에서 L·C 를 맞추고 색상만 돌렸다.
+     새 상태색이 필요하면 같은 L·C 를 유지한다. */
+  --color-ok: #24765f; /* 맞음 · 완료 */
+  --color-ok-tint: #e2eee8;
+  --color-warn: #83682c; /* 놓침 · 주의 */
+  --color-warn-tint: #f3ecdb;
+  --color-warn-rule: #dccfa8;
+  --color-stop: #9a5b42; /* 차단 · 오류 */
+  --color-stop-tint: #f6ede8;
+  --color-stop-rule: #d9b7a6;
+
+  --font-serif: var(--font-gowun-batang), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-plex-sans-kr), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, Menlo, monospace;
+
+  --radius-card: 4px;
+  --radius-control: 3px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-body);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }

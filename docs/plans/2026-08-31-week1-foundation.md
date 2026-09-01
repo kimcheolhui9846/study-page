@@ -2586,7 +2586,7 @@ DB 에는 남아야 하고 클라이언트에는 나가면 안 된다."
 > 카운트다운은 **서버가 준 만료 시각**을 기준으로 그린다. 클라이언트가 자체 타이머를
 > 굴리면 탭이 백그라운드로 가거나 노트북이 잠들 때 어긋난다.
 
-- [ ] **Step 1: 상태 라우트 테스트 작성**
+- [x] **Step 1: 상태 라우트 테스트 작성**
 
 `tests/session/status-route.test.ts`:
 
@@ -2632,12 +2632,12 @@ describe('세션 상태', () => {
 })
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 Run: `npm test -- tests/session/status-route.test.ts`
 Expected: FAIL — `lib/session/status` 없음
 
-- [ ] **Step 3: 상태 핸들러 구현**
+- [x] **Step 3: 상태 핸들러 구현**
 
 `lib/session/status.ts`:
 
@@ -2660,12 +2660,12 @@ import { sessionStatusHandler } from '@/lib/session/status'
 export const GET = withSession(sessionStatusHandler)
 ```
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Run: `npm test -- tests/session/status-route.test.ts`
 Expected: PASS (2 tests)
 
-- [ ] **Step 5: 로그인 화면**
+- [x] **Step 5: 로그인 화면**
 
 `app/login/page.tsx`:
 
@@ -2734,7 +2734,7 @@ export default function LoginPage() {
 }
 ```
 
-- [ ] **Step 6: 세션 바 (카운트다운 · 종료 · beacon)**
+- [x] **Step 6: 세션 바 (카운트다운 · 종료 · beacon)**
 
 `components/SessionBar.tsx`:
 
@@ -2812,7 +2812,7 @@ export function SessionBar() {
 }
 ```
 
-- [ ] **Step 7: 대시보드**
+- [x] **Step 7: 대시보드**
 
 `app/page.tsx` 전체를 교체:
 
@@ -2857,7 +2857,7 @@ export default async function Dashboard() {
 }
 ```
 
-- [ ] **Step 8: 손으로 확인**
+- [ ] **Step 8: 손으로 확인** — `DATABASE_URL` 이 있어야 돌릴 수 있다. 사용자가 직접 돌린다.
 
 ```bash
 npm run hash:password        # 비밀번호를 정하고 출력값을 .env.local 의 AUTH_PASSWORD_HASH 에 넣는다
@@ -2873,7 +2873,7 @@ npm run dev
 5. 13분 기다리면 빨간 글씨로 `2:00 뒤 자동 종료됩니다`
 6. [종료] 클릭 → `/login`으로 이동. 뒤로 가기를 눌러도 `/`가 다시 `/login`으로 보낸다
 
-- [ ] **Step 9: 전체 검증**
+- [x] **Step 9: 전체 검증**
 
 ```bash
 npm test
@@ -2886,7 +2886,7 @@ Expected: 넷 다 성공. `npm run build`가 실패하면 서버 전용 모듈�
 클라이언트 컴포넌트에 새어 들어간 것이다 — `'use client'` 파일에서 `lib/db/*`를
 import 하지 않았는지 본다.
 
-- [ ] **Step 10: 핸드오프 갱신 후 커밋**
+- [x] **Step 10: 핸드오프 갱신 후 커밋**
 
 `docs/HANDOFF.md`를 통째로 교체:
 
@@ -2948,6 +2948,56 @@ pagehide 에서 sendBeacon 으로 세션을 끊되, 이건 최선 노력이다.
 
 1주차 완료: LLM 호출 0회로 보안·예산 계층이 전부 테스트로 증명된다."
 ```
+
+---
+
+### 결과 (2026-09-01)
+
+계획에 적힌 코드는 Task 9.5 이전에 쓴 것이라 회색 Tailwind 자리표시자였다.
+디자인이 생겼으므로 **디자인을 구현했다.** 계획 본문의 코드 블록은 남겨 두되
+실제 구현은 아래대로다.
+
+| 계획 | 실제 |
+|---|---|
+| `neutral-*` 유틸리티 | `app/globals.css` 의 `@theme` 토큰 (`bg-paper`, `text-ink`, `text-ok` …) |
+| 경고 2단계 (정상 / 2분) | 3단계 (정상 / 2분 앰버 / 30초 테라코타 + [계속하기]) |
+| 진도 "2주차에 붙인다" | `lib/study/progress.ts` 로 `study_days` 에서 파생 |
+| 사용량 표시 없음 | `loadUsage()` 로 `budget_counters` 에서 읽어 하단에 표시 |
+| 단일 로그인 클라이언트 컴포넌트 | 서버 페이지 + `components/LoginForm.tsx` (날짜를 서버가 만든다) |
+
+**새로 만든 것:** `lib/session/status.ts`, `lib/study/progress.ts`,
+`lib/time.ts` 의 `kstDateLabel()`, `components/SessionBar.tsx`,
+`components/LoginForm.tsx`, `app/login/page.tsx`, `app/api/session/status/route.ts`.
+테스트 18개 추가 (138 → 156).
+
+#### 계획에 없던 판단 셋
+
+**1. 상태 라우트를 폴링하지 않는다.** 가드는 통과할 때마다 유휴 만료를 민다.
+세션 바가 `/api/session/status` 를 주기적으로 부르면 넣지 않기로 한 하트비트가
+뒷문으로 들어와 유휴 타임아웃이 영영 오지 않는다. 그래서 마운트 때 한 번만
+부르고, 그 뒤로는 받아온 시각과 로컬 시계의 차이만 1초마다 다시 그린다.
+`tests/session/status-route.test.ts` 의 "상태 조회도 유휴 만료를 민다" 가
+이 사실을 못박아 둔다 — 폴링을 붙이려는 사람이 먼저 읽으라고.
+
+**2. 다시 묻는 경우는 사용자가 움직였을 때뿐이다.** 2분 전 경고가
+"아무 키나 누르면 15분으로 되돌아간다"고 말하는데, 클라이언트가 서버의
+갱신을 모르면 그 문구가 거짓이 된다. `keydown`/`pointerdown` 에서
+최대 1분에 한 번 다시 동기화한다. **타이머가 아니라 사람이 방아쇠라서
+하트비트가 아니다** — 자리를 비우면 요청이 0건이고 세션은 예정대로 닫힌다.
+
+**3. 만료 임박 문구를 화면이 넘긴다.** 디자인의 30초 경고는 "쓰던 답은
+브라우저에 남는다"고 했지만 1주차에는 답을 쓰는 화면이 없다. 없는 것을
+남는다고 하면 거짓말이다. `SessionBar` 에 `expiringNote` prop 을 뒀고,
+2주차의 학습 화면이 초안 보관을 구현하면서 그 문장을 넘긴다.
+
+#### 디자인 쪽을 고친 것 둘
+
+구현하면서 캔버스가 코드와 어긋난 곳이 드러나 캔버스를 고쳤다.
+
+- **로그인 잠금은 423 이 아니라 429 `LOCKED_OUT`.** 캡 초과와 상태 코드가
+  같아서 본문의 `error` 필드로만 구분된다. 그 사실을 카드에 적었다.
+- **사용량은 원화가 아니라 USD.** 월 상한이 USD 마이크로로 저장돼 있고
+  환율을 지어낼 수 없다.
 
 ---
 

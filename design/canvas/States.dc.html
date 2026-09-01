@@ -1,0 +1,163 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "IBM Plex Sans KR", system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+    p, h1, h2, h3 { margin: 0; font-weight: 400; }
+    input, textarea, button { font: inherit; }
+    a { color: #24765F; text-decoration: none; }
+    a:hover { color: #1A5A48; text-decoration: underline; }
+  </style>
+</helmet>
+
+<div style="min-height: 1240px; display: flex; flex-direction: column; gap: 48px; background: #FAF7F2; padding: 52px 40px 56px;">
+
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <h1 style="font-family: 'Gowun Batang', Georgia, 'Times New Roman', serif; font-size: 32px; line-height: 1.3; color: #23201C;">세션 바와 막힌 화면</h1>
+    <p style="font-size: 14px; line-height: 1.7; color: #7A7266;">위 4줄은 모든 화면 상단에 공통으로 얹히는 띠다. 아래 4장은 사용자가 실제로 마주칠 수 있는 막힌 상태다.</p>
+  </div>
+
+  <!-- 세션 바 변형 -->
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; letter-spacing: 0.14em; color: #9C948A;">세션 바 · 4가지</span>
+    <p style="font-size: 12.5px; line-height: 1.7; color: #9C948A;">실제 화면에서는 아래쪽 실선 하나만 남는다. 여기서는 낱개로 떼어 보이려고 네 변을 둘렀다.</p>
+
+    <!-- 정상 -->
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <span style="width: 130px; flex: none; font-size: 12.5px; color: #9C948A;">학습 중</span>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-grow: 1; height: 52px; padding: 0 32px; background: #FFFDF9; border: 1px solid #E7E0D5;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="width: 7px; height: 7px; border-radius: 50%; background: #24765F; flex: none;"></span>
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.1em; color: #3D382F;">CS · DAY 5</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 18px;">
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12.5px; color: #7A7266;">남은 시간 <span style="color: #23201C;">12:43</span></span>
+          <button style="height: 30px; padding: 0 14px; border: 1px solid #D8CFC0; border-radius: 3px; background: transparent; color: #3D382F; font-size: 12.5px; cursor: pointer;">종료</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2분 전 -->
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <span style="width: 130px; flex: none; font-size: 12.5px; color: #9C948A;">2분 전 경고</span>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-grow: 1; height: 52px; padding: 0 32px; background: #F3ECDB; border: 1px solid #DCCFA8;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="width: 7px; height: 7px; border-radius: 50%; background: #83682C; flex: none;"></span>
+          <span style="font-size: 13px; color: #3D382F;">2분 뒤 세션이 닫힌다. 아무 키나 누르면 15분으로 되돌아간다.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 18px;">
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12.5px; color: #83682C;">남은 시간 <span style="color: #23201C;">01:58</span></span>
+          <button style="height: 30px; padding: 0 14px; border: 1px solid #C7B78B; border-radius: 3px; background: transparent; color: #3D382F; font-size: 12.5px; cursor: pointer;">종료</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 30초 -->
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <span style="width: 130px; flex: none; font-size: 12.5px; color: #9C948A;">30초 남음</span>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-grow: 1; height: 52px; padding: 0 32px; background: #F6EDE8; border: 1px solid #D9B7A6;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex: none;"><path d="M7 2.2L12.6 11.8H1.4L7 2.2Z" stroke="#9A5B42" stroke-width="1.4" stroke-linejoin="round"/><path d="M7 6V8.2" stroke="#9A5B42" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="10.2" r="0.8" fill="#9A5B42"/></svg>
+          <span style="font-size: 13px; color: #3D382F;">쓰던 답은 브라우저에 남는다. 다시 들어오면 이어서 쓸 수 있다.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 18px;">
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12.5px; color: #9A5B42;">남은 시간 <span style="color: #23201C;">00:30</span></span>
+          <button style="height: 30px; padding: 0 14px; border: none; border-radius: 3px; background: #23201C; color: #FAF7F2; font-size: 12.5px; cursor: pointer;">계속하기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 대시보드 -->
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <span style="width: 130px; flex: none; font-size: 12.5px; color: #9C948A;">대시보드</span>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-grow: 1; height: 52px; padding: 0 32px; background: #FFFDF9; border: 1px solid #E7E0D5;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="width: 7px; height: 7px; border-radius: 50%; background: #24765F; flex: none;"></span>
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.1em; color: #3D382F;">STUDY</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 18px;">
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12.5px; color: #7A7266;">남은 시간 <span style="color: #23201C;">14:58</span></span>
+          <button style="height: 30px; padding: 0 14px; border: 1px solid #D8CFC0; border-radius: 3px; background: transparent; color: #3D382F; font-size: 12.5px; cursor: pointer;">종료</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 막힌 화면 -->
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; letter-spacing: 0.14em; color: #9C948A;">막힌 화면 · 4가지</span>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px;">
+
+      <!-- 429 -->
+      <div style="display: flex; flex-direction: column; padding: 26px 26px 24px; background: #FFFDF9; border: 1px solid #E7E0D5; border-radius: 4px;">
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; letter-spacing: 0.1em; color: #9A5B42;">429</span>
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #C4BAA9;">CAP_EXCEEDED</span>
+        </div>
+        <h2 style="margin-top: 12px; font-family: 'Gowun Batang', Georgia, serif; font-size: 24px; line-height: 1.4; color: #23201C;">오늘 몫을 다 썼다</h2>
+        <p style="margin-top: 12px; font-size: 14.5px; line-height: 1.75; color: #3D382F; flex-grow: 1;">하루에 쓸 수 있는 AI 호출을 전부 소진했다. 지갑을 지키려고 스스로 건 한도이고, 자정(KST)에 초기화된다. 이미 만들어진 오늘 지문과 채점 결과는 그대로 볼 수 있다.</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px;">
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; color: #9C948A;">20 / 20 · 09-02 00:00 초기화</span>
+          <button style="height: 40px; padding: 0 16px; border: 1px solid #D8CFC0; border-radius: 3px; background: transparent; color: #3D382F; font-size: 13.5px; cursor: pointer;">오늘 것 다시 보기</button>
+        </div>
+      </div>
+
+      <!-- 401 -->
+      <div style="display: flex; flex-direction: column; padding: 26px 26px 24px; background: #FFFDF9; border: 1px solid #E7E0D5; border-radius: 4px;">
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; letter-spacing: 0.1em; color: #9A5B42;">401</span>
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #C4BAA9;">UNAUTHORIZED</span>
+        </div>
+        <h2 style="margin-top: 12px; font-family: 'Gowun Batang', Georgia, serif; font-size: 24px; line-height: 1.4; color: #23201C;">세션이 닫혔다</h2>
+        <p style="margin-top: 12px; font-size: 14.5px; line-height: 1.75; color: #3D382F; flex-grow: 1;">15분 동안 아무 움직임이 없었거나, 다른 창에서 [종료]를 눌렀다. 서버의 토큰은 이미 지워졌다. 쓰던 답은 이 브라우저에 남아 있으니 다시 들어오면 그 자리에서 이어진다.</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px;">
+          <span style="font-size: 12.5px; color: #9C948A;">답안 초안 보관됨</span>
+          <button style="height: 40px; padding: 0 16px; border: none; border-radius: 3px; background: #23201C; color: #FAF7F2; font-size: 13.5px; font-weight: 500; cursor: pointer;">다시 로그인</button>
+        </div>
+      </div>
+
+      <!-- 409 -->
+      <div style="display: flex; flex-direction: column; padding: 26px 26px 24px; background: #FFFDF9; border: 1px solid #E7E0D5; border-radius: 4px;">
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; letter-spacing: 0.1em; color: #83682C;">409</span>
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #C4BAA9;">ALREADY_STUDIED_TODAY</span>
+        </div>
+        <h2 style="margin-top: 12px; font-family: 'Gowun Batang', Georgia, serif; font-size: 24px; line-height: 1.4; color: #23201C;">CS 는 오늘 이미 했다</h2>
+        <p style="margin-top: 12px; font-size: 14.5px; line-height: 1.75; color: #3D382F; flex-grow: 1;">한 과목은 하루에 한 Day 다. 새로 고침을 아무리 눌러도 새 지문은 만들어지지 않는다 &mdash; 이건 화면의 규칙이 아니라 DB 제약이다. 다른 과목은 아직 남아 있다.</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px;">
+          <span style="font-size: 12.5px; color: #9C948A;">수학 · 영어 남음</span>
+          <button style="height: 40px; padding: 0 16px; border: none; border-radius: 3px; background: #23201C; color: #FAF7F2; font-size: 13.5px; font-weight: 500; cursor: pointer;">대시보드로</button>
+        </div>
+      </div>
+
+      <!-- 잠금 -->
+      <div style="display: flex; flex-direction: column; padding: 26px 26px 24px; background: #FFFDF9; border: 1px solid #E7E0D5; border-radius: 4px;">
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; letter-spacing: 0.1em; color: #9A5B42;">423</span>
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #C4BAA9;">LOCKED</span>
+        </div>
+        <h2 style="margin-top: 12px; font-family: 'Gowun Batang', Georgia, serif; font-size: 24px; line-height: 1.4; color: #23201C;">잠시 잠갔다</h2>
+        <p style="margin-top: 12px; font-size: 14.5px; line-height: 1.75; color: #3D382F; flex-grow: 1;">15분 안에 비밀번호를 5번 틀렸다. 다음 15분 동안은 맞는 비밀번호도 받지 않는다. 잠금은 IP 별이 아니라 전체로 건다 &mdash; 사용자가 한 명뿐이라 그게 더 촘촘하다.</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px;">
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; color: #9C948A;">해제까지 11:04</span>
+          <button style="height: 40px; padding: 0 16px; border: 1px solid #E7E0D5; border-radius: 3px; background: transparent; color: #C4BAA9; font-size: 13.5px;">들어가기</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

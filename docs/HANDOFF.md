@@ -1,6 +1,6 @@
 # 핸드오프
 
-**갱신:** 2026-08-31 · **브랜치:** `feat/fake-llm` · **PR:** #11
+**갱신:** 2026-09-01 · **브랜치:** `design/canvas` · **PR:** (열기 전)
 
 > 이 파일은 **현재 상태**만 담는다. 매번 통째로 덮어쓴다.
 > 과거 결정의 이유는 `docs/DECISIONS.md`에 있다.
@@ -26,16 +26,28 @@
 **아직 Neon 계정이 없어도 된다.** 테스트는 PGlite 인메모리 Postgres에서 돈다.
 `DATABASE_URL`은 실제로 앱을 띄울 때(Task 10) 필요해진다.
 
-아직 없는 것: 디자인(Task 9.5), UI(Task 10).
+**Task 9.5 (디자인 캔버스) 완료.** 아트보드 8장.
+
+캔버스: https://claude.ai/code/artifact/54e9838d-e75b-47cd-85a2-1e22ff749963
+원본: `design/canvas/*.dc.html` + `canvas.json`
+
+계획의 7장(로그인 / 대시보드 / 학습 / 채점 / 정리본 / 다듬기 / 발행)에
+`States` 를 더했다 — 세션 바 4상태 + 막힌 화면 4장(429 / 401 / 409 / 423).
+
+색·글꼴·간격 토큰은 계획의 **Task 9.5 결과 절**에 표로 있다.
+Task 10 은 그 표를 그대로 쓴다. 방향의 이유는 `docs/DECISIONS.md`.
+
+아직 없는 것: UI(Task 10).
 
 ## 바로 다음에 할 일
 
-계획의 **Task 9.5 (디자인 캔버스)** — 하루 학습 전체 흐름 아트보드 7장.
-`design` 스킬로 캔버스를 만든다. 코드 없음.
+**Task 10 (`feat/ui-session`)** — 디자인을 코드로 옮긴다. 10 스텝 남아 있다.
+`app/login/page.tsx`, `app/page.tsx`(대시보드), `components/SessionBar.tsx`,
+`app/api/session/status/route.ts` + `lib/session/status.ts`.
 
-그 다음 **Task 10 (`feat/ui-session`)** 이 그 디자인을 구현한다.
+**여기서 `DATABASE_URL` 이 실제로 필요해진다.** Neon 프로젝트를 먼저 만든다.
 
-계획: `docs/plans/2026-08-31-week1-foundation.md` (Task 1~9는 완료 표시됨)
+계획: `docs/plans/2026-08-31-week1-foundation.md` (Task 1~9.5는 완료 표시됨)
 
 ## 알아둘 것
 
@@ -81,6 +93,10 @@
   이게 빨갛게 뜨는 것이 "이제 돈이 나가기 시작한다"는 신호다.
   지울 때 OpenAI 대시보드 하드 리밋이 걸려 있는지 함께 확인한다.
 - 스키마를 고쳤으면 반드시 `npm run db:generate`를 돌려 마이그레이션을 함께 커밋할 것.
+- **`design/canvas/study-page-daily-flow.html` 을 직접 편집하지 말 것.** 씨딩 산출물이다.
+  캔버스를 고칠 때는 `design/canvas/*.dc.html` 을 고쳐서 다시 씨딩한다.
+- **세션 만료 30초 경고에 "쓰던 답은 브라우저에 남는다"가 있다.**
+  Task 10 이 답안 로컬 초안 보관을 실제로 구현하지 않으면 저 문구는 거짓말이 된다.
 
 ## 명령어
 

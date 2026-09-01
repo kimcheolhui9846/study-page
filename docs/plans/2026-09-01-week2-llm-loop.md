@@ -112,7 +112,7 @@ Structured Outputs 는 JSON 바디 하나라 SDK 가 필요 없다.
 토큰 수를 비용으로 바꾸는 순수 함수 하나. 단가가 바뀌면 이 파일만 고친다.
 정수 마이크로달러로 계산한다 — 부동소수를 누적하면 오차가 쌓인다.
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `tests/llm/pricing.test.ts`:
 
@@ -152,12 +152,12 @@ describe('costMicros', () => {
 })
 ```
 
-- [ ] **Step 2: 실패를 확인한다**
+- [x] **Step 2: 실패를 확인한다**
 
 Run: `npx vitest run tests/llm/pricing.test.ts`
 Expected: FAIL — `lib/llm/pricing` 없음
 
-- [ ] **Step 3: 구현한다**
+- [x] **Step 3: 구현한다**
 
 `lib/llm/pricing.ts`:
 
@@ -188,12 +188,12 @@ export function costMicros(promptTokens: number, completionTokens: number): numb
 }
 ```
 
-- [ ] **Step 4: 통과를 확인한다**
+- [x] **Step 4: 통과를 확인한다**
 
 Run: `npx vitest run tests/llm/pricing.test.ts`
 Expected: PASS (7 tests)
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git checkout main && git pull && git checkout -b feat/llm-pricing
@@ -230,7 +230,7 @@ usage_ledger.cost_micros 가 integer 컬럼이라 어차피 정수여야 한다.
 `"additionalProperties": false` 와 **모든 키를 담은 `required` 배열**을 요구한다.
 선택 필드를 만들 수 없다 — 그래서 `hint` 도 필수다 (빈 문자열 허용).
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `tests/llm/schemas.test.ts`:
 
@@ -355,12 +355,12 @@ describe('GradeSchema', () => {
 })
 ```
 
-- [ ] **Step 2: 실패를 확인한다**
+- [x] **Step 2: 실패를 확인한다**
 
 Run: `npx vitest run tests/llm/schemas.test.ts`
 Expected: FAIL — `lib/llm/schemas` 없음
 
-- [ ] **Step 3: 구현한다**
+- [x] **Step 3: 구현한다**
 
 `lib/llm/schemas.ts`:
 
@@ -503,12 +503,12 @@ export const GradeSchema = z.object({
 export type GradeResult = z.infer<typeof GradeSchema>
 ```
 
-- [ ] **Step 4: 통과를 확인한다**
+- [x] **Step 4: 통과를 확인한다**
 
 Run: `npx vitest run tests/llm/schemas.test.ts`
 Expected: PASS (10 tests)
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add lib/llm/schemas.ts tests/llm/schemas.test.ts
@@ -548,7 +548,7 @@ expected_points 가 비면 zod 가 거른다. 형식은 맞아도 채점할 근�
 재현 가능하게 만드는 핵심이다 (스펙 §5.2). 지문 전체는 넣지 않는다 —
 루브릭이 이미 기준이고, 넣으면 입력 토큰만 늘어난다.
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `tests/llm/prompts.test.ts`:
 
@@ -634,12 +634,12 @@ describe('gradeUserMessage', () => {
 })
 ```
 
-- [ ] **Step 2: 실패를 확인한다**
+- [x] **Step 2: 실패를 확인한다**
 
 Run: `npx vitest run tests/llm/prompts.test.ts`
 Expected: FAIL — `lib/llm/prompts` 없음
 
-- [ ] **Step 3: 구현한다**
+- [x] **Step 3: 구현한다**
 
 `lib/llm/prompts.ts`:
 
@@ -727,12 +727,12 @@ export function gradeUserMessage(
 }
 ```
 
-- [ ] **Step 4: 통과를 확인한다**
+- [x] **Step 4: 통과를 확인한다**
 
 Run: `npx vitest run tests/llm/prompts.test.ts`
 Expected: PASS (12 tests)
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add lib/llm/prompts.ts tests/llm/prompts.test.ts
@@ -763,7 +763,7 @@ git commit -m "feat: 시스템 프롬프트와 사용자 메시지 조립
 
 ### ★ 시작 전 확인 (사람이 직접)
 
-- [ ] **Step 0: 하드 리밋이 걸려 있는지 눈으로 확인한다**
+- [x] **Step 0: 하드 리밋이 걸려 있는지 눈으로 확인한다**
 
 https://platform.openai.com → Settings
 
@@ -783,7 +783,7 @@ https://platform.openai.com → Settings
 
 파일을 **바꾼다.** "LLM 금지" → "API 키의 경계 감시".
 
-- [ ] **Step 1: 경계 감시 테스트로 바꾼다**
+- [x] **Step 1: 경계 감시 테스트로 바꾼다**
 
 `git mv tests/no-real-llm.test.ts tests/api-key-boundary.test.ts` 후 내용을 교체:
 
@@ -847,12 +847,12 @@ describe('API 키의 경계', () => {
 })
 ```
 
-- [ ] **Step 2: 실패를 확인한다**
+- [x] **Step 2: 실패를 확인한다**
 
 Run: `npx vitest run tests/api-key-boundary.test.ts`
 Expected: FAIL — 첫 테스트가 `[]` 를 받는다 (`lib/llm/client.ts` 가 아직 없다)
 
-- [ ] **Step 3: `LlmClient` 인터페이스에 스키마를 넣는다**
+- [x] **Step 3: `LlmClient` 인터페이스에 스키마를 넣는다**
 
 `lib/llm/types.ts` 의 `LlmRequest` 에 `jsonSchema` 를 추가한다.
 `FakeLlmClient` 는 이 필드를 무시하므로 기존 테스트는 그대로 통과한다.
@@ -870,7 +870,7 @@ export interface LlmRequest {
 }
 ```
 
-- [ ] **Step 4: 클라이언트 테스트를 쓴다 (실제 호출 없음 — fetch 스텁)**
+- [x] **Step 4: 클라이언트 테스트를 쓴다 (실제 호출 없음 — fetch 스텁)**
 
 `tests/llm/client.test.ts`:
 
@@ -998,7 +998,7 @@ describe('OpenAiLlmClient', () => {
 })
 ```
 
-- [ ] **Step 5: 구현한다**
+- [x] **Step 5: 구현한다**
 
 `lib/llm/client.ts`:
 
@@ -1079,7 +1079,7 @@ export class OpenAiLlmClient implements LlmClient {
 }
 ```
 
-- [ ] **Step 6: `.env.example` 에 키 항목을 넣는다**
+- [x] **Step 6: `.env.example` 에 키 항목을 넣는다**
 
 ```
 # 2주차부터 필요하다. lib/llm/client.ts 에서만 읽힌다.
@@ -1087,7 +1087,7 @@ export class OpenAiLlmClient implements LlmClient {
 OPENAI_API_KEY=
 ```
 
-- [ ] **Step 7: 통과를 확인한다**
+- [x] **Step 7: 통과를 확인한다**
 
 ```bash
 npx vitest run tests/llm/client.test.ts tests/api-key-boundary.test.ts
@@ -1098,7 +1098,7 @@ npm run check:secrets
 
 Expected: 전부 성공. `api-key-boundary` 의 첫 테스트가 `['lib/llm/client.ts']` 를 본다.
 
-- [ ] **Step 8: 커밋**
+- [x] **Step 8: 커밋**
 
 ```bash
 git add -A
@@ -1143,7 +1143,7 @@ UNIQUE 제약에 묶여 평생 되살릴 수 없다."
 실패하면 던진다 → 기존 catch 가 예산을 롤백하고 원장에 실패로 남긴다.
 **형식이 깨진 콘텐츠를 저장하면 그 Day 는 UNIQUE 제약에 묶여 평생 되살릴 수 없다.**
 
-- [ ] **Step 1: 검증 실패 경로의 테스트를 추가한다**
+- [x] **Step 1: 검증 실패 경로의 테스트를 추가한다**
 
 `tests/integration/content-route.test.ts` 끝에 추가:
 
@@ -1186,12 +1186,12 @@ describe('응답 검증', () => {
 })
 ```
 
-- [ ] **Step 2: 실패를 확인한다**
+- [x] **Step 2: 실패를 확인한다**
 
 Run: `npx vitest run tests/integration/content-route.test.ts`
 Expected: 새 테스트 3개 FAIL — 아직 zod 검증이 없어 깨진 응답이 저장된다
 
-- [ ] **Step 3: `lib/study/content.ts` 를 고친다**
+- [x] **Step 3: `lib/study/content.ts` 를 고친다**
 
 import 를 추가한다:
 
@@ -1247,7 +1247,7 @@ import { MODEL } from '../llm/pricing'
 1주차 완료 기준이 "원장의 model 이 전부 fake" 였다. 이제 실제 값이 쌓인다 —
 그 전환 자체가 "돈이 나가기 시작했다"의 기록이다.
 
-- [ ] **Step 4: 라우트에서 클라이언트를 교체한다**
+- [x] **Step 4: 라우트에서 클라이언트를 교체한다**
 
 `app/api/study/[subject]/content/route.ts`:
 
@@ -1259,7 +1259,7 @@ const llm = new OpenAiLlmClient()
 
 `FakeLlmClient` import 와 「1주차에는 가짜 클라이언트만 존재한다」 주석을 지운다.
 
-- [ ] **Step 5: 통과를 확인한다**
+- [x] **Step 5: 통과를 확인한다**
 
 ```bash
 npm test
@@ -1269,7 +1269,7 @@ npm run build
 
 Expected: 전부 성공 (기존 16개 + 새 3개).
 
-- [ ] **Step 6: ★ 첫 실호출을 손으로 한다**
+- [x] **Step 6: ★ 첫 실호출을 손으로 한다**
 
 `.env.local` 에 `OPENAI_API_KEY` 를 넣고 `npm run dev`.
 
@@ -1310,7 +1310,7 @@ console.table(await sql`SELECT period_key, calls, cost_micros FROM budget_counte
 **★ 같은 요청을 한 번 더 보낸다.** `usage_ledger` 행이 **늘지 않아야** 한다.
 멱등성이 실제 돈 앞에서 동작하는 것을 보는 순간이다.
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```bash
 git add -A
@@ -1348,7 +1348,7 @@ usage_ledger 의 model 이 'fake' 에서 'gpt-4o-mini' 로 바뀐다.
 학습 화면(Task 7)이 이 모듈을 쓰고 그 문장을 넘긴다.
 **동작과 문구가 같은 PR 에 들어간다 — 문구만 넣으면 거짓말이다.**
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `tests/study/draft.test.ts`:
 
@@ -1418,12 +1418,12 @@ describe('초안 보관', () => {
 })
 ```
 
-- [ ] **Step 2: 실패를 확인한다**
+- [x] **Step 2: 실패를 확인한다**
 
 Run: `npx vitest run tests/study/draft.test.ts`
 Expected: FAIL — `lib/study/draft` 없음
 
-- [ ] **Step 3: 구현한다**
+- [x] **Step 3: 구현한다**
 
 `lib/study/draft.ts`:
 
@@ -1475,12 +1475,12 @@ export function clearDraft(subject: string, dayNo: number): void {
 }
 ```
 
-- [ ] **Step 4: 통과를 확인한다**
+- [x] **Step 4: 통과를 확인한다**
 
 Run: `npx vitest run tests/study/draft.test.ts`
 Expected: PASS (7 tests)
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add lib/study/draft.ts tests/study/draft.test.ts
@@ -1515,7 +1515,7 @@ localStorage 접근 자체가 던지는 환경이 있다(사생활 보호 모드
 디자인은 캔버스의 **3번 아트보드**다. 색·글꼴은 `app/globals.css` 의
 `@theme` 토큰만 쓴다. **새 색을 짓지 않는다.**
 
-- [ ] **Step 1: 의존성을 넣는다**
+- [x] **Step 1: 의존성을 넣는다**
 
 ```bash
 npm i react-markdown remark-math rehype-katex katex
@@ -1523,7 +1523,7 @@ npm i react-markdown remark-math rehype-katex katex
 
 `openai` 는 넣지 않는다 (`tests/api-key-boundary.test.ts` 가 막는다).
 
-- [ ] **Step 2: 지문 렌더 컴포넌트를 만든다**
+- [x] **Step 2: 지문 렌더 컴포넌트를 만든다**
 
 `components/Passage.tsx`:
 
@@ -1575,7 +1575,7 @@ export function Passage({ title, bodyMd, keyTerms }: PassageProps) {
 }
 ```
 
-- [ ] **Step 3: 답안 폼을 만든다**
+- [x] **Step 3: 답안 폼을 만든다**
 
 `components/AnswerForm.tsx`:
 
@@ -1705,7 +1705,7 @@ export function AnswerForm({ subject, dayNo, questions, attemptsLeft }: AnswerFo
 }
 ```
 
-- [ ] **Step 4: 학습 페이지를 만든다**
+- [x] **Step 4: 학습 페이지를 만든다**
 
 `app/study/[subject]/page.tsx`:
 
@@ -1802,7 +1802,7 @@ export default async function StudyPage({ params }: PageProps<'/study/[subject]'
 **주의:** 채점 결과 자리는 Task 9 에서 `GradeResult` 로 교체한다.
 여기서 미리 import 하면 존재하지 않는 파일을 참조해 빌드가 깨진다.
 
-- [ ] **Step 5: 대시보드의 버튼을 링크로 바꾼다**
+- [x] **Step 5: 대시보드의 버튼을 링크로 바꾼다**
 
 `app/page.tsx` 에서 비활성 `<button>` 을 `<Link>` 로 교체하고,
 「학습 화면은 2주차에 붙는다」 줄을 지운다.
@@ -1820,7 +1820,7 @@ import Link from 'next/link'
       </Link>
 ```
 
-- [ ] **Step 6: 검증한다**
+- [x] **Step 6: 검증한다**
 
 ```bash
 npm test && npx tsc --noEmit && npm run check:secrets && npm run build
@@ -1830,7 +1830,7 @@ npm test && npx tsc --noEmit && npm run check:secrets && npm run build
 지문이 그려지고, 문제 3개의 입력란이 있고, 타이핑하면 글자 수가 늘고,
 **새로고침해도 쓰던 답이 남아 있어야 한다.**
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```bash
 git add -A
@@ -1888,7 +1888,7 @@ Day 확인 → 빈 답안 거르기 → 채점 슬롯 예약(DB CHECK) → 예�
 **빈 답안을 거른다.** 전부 공백인 제출로 LLM 을 부르는 것은 순수한 낭비다.
 이건 화면의 `disabled` 에 의존하지 않는다 — curl 로도 막혀야 한다.
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `tests/integration/grade.test.ts`:
 
@@ -2077,12 +2077,12 @@ describe('채점', () => {
 })
 ```
 
-- [ ] **Step 2: 실패를 확인한다**
+- [x] **Step 2: 실패를 확인한다**
 
 Run: `npx vitest run tests/integration/grade.test.ts`
 Expected: FAIL — `lib/study/grade` 없음
 
-- [ ] **Step 3: 구현한다**
+- [x] **Step 3: 구현한다**
 
 `lib/study/grade.ts`:
 
@@ -2241,12 +2241,12 @@ export async function gradeAnswers(
 }
 ```
 
-- [ ] **Step 4: 통과를 확인한다**
+- [x] **Step 4: 통과를 확인한다**
 
 Run: `npx vitest run tests/integration/grade.test.ts`
 Expected: PASS (13 tests)
 
-- [ ] **Step 5: ★ 제약을 역검증한다**
+- [x] **Step 5: ★ 제약을 역검증한다**
 
 `attempts` 의 CHECK 가 실제로 일하는지 확인한다.
 
@@ -2266,7 +2266,7 @@ Expected: **「세 번째는 attempt_cap」테스트만 FAIL**
 확인했으면 주석을 되돌리고 다시 통과시킨다. 이 절차를 건너뛰지 않는다 —
 1주차의 예산 카운터에서도 이 역검증이 진짜 레이스를 잡아냈다.
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add lib/study/grade.ts tests/integration/grade.test.ts
@@ -2315,7 +2315,7 @@ temperature 0 을 테스트로 박았다. 같은 답안에 같은 점수가 나�
 Day 를 `completed` 로 넘긴다. 수학에서 모델이 루브릭을 틀리게 만들었을 때
 사용자가 갇히지 않게 하는 탈출구이고, 비용은 0원이다.
 
-- [ ] **Step 1: 채점 라우트를 만든다**
+- [x] **Step 1: 채점 라우트를 만든다**
 
 `app/api/study/[subject]/grade/route.ts`:
 
@@ -2373,7 +2373,7 @@ export const POST = withSession<{ subject: string }>(async (req, _session, ctx) 
 })
 ```
 
-- [ ] **Step 2: Day 완료 처리의 테스트를 쓴다**
+- [x] **Step 2: Day 완료 처리의 테스트를 쓴다**
 
 `tests/study/complete.test.ts`:
 
@@ -2438,12 +2438,12 @@ describe('completeDay', () => {
 })
 ```
 
-- [ ] **Step 3: 실패를 확인한다**
+- [x] **Step 3: 실패를 확인한다**
 
 Run: `npx vitest run tests/study/complete.test.ts`
 Expected: FAIL — `lib/study/complete` 없음
 
-- [ ] **Step 4: 완료 처리를 구현한다**
+- [x] **Step 4: 완료 처리를 구현한다**
 
 `lib/study/complete.ts`:
 
@@ -2514,12 +2514,12 @@ export const POST = withSession<{ subject: string }>(async (req, _session, ctx) 
 })
 ```
 
-- [ ] **Step 5: 통과를 확인한다**
+- [x] **Step 5: 통과를 확인한다**
 
 Run: `npx vitest run tests/study/complete.test.ts`
 Expected: PASS (5 tests)
 
-- [ ] **Step 6: 채점 결과 화면을 만든다**
+- [x] **Step 6: 채점 결과 화면을 만든다**
 
 `components/GradeResult.tsx`:
 
@@ -2687,7 +2687,7 @@ export function GradeResult(props: GradeResultProps) {
 }
 ```
 
-- [ ] **Step 7: 학습 페이지의 자리표시자를 교체한다**
+- [x] **Step 7: 학습 페이지의 자리표시자를 교체한다**
 
 `app/study/[subject]/page.tsx` 에서 Task 7 의 안내 문단을 지우고:
 
@@ -2709,7 +2709,7 @@ import { GradeResult } from '@/components/GradeResult'
         ) : (
 ```
 
-- [ ] **Step 8: 검증하고 커밋한다**
+- [x] **Step 8: 검증하고 커밋한다**
 
 ```bash
 npm test && npx tsc --noEmit && npm run check:secrets && npm run build
@@ -2748,7 +2748,7 @@ completeDay 는 completedAt 이 이미 있으면 건드리지 않는다.
 힌트는 콘텐츠 생성 때 이미 만들어져 DB 에 있다 (스펙 §5.4).
 **꺼내 주기만 한다 — 비용이 0원이다.** LLM 을 부르는 순간 이 라우트의 존재 이유가 사라진다.
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `tests/integration/hint-route.test.ts`:
 
@@ -2799,12 +2799,12 @@ describe('힌트', () => {
 })
 ```
 
-- [ ] **Step 2: 실패를 확인한다**
+- [x] **Step 2: 실패를 확인한다**
 
 Run: `npx vitest run tests/integration/hint-route.test.ts`
 Expected: FAIL — `lib/study/hint` 없음
 
-- [ ] **Step 3: 구현한다**
+- [x] **Step 3: 구현한다**
 
 `lib/study/hint.ts`:
 
@@ -2864,7 +2864,7 @@ export const GET = withSession<{ subject: string }>(async (req, _session, ctx) =
 })
 ```
 
-- [ ] **Step 4: 답안 폼에 힌트 버튼을 붙인다**
+- [x] **Step 4: 답안 폼에 힌트 버튼을 붙인다**
 
 `components/AnswerForm.tsx` 안에 문제별 힌트 상태를 둔다:
 
@@ -2900,7 +2900,7 @@ export const GET = withSession<{ subject: string }>(async (req, _session, ctx) =
             </div>
 ```
 
-- [ ] **Step 5: 검증하고 커밋한다**
+- [x] **Step 5: 검증하고 커밋한다**
 
 ```bash
 npm test && npx tsc --noEmit && npm run build
@@ -2934,7 +2934,7 @@ Task 7 까지는 콘텐츠를 curl 로만 만들 수 있었다. 여기서 화면
 **「오늘 시작하기」가 곧 돈을 쓰는 버튼이다.** 그 사실을 숨기지 않는다 —
 버튼 옆에 오늘 남은 호출 수를 적는다.
 
-- [ ] **Step 1: 시작 컴포넌트를 만든다**
+- [x] **Step 1: 시작 컴포넌트를 만든다**
 
 `components/StartDay.tsx`:
 
@@ -3007,7 +3007,7 @@ export function StartDay({ subject, dayNo, topic, goal, callsLeft }: StartDayPro
 }
 ```
 
-- [ ] **Step 2: 학습 페이지가 이걸 쓰게 한다**
+- [x] **Step 2: 학습 페이지가 이걸 쓰게 한다**
 
 `app/study/[subject]/page.tsx` 에서 `if (!day) redirect('/')` 를 지우고,
 `loadUsage` 를 함께 읽어 남은 호출 수를 넘긴다.
@@ -3105,7 +3105,7 @@ import { StartDay } from '@/components/StartDay'
         )}
 ```
 
-- [ ] **Step 3: 검증하고 커밋한다**
+- [x] **Step 3: 검증하고 커밋한다**
 
 ```bash
 npm test && npx tsc --noEmit && npm run build
@@ -3135,7 +3135,7 @@ Task 7 까지는 콘텐츠를 curl 로만 만들 수 있었다. 화면에 붙였
 
 2주차의 완료 기준은 **"CS Day 1 을 실제로 완주"** 다. 코드가 아니라 사용이다.
 
-- [ ] **Step 1: 원장을 보는 스크립트를 만든다**
+- [x] **Step 1: 원장을 보는 스크립트를 만든다**
 
 `scripts/peek.mjs`:
 
@@ -3169,7 +3169,7 @@ const [sum] = await sql`SELECT COALESCE(SUM(cost_micros), 0)::int AS total FROM 
 console.log(`\n총 사용액: $${(sum.total / 1_000_000).toFixed(4)}\n`)
 ```
 
-- [ ] **Step 2: 손으로 완주한다**
+- [x] **Step 2: 손으로 완주한다**
 
 ```bash
 npm run dev
@@ -3185,7 +3185,7 @@ npm run dev
    **표현이 달라도 맞다고 봐주는가?**
 7. 「오늘 마치기」 → 대시보드로. CS 카드가 「오늘 마쳤다」
 
-- [ ] **Step 3: 이상한 것을 기록한다**
+- [x] **Step 3: 이상한 것을 기록한다**
 
 아래를 `docs/DECISIONS.md` 에 남긴다. **좋았던 것보다 이상했던 것이 중요하다.**
 
@@ -3194,7 +3194,7 @@ npm run dev
 - `summary_seed` 가 3주차 정리본 화면에 쓸 만한가
 - 실제 토큰 수와 비용 (`scripts/peek.mjs`)
 
-- [ ] **Step 4: 캡을 실측으로 다시 잡는다**
+- [x] **Step 4: 캡을 실측으로 다시 잡는다**
 
 `node scripts/peek.mjs` 의 `cost_micros` 를 본다.
 
@@ -3205,7 +3205,7 @@ Day 하나 완주 = content 1 + grade 1~2 회. 그 값에 3과목 × 30일을 �
 - **2배를 넘으면** 프롬프트가 예상보다 길다는 뜻이다. 캡을 올리지 말고
   **`max_tokens` 와 프롬프트를 줄인다.** 캡을 올리는 것은 마지막 수단이다
 
-- [ ] **Step 5: 핸드오프를 갱신하고 커밋한다**
+- [x] **Step 5: 핸드오프를 갱신하고 커밋한다**
 
 `docs/HANDOFF.md` 를 2주차 종료 상태로 통째로 덮어쓴다. 반드시 담을 것:
 
@@ -3230,18 +3230,18 @@ scripts/peek.mjs 로 원장을 본다. 실측 비용과 그것으로 캡을 어�
 
 아래가 전부 참이어야 2주차가 끝난 것이다.
 
-- [ ] `npm test` 통과 — 채점 상한, 빈 답안 차단, 슬롯 롤백, 스키마 검증이 포함돼 있다
-- [ ] `npm run check:secrets` 통과
-- [ ] `npx tsc --noEmit` 에러 0개
-- [ ] `npm run build` 통과
-- [ ] **`OPENAI_API_KEY` 를 읽는 파일이 `lib/llm/client.ts` 하나다** (테스트가 증명)
-- [ ] `usage_ledger` 에 `model='gpt-4o-mini'` 인 행이 쌓였고 `cost_micros` 가 0 이 아니다
-- [ ] **CS Day 1 을 화면에서 완주했다** — 지문 → 답안 → 채점 → 마치기
-- [ ] 같은 Day 를 다시 열어도 `usage_ledger` 행이 늘지 않는다 (멱등성)
-- [ ] 세 번째 채점 시도가 429 로 막힌다
-- [ ] 힌트를 눌러도 `usage_ledger` 행이 늘지 않는다
-- [ ] 실측 비용을 확인하고 캡을 유지하거나 프롬프트를 줄였다
-- [ ] `docs/HANDOFF.md` 가 2주차 종료 상태를 반영한다
+- [x] `npm test` 통과 — 채점 상한, 빈 답안 차단, 슬롯 롤백, 스키마 검증이 포함돼 있다
+- [x] `npm run check:secrets` 통과
+- [x] `npx tsc --noEmit` 에러 0개
+- [x] `npm run build` 통과
+- [x] **`OPENAI_API_KEY` 를 읽는 파일이 `lib/llm/client.ts` 하나다** (테스트가 증명)
+- [x] `usage_ledger` 에 `model='gpt-4o-mini'` 인 행이 쌓였고 `cost_micros` 가 0 이 아니다
+- [x] **CS Day 1 을 화면에서 완주했다** — 지문 → 답안 → 채점 → 마치기
+- [x] 같은 Day 를 다시 열어도 `usage_ledger` 행이 늘지 않는다 (멱등성)
+- [x] 세 번째 채점 시도가 429 로 막힌다
+- [x] 힌트를 눌러도 `usage_ledger` 행이 늘지 않는다
+- [x] 실측 비용을 확인하고 캡을 유지하거나 프롬프트를 줄였다
+- [x] `docs/HANDOFF.md` 가 2주차 종료 상태를 반영한다
 
 ---
 

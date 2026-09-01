@@ -2,24 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import {
+  earlierDeadline, format, isExpired, stageOf, type Stage,
+} from '@/lib/session/countdown'
 
-const WARN_MS = 2 * 60 * 1000 // 앰버로 바뀌는 지점
-const CRITICAL_MS = 30 * 1000 // 테라코타로 바뀌는 지점
 const RESYNC_THROTTLE_MS = 60 * 1000
-
-function format(ms: number): string {
-  const total = Math.max(0, Math.ceil(ms / 1000))
-  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
-}
-
-type Stage = 'normal' | 'warn' | 'critical' | 'expired'
-
-function stageOf(remaining: number): Stage {
-  if (remaining <= 0) return 'expired'
-  if (remaining <= CRITICAL_MS) return 'critical'
-  if (remaining <= WARN_MS) return 'warn'
-  return 'normal'
-}
 
 const SKIN: Record<Stage, { bar: string; time: string; button: string }> = {
   normal: {
@@ -80,14 +67,13 @@ export function SessionBar({ label = 'STUDY', expiringNote }: SessionBarProps) {
     syncing.current = true
     try {
       const res = await fetch('/api/session/status')
-      if (!res.ok) { setDeadline(0); return }
+      if (!res.ok) { setDeadline(0); return } // 0 = 이미 지난 시각 → 만료로 판정된다
       const body = await res.json()
-      // 두 만료 중 먼저 오는 쪽이 실제 남은 시간이다.
-      // 유휴는 활동마다 밀리고, 절대 만료는 밀리지 않는다.
-      setDeadline(Math.min(
-        new Date(body.idleExpiresAt).getTime(),
-        new Date(body.expiresAt).getTime(),
-      ))
+      const next = earlierDeadline(body.idleExpiresAt, body.expiresAt)
+      setDeadline(next)
+      // deadline 과 함께 남은 시간도 즉시 채운다. 이걸 틱에만 맡기면
+      // 그 사이 한 렌더 동안 0 으로 보인다.
+      setRemaining(next - Date.now())
       lastSync.current = Date.now()
     } catch {
       // 네트워크가 끊긴 것과 세션이 죽은 것을 구별할 수 없다.
@@ -136,15 +122,19 @@ export function SessionBar({ label = 'STUDY', expiringNote }: SessionBarProps) {
   }
 
   // 만료되면 스스로 나간다. 죽은 세션으로 화면을 붙잡고 있을 이유가 없다.
+  //
+  // ★ 판정을 remaining(화면 상태)이 아니라 시계로 한다. remaining 은 아직
+  // 틱이 돌지 않아 0 일 수 있고, 그걸 만료로 읽으면 방금 받아온 세션을
+  // 죽은 것으로 보고 / → /login → / 무한 루프에 빠진다. 실제로 빠졌다.
+  // remaining 은 여기서 "1초마다 다시 확인하라"는 신호일 뿐이다.
   useEffect(() => {
-    if (deadline === null || remaining > 0) return
+    if (!isExpired(deadline, Date.now())) return
     router.replace('/login')
-    router.refresh()
   }, [deadline, remaining, router])
 
   // 아직 서버 답을 못 받았으면 자리만 잡아둔다. 높이가 흔들리지 않게.
   if (deadline === null) {
-    return <div className="h-[52px] border-b border-rule bg-surface" />
+    return <div className="h-[52px] shrink-0 border-b border-rule bg-surface" />
   }
 
   const stage = stageOf(remaining)

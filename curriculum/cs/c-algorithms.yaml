@@ -1,0 +1,33 @@
+subject: cs
+domain: algorithms
+label: 알고리즘
+order: 2
+
+modules:
+  - id: complexity
+    label: 복잡도와 기본 알고리즘
+    topics:
+      - id: cs.algo.complexity
+        title: 시간과 공간 복잡도
+        goal: 점근 표기가 무엇을 버리고 무엇을 남기는지 설명한다
+        difficulty: 2
+        estimatedMinutes: 25
+        prerequisites: [cs.ds.array]
+        remediation: [math.foundation.functions]
+        keywords: [빅오, 점근, 최악, 평균]
+
+      - id: cs.algo.sorting
+        title: 정렬
+        goal: 비교 기반 정렬의 하한이 n log n 인 이유를 설명한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [cs.algo.complexity]
+        keywords: [병합정렬, 퀵정렬, 안정성, 하한]
+
+      - id: cs.algo.graph-search
+        title: 그래프 탐색
+        goal: 너비 우선과 깊이 우선이 각각 어떤 문제에 맞는지 설명한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [cs.ds.stack-queue]
+        keywords: [BFS, DFS, 방문표시, 최단경로]

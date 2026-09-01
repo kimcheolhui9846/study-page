@@ -80,62 +80,193 @@ export const ContentSchema = z.object({
 
 export type GeneratedContent = z.infer<typeof ContentSchema>
 
-// ── ② 채점 ─────────────────────────────────────
+// ── ② 복습 콘텐츠 ───────────────────────────────
 
+/**
+ * 복습은 지문을 다시 주지 않는다.
+ *
+ * 이미 한 번 읽은 글을 또 읽는 건 복습이 아니라 재독이다. 짧은 되짚기와
+ * 문제만 준다 — 출력 토큰이 절반 이하로 줄고, 그것이 복습의 정의에 더 맞다.
+ *
+ * 문제는 2개다. `review_items` 의 CHECK(round BETWEEN 1 AND 4)가 회차를
+ * 묶으므로 Topic 당 복습 생성은 최대 4회다.
+ */
+export const REVIEW_JSON_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['recap_md', 'questions'],
+  properties: {
+    recap_md: { type: 'string' },
+    questions: {
+      type: 'array',
+      minItems: 2,
+      maxItems: 2,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['id', 'type', 'prompt', 'expected_points', 'hint'],
+        properties: {
+          id: { type: 'string', enum: ['q1', 'q2'] },
+          type: { type: 'string', enum: ['recall', 'concept', 'application'] },
+          prompt: { type: 'string' },
+          expected_points: { type: 'array', items: { type: 'string' } },
+          hint: { type: 'string' },
+        },
+      },
+    },
+  },
+} as const
+
+export const ReviewSchema = z.object({
+  recap_md: z.string().min(1),
+  questions: z.array(z.object({
+    id: z.enum(['q1', 'q2']),
+    type: z.enum(['recall', 'concept', 'application']),
+    prompt: z.string().min(1),
+    expected_points: z.array(z.string().min(1)).min(1),
+    hint: z.string(),
+  })).length(2),
+})
+
+export type GeneratedReview = z.infer<typeof ReviewSchema>
+
+/**
+ * 화면과 채점이 보는 공통 모양.
+ *
+ * 신규 콘텐츠는 지문 + 문제 3개, 복습은 되짚기 + 문제 2개다. 둘을 여기로
+ * 좁혀 두면 학습 화면과 채점기가 어느 쪽인지 알 필요가 없다.
+ */
+export interface StudyMaterial {
+  title: string
+  bodyMd: string
+  keyTerms: Array<{ term: string; definition: string }>
+  questions: GeneratedContent['questions'] | GeneratedReview['questions']
+}
+
+export function materialOfContent(c: GeneratedContent): StudyMaterial {
+  return {
+    title: c.passage.title,
+    bodyMd: c.passage.body_md,
+    keyTerms: c.passage.key_terms,
+    questions: c.questions,
+  }
+}
+
+export function materialOfReview(r: GeneratedReview, title: string): StudyMaterial {
+  return { title, bodyMd: r.recap_md, keyTerms: [], questions: r.questions }
+}
+
+// ── ③ 채점 ─────────────────────────────────────
+
+/**
+ * ★ 채점은 계획 단위로 한 번 부른다. 그래서 응답이 Topic 배열이다.
+ *
+ * 항목마다 부르면 하루 호출이 (생성 N + 채점 N)이 된다. 한 번으로 묶으면
+ * (생성 N + 1)이다. 채점 기준은 루브릭이라 Topic 이 섞여도 흔들리지 않는다.
+ *
+ * ★ 모델에게 점수를 묻지 않는다.
+ * 2주차에 gpt-4o-mini 가 0/3 포인트짜리 답안에 50점을 줬다 — 자기가 명시한
+ * 계산식을 어겼다. 점수는 `lib/mastery/score.ts` 가 포인트 개수로 만든다.
+ * 안 읽을 필드를 남겨두면 언젠가 누가 읽는다. 그래서 아예 받지 않는다.
+ */
 export const GRADE_JSON_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['per_question', 'overall', 'summary_seed'],
+  required: ['topics'],
   properties: {
-    per_question: {
+    topics: {
       type: 'array',
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['id', 'score', 'correct_points', 'missed_points',
-                   'misconceptions', 'feedback_ko'],
+        required: ['topic_id', 'questions', 'summary_seed',
+                   'missing_prerequisites', 'weak_concepts'],
         properties: {
-          id: { type: 'string' },
-          score: { type: 'integer' },
-          correct_points: { type: 'array', items: { type: 'string' } },
-          missed_points: { type: 'array', items: { type: 'string' } },
-          misconceptions: { type: 'array', items: { type: 'string' } },
-          feedback_ko: { type: 'string' },
+          topic_id: { type: 'string' },
+          questions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['id', 'correct_points', 'missed_points',
+                         'misconceptions', 'feedback_ko'],
+              properties: {
+                id: { type: 'string' },
+                correct_points: { type: 'array', items: { type: 'string' } },
+                missed_points: { type: 'array', items: { type: 'string' } },
+                misconceptions: { type: 'array', items: { type: 'string' } },
+                feedback_ko: { type: 'string' },
+              },
+            },
+          },
+          summary_seed: { type: 'array', items: { type: 'string' } },
+          // 모델의 제안일 뿐이다. 보충 Topic 의 결정은 그래프가 한다 (설계 §9.2)
+          missing_prerequisites: { type: 'array', items: { type: 'string' } },
+          weak_concepts: { type: 'array', items: { type: 'string' } },
         },
       },
     },
-    overall: {
-      type: 'object',
-      additionalProperties: false,
-      required: ['score', 'goal_reached', 'verdict'],
-      properties: {
-        score: { type: 'integer' },
-        goal_reached: { type: 'boolean' },
-        verdict: { type: 'string', enum: ['pass', 'revise'] },
-      },
-    },
-    summary_seed: { type: 'array', items: { type: 'string' } },
   },
 } as const
 
-const Score = z.number().int().min(0).max(100)
-
-export const GradeSchema = z.object({
-  per_question: z.array(z.object({
-    id: z.string().min(1),
-    score: Score,
-    correct_points: z.array(z.string()),
-    missed_points: z.array(z.string()),
-    misconceptions: z.array(z.string()),
-    feedback_ko: z.string().min(1),
-  })).min(1),
-  overall: z.object({
-    score: Score,
-    goal_reached: z.boolean(),
-    verdict: z.enum(['pass', 'revise']),
-  }),
-  // 3주차 정리본 화면이 이걸 체크리스트로 쓴다. 비면 그 화면이 빈 껍데기가 된다.
-  summary_seed: z.array(z.string().min(1)).min(1),
+export const GradedQuestionSchema = z.object({
+  id: z.string().min(1),
+  correct_points: z.array(z.string()),
+  missed_points: z.array(z.string()),
+  misconceptions: z.array(z.string()),
+  feedback_ko: z.string().min(1),
 })
 
+export const GradedTopicSchema = z.object({
+  topicId: z.string().min(1),
+  questions: z.array(GradedQuestionSchema).min(1),
+  // 정리본 화면이 체크리스트로 쓴다. 비면 그 화면이 빈 껍데기가 된다.
+  summarySeed: z.array(z.string().min(1)).min(1),
+  // 힌트일 뿐이라 비어 있어도 정상이다
+  missingPrerequisites: z.array(z.string().min(1)),
+  weakConcepts: z.array(z.string().min(1)),
+})
+
+/** 모델의 snake_case 응답을 우리 camelCase 로 옮기며 검증한다. */
+export const GradeSchema = z.object({
+  topics: z.array(z.object({
+    topic_id: z.string().min(1),
+    questions: z.array(GradedQuestionSchema).min(1),
+    summary_seed: z.array(z.string().min(1)).min(1),
+    missing_prerequisites: z.array(z.string().min(1)),
+    weak_concepts: z.array(z.string().min(1)),
+  })).min(1),
+}).transform((g) => ({
+  topics: g.topics.map((t) => ({
+    topicId: t.topic_id,
+    questions: t.questions,
+    summarySeed: t.summary_seed,
+    missingPrerequisites: t.missing_prerequisites,
+    weakConcepts: t.weak_concepts,
+  })),
+}))
+
+export type GradedTopic = z.infer<typeof GradedTopicSchema>
 export type GradeResult = z.infer<typeof GradeSchema>
+
+// ── ④ 화면으로 나가는 모양 ────────────────────────
+
+/**
+ * ★ 학습자에게 보내는 문항. `expected_points` 와 `hint` 가 빠져 있다.
+ *
+ * 루브릭이 클라이언트로 나가면 답이 나가는 것과 같다. 힌트는 눌렀을 때만
+ * 따로 가져온다 — 페이지 소스에 있으면 힌트가 아니다.
+ */
+export interface PublicQuestion {
+  id: string
+  type: string
+  prompt: string
+}
+
+export function publicQuestions(m: StudyMaterial): PublicQuestion[] {
+  return m.questions.map((q) => ({ id: q.id, type: q.type, prompt: q.prompt }))
+}
+
+export function hintFor(m: StudyMaterial, questionId: string): string | null {
+  return m.questions.find((q) => q.id === questionId)?.hint ?? null
+}

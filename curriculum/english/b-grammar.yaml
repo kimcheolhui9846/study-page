@@ -1,0 +1,43 @@
+# AI 논문 독해 문법
+#
+# 시험용 문법이 아니라 논문 해석에 필요한 문법만 다룬다.
+
+subject: english
+domain: grammar
+label: 논문 독해 문법
+order: 1
+
+modules:
+  - id: sentence-core
+    label: 문장의 뼈대
+    topics:
+      - id: english.grammar.sentence-structure
+        title: 기본 문장 구조
+        goal: 긴 문장에서 주어와 동사를 먼저 찾는 절차를 설명한다
+        difficulty: 1
+        estimatedMinutes: 20
+        keywords: [주어, 동사, 목적어, 수식어]
+
+      - id: english.grammar.noun-phrase
+        title: 긴 명사구 해석
+        goal: 명사 앞뒤에 붙은 수식을 벗겨 핵심 명사를 찾는다
+        difficulty: 2
+        estimatedMinutes: 25
+        prerequisites: [english.grammar.sentence-structure]
+        keywords: [명사구, 전치수식, 후치수식, 핵심어]
+
+      - id: english.grammar.passive
+        title: 수동태
+        goal: 논문이 수동태를 즐겨 쓰는 이유와 행위자 생략을 설명한다
+        difficulty: 2
+        estimatedMinutes: 20
+        prerequisites: [english.grammar.sentence-structure]
+        keywords: [수동태, 행위자, by구]
+
+      - id: english.grammar.participle
+        title: 분사와 분사구문
+        goal: 분사구문을 부사절로 되돌려 의미를 복원한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [english.grammar.noun-phrase]
+        keywords: [현재분사, 과거분사, 분사구문, 의미상 주어]

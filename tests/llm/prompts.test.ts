@@ -1,10 +1,18 @@
 import { describe, it, expect } from 'vitest'
 import {
-  CONTENT_SYSTEM, GRADE_SYSTEM, contentUserMessage, gradeUserMessage,
+  CONTENT_SYSTEM, REVIEW_SYSTEM, GRADE_SYSTEM,
+  contentUserMessage, gradeUserMessage, type GradeTarget,
 } from '../../lib/llm/prompts'
-import { getDay } from '../../lib/curriculum/load'
+import { buildTopicContext } from '../../lib/llm/context'
+import { loadGraph } from '../../lib/curriculum/load'
+import type { StudyMaterial } from '../../lib/llm/schemas'
 
-const entry = getDay('cs', 1)!
+const graph = loadGraph()
+const topic = graph.topics.get('cs.os.process-thread')!
+
+const ctx = buildTopicContext(graph, topic, {
+  kind: 'new', reviewRound: null, minutes: 30, progress: new Map(),
+})
 
 describe('CONTENT_SYSTEM', () => {
   it('문제 수와 유형을 못박는다', () => {
@@ -21,8 +29,42 @@ describe('CONTENT_SYSTEM', () => {
     expect(CONTENT_SYSTEM).toContain('객관식')
   })
 
-  it('지문에 답을 노출하지 말라고 한다', () => {
-    expect(CONTENT_SYSTEM).toContain('답을 그대로 노출하지 마라')
+  it('본문에 답을 노출하지 말라고 한다', () => {
+    expect(CONTENT_SYSTEM).toContain('답을 본문에 그대로 노출하지 마라')
+  })
+
+  it('★ 금지어를 언급조차 하지 말라고 한다 — 커리큘럼 순서를 지키는 장치다', () => {
+    expect(CONTENT_SYSTEM).toContain('아직 배우지 않은 것')
+    expect(CONTENT_SYSTEM).toContain('이름을 언급하는 것도 안 된다')
+  })
+
+  it('이미 배운 것을 다시 설명하지 말라고 한다', () => {
+    expect(CONTENT_SYSTEM).toContain('다시 설명하지 마라')
+  })
+})
+
+describe('REVIEW_SYSTEM', () => {
+  it('★ 처음부터 다시 가르치지 말라고 한다 — 복습은 재독이 아니다', () => {
+    expect(REVIEW_SYSTEM).toContain('처음부터 다시 가르치지 마라')
+  })
+
+  it('복습 문제는 2개다', () => {
+    expect(REVIEW_SYSTEM).toContain('정확히 2개')
+  })
+
+  it('지난번과 같은 문제를 금지한다', () => {
+    expect(REVIEW_SYSTEM).toContain('같은 문제를 내지 마라')
+  })
+
+  it('회차가 오를수록 어려워진다고 못박는다', () => {
+    expect(REVIEW_SYSTEM).toContain('회차가 올라갈수록')
+  })
+
+  it('신규와 같은 공통 규칙을 공유한다', () => {
+    for (const rule of ['검증 가능한 한 문장', '아직 배우지 않은 것', 'KaTeX']) {
+      expect(REVIEW_SYSTEM).toContain(rule)
+      expect(CONTENT_SYSTEM).toContain(rule)
+    }
   })
 })
 
@@ -31,8 +73,12 @@ describe('GRADE_SYSTEM', () => {
     expect(GRADE_SYSTEM).toContain('루브릭에 없는 기준으로 채점하지 마라')
   })
 
-  it('점수 계산식을 못박는다 — 임의 조정을 막는다', () => {
-    expect(GRADE_SYSTEM).toContain('임의로 조정하지 마라')
+  it('★ 점수를 매기지 말라고 한다 — 2주차에 모델이 자기 계산식을 어겼다', () => {
+    expect(GRADE_SYSTEM).toContain('점수를 매기지 마라')
+  })
+
+  it('포인트 개수가 보존되어야 한다고 못박는다 — 점수의 분모다', () => {
+    expect(GRADE_SYSTEM).toContain('채점 포인트 개수와 같아야 한다')
   })
 
   it('칭찬으로 시작하지 말라고 한다', () => {
@@ -42,57 +88,95 @@ describe('GRADE_SYSTEM', () => {
   it('표현이 달라도 의미가 같으면 맞다고 한다', () => {
     expect(GRADE_SYSTEM).toContain('표현이 달라도 의미가 같으면')
   })
-})
 
-describe('contentUserMessage', () => {
-  it('커리큘럼 항목의 다섯 가지를 모두 담는다', () => {
-    const msg = contentUserMessage('컴퓨터 과학', entry)
-    expect(msg).toContain('컴퓨터 과학')
-    expect(msg).toContain(String(entry.day))
-    expect(msg).toContain(entry.topic)
-    expect(msg).toContain(entry.goal)
-    expect(msg).toContain(entry.keywords[0])
-    expect(msg).toContain(String(entry.difficulty))
+  it('★ 주제끼리 서로 영향을 주지 말라고 한다 — 한 번에 여러 개를 채점하므로', () => {
+    expect(GRADE_SYSTEM).toContain('주제마다 독립적으로 채점해라')
   })
 })
 
-describe('gradeUserMessage', () => {
-  const questions = [
-    {
-      id: 'q1' as const, type: 'concept' as const, prompt: '설명하라',
-      expected_points: ['포인트 A', '포인트 B'], hint: '이건 힌트다',
-    },
-  ]
+describe('contentUserMessage', () => {
+  it('Topic 의 메타데이터를 담는다', () => {
+    const msg = contentUserMessage(ctx)
+    expect(msg).toContain(topic.title)
+    expect(msg).toContain(topic.goal)
+    expect(msg).toContain(topic.domainLabel)
+    expect(msg).toContain(topic.keywords[0]!)
+    expect(msg).toContain(String(topic.difficulty))
+  })
 
+  it('★ 계획이 정한 분량을 담는다 — Topic 의 기본값이 아니라', () => {
+    expect(contentUserMessage(ctx)).toContain('30분')
+  })
+
+  it('★ Day 번호를 담지 않는다 — 몇 번째 날인지는 사용자마다 다르다', () => {
+    expect(contentUserMessage(ctx)).not.toContain('Day')
+  })
+})
+
+const material = (): StudyMaterial => ({
+  title: '프로세스와 스레드',
+  bodyMd: '본문',
+  keyTerms: [],
+  questions: [{
+    id: 'q1', type: 'concept', prompt: '설명하라',
+    expected_points: ['포인트 A', '포인트 B'], hint: '이건 힌트다',
+  }],
+})
+
+const target = (answers: Record<string, string>): GradeTarget => ({
+  topicId: topic.id,
+  title: topic.title,
+  goal: topic.goal,
+  material: material(),
+  answers,
+})
+
+describe('gradeUserMessage', () => {
   it('★ 루브릭을 담는다 — 이게 없으면 채점이 매번 달라진다', () => {
-    const msg = gradeUserMessage(entry, questions, { q1: '내 답' })
+    const msg = gradeUserMessage([target({ q1: '내 답' })])
     expect(msg).toContain('포인트 A')
     expect(msg).toContain('포인트 B')
   })
 
   it('학습자 답안을 담는다', () => {
-    expect(gradeUserMessage(entry, questions, { q1: '내 답' })).toContain('내 답')
+    expect(gradeUserMessage([target({ q1: '내 답' })])).toContain('내 답')
   })
 
   it('★ 힌트를 담지 않는다 — 채점과 무관한 토큰이다', () => {
-    expect(gradeUserMessage(entry, questions, { q1: '내 답' })).not.toContain('이건 힌트다')
-  })
-
-  it('답을 안 쓴 문제는 빈 답으로 표시한다', () => {
-    expect(gradeUserMessage(entry, questions, {})).toContain('(답을 쓰지 않음)')
-  })
-
-  it('공백만 쓴 답도 빈 답으로 본다', () => {
-    expect(gradeUserMessage(entry, questions, { q1: '   \n ' })).toContain('(답을 쓰지 않음)')
-  })
-
-  it('goal 을 담는다 — goal_reached 판정의 근거다', () => {
-    expect(gradeUserMessage(entry, questions, { q1: 'x' })).toContain(entry.goal)
+    expect(gradeUserMessage([target({ q1: '내 답' })])).not.toContain('이건 힌트다')
   })
 
   it('★ 지문 본문을 담지 않는다 — 루브릭이 이미 기준이다', () => {
-    // 지문을 넘기지 않으므로 애초에 들어갈 수 없다. 시그니처가 그것을 강제한다.
-    const msg = gradeUserMessage(entry, questions, { q1: 'x' })
-    expect(msg.length).toBeLessThan(600)
+    expect(gradeUserMessage([target({ q1: '내 답' })])).not.toContain('본문')
+  })
+
+  it('답을 안 쓴 문제는 빈 답으로 표시한다', () => {
+    expect(gradeUserMessage([target({})])).toContain('(답을 쓰지 않음)')
+  })
+
+  it('공백만 쓴 답도 빈 답으로 본다', () => {
+    expect(gradeUserMessage([target({ q1: '   \n ' })])).toContain('(답을 쓰지 않음)')
+  })
+
+  it('goal 을 담는다 — 채점의 기준선이다', () => {
+    expect(gradeUserMessage([target({ q1: 'x' })])).toContain(topic.goal)
+  })
+
+  it('★ 여러 Topic 을 한 메시지에 담는다 — 하루 채점은 1회 호출이다', () => {
+    const two = [
+      target({ q1: '첫 답' }),
+      { ...target({ q1: '둘째 답' }), topicId: 'english.grammar.tense', title: '시제' },
+    ]
+    const msg = gradeUserMessage(two)
+    expect(msg).toContain('아래 2개 주제')
+    expect(msg).toContain('topic_id: cs.os.process-thread')
+    expect(msg).toContain('topic_id: english.grammar.tense')
+    expect(msg).toContain('첫 답')
+    expect(msg).toContain('둘째 답')
+  })
+
+  it('★ topic_id 를 그대로 쓰라고 지시한다 — 응답을 항목에 다시 붙여야 한다', () => {
+    expect(gradeUserMessage([target({ q1: 'x' })]))
+      .toContain('그대로 써라')
   })
 })

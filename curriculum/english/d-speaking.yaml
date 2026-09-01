@@ -1,0 +1,28 @@
+subject: english
+domain: speaking
+label: AI 관련 회화
+order: 3
+
+modules:
+  - id: intro
+    label: 소개와 설명
+    topics:
+      - id: english.speaking.self-intro
+        title: 연구 관심사 소개하기
+        goal: 자신의 관심 분야와 이유를 세 문장으로 말한다
+        difficulty: 1
+        estimatedMinutes: 20
+        required: recommended
+        prerequisites: [english.vocab.academic-basics]
+        keywords: [background, interested in, focus on]
+        questionTypes: [situation-response]
+
+      - id: english.speaking.explain-concept
+        title: AI 개념 설명하기
+        goal: 개념 하나를 비전공자에게 영어로 설명한다
+        difficulty: 3
+        estimatedMinutes: 25
+        required: recommended
+        prerequisites: [english.speaking.self-intro, english.vocab.ml-basics]
+        keywords: [in other words, roughly speaking, the key idea]
+        questionTypes: [situation-response, explain]

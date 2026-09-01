@@ -1,0 +1,38 @@
+# 과목을 넘는 연결.
+#
+# ★ 선수 관계(prerequisites)와 다르다.
+#   선수  = "먼저 알아야 한다"는 강제. 계획 엔진이 진도를 막는다.
+#   연결  = "왜 이걸 배우나"를 보여주는 선. 화면에 그리고 GPT 컨텍스트에 싣는다.
+#
+# 연결은 진도를 막지 않는다. 그래서 사이클이 있어도 된다.
+
+links:
+  - from: math.calc.chain-rule
+    to: cs.dl.backpropagation
+    kind: enables
+    note: 연쇄법칙이 역전파의 수학적 골격이다
+
+  - from: math.la.dot-product
+    to: cs.dl.attention
+    kind: enables
+    note: 어텐션 점수가 쿼리와 키의 내적이다
+
+  - from: math.prob.expectation
+    to: cs.ml.metrics
+    kind: applied-in
+    note: 평가 지표는 기댓값의 추정치다
+
+  - from: cs.os.process-thread
+    to: cs.arch.gpu
+    kind: related
+    note: 병렬 처리의 두 층위 — 운영체제의 스레드와 GPU 의 코어
+
+  - from: english.reading.abstract
+    to: cs.ml.overview
+    kind: related
+    note: 초록을 읽으려면 머신러닝의 기본 개념이 필요하다
+
+  - from: math.la.matrix-ops
+    to: cs.prog.numpy
+    kind: applied-in
+    note: NumPy 의 배열 연산이 행렬 연산의 구현이다

@@ -1,0 +1,41 @@
+subject: cs
+domain: deep-learning
+label: 딥러닝
+order: 7
+
+modules:
+  - id: network
+    label: 신경망의 기초
+    topics:
+      - id: cs.dl.perceptron
+        title: 퍼셉트론과 신경망 구조
+        goal: 층을 쌓는 것이 왜 표현력을 늘리는지 설명한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [cs.ml.linear-regression]
+        keywords: [퍼셉트론, 은닉층, 활성화함수, 비선형]
+
+      - id: cs.dl.forward
+        title: 순전파
+        goal: 입력이 층을 지나며 행렬 연산으로 변환되는 과정을 설명한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [cs.dl.perceptron, math.la.matrix-ops]
+        keywords: [순전파, 가중치, 편향, 활성화]
+
+      - id: cs.dl.backpropagation
+        title: 역전파
+        goal: 오차가 층을 거슬러 전달되는 과정을 연쇄법칙으로 설명한다
+        difficulty: 4
+        estimatedMinutes: 40
+        prerequisites: [cs.dl.forward, math.ai.backprop-math]
+        keywords: [역전파, 연쇄법칙, 기울기, 계산그래프]
+
+      - id: cs.dl.attention
+        title: 어텐션
+        goal: 어텐션이 무엇을 무엇으로 가중하는지 수식으로 설명한다
+        difficulty: 5
+        estimatedMinutes: 40
+        required: recommended
+        prerequisites: [cs.dl.backpropagation, math.la.dot-product]
+        keywords: [쿼리, 키, 값, 스케일드 닷프로덕트]

@@ -15,38 +15,38 @@ function fakeStorage(throwOnAccess = false) {
 beforeEach(() => { vi.unstubAllGlobals() })
 
 describe('draftKey', () => {
-  it('과목과 Day 로 키를 나눈다 — 초안이 섞이지 않는다', () => {
-    expect(draftKey('cs', 5)).not.toBe(draftKey('math', 5))
-    expect(draftKey('cs', 5)).not.toBe(draftKey('cs', 6))
+  it('Topic 으로 키를 나눈다 — 초안이 섞이지 않는다', () => {
+    expect(draftKey('cs.a.t5')).not.toBe(draftKey('math.a.t5'))
+    expect(draftKey('cs.a.t5')).not.toBe(draftKey('cs.a.t6'))
   })
 })
 
 describe('초안 보관', () => {
   it('저장한 것을 그대로 돌려준다', () => {
     vi.stubGlobal('localStorage', fakeStorage())
-    saveDraft('cs', 1, { q1: '답 하나', q2: '', q3: '' })
-    expect(loadDraft('cs', 1)).toEqual({ q1: '답 하나', q2: '', q3: '' })
+    saveDraft('cs.a.t1', { q1: '답 하나', q2: '', q3: '' })
+    expect(loadDraft('cs.a.t1')).toEqual({ q1: '답 하나', q2: '', q3: '' })
   })
 
   it('없으면 빈 객체다', () => {
     vi.stubGlobal('localStorage', fakeStorage())
-    expect(loadDraft('cs', 1)).toEqual({})
+    expect(loadDraft('cs.a.t1')).toEqual({})
   })
 
   it('지우면 사라진다', () => {
     vi.stubGlobal('localStorage', fakeStorage())
-    saveDraft('cs', 1, { q1: '답' })
-    clearDraft('cs', 1)
-    expect(loadDraft('cs', 1)).toEqual({})
+    saveDraft('cs.a.t1', { q1: '답' })
+    clearDraft('cs.a.t1')
+    expect(loadDraft('cs.a.t1')).toEqual({})
   })
 
   it('한 과목을 지워도 다른 과목은 남는다', () => {
     vi.stubGlobal('localStorage', fakeStorage())
-    saveDraft('cs', 1, { q1: 'CS 답' })
-    saveDraft('math', 1, { q1: '수학 답' })
-    clearDraft('cs', 1)
-    expect(loadDraft('cs', 1)).toEqual({})
-    expect(loadDraft('math', 1)).toEqual({ q1: '수학 답' })
+    saveDraft('cs.a.t1', { q1: 'CS 답' })
+    saveDraft('math.a.t1', { q1: '수학 답' })
+    clearDraft('cs.a.t1')
+    expect(loadDraft('cs.a.t1')).toEqual({})
+    expect(loadDraft('math.a.t1')).toEqual({ q1: '수학 답' })
   })
 
   /**
@@ -55,29 +55,29 @@ describe('초안 보관', () => {
    */
   it('★ localStorage 가 막힌 환경에서도 던지지 않는다', () => {
     vi.stubGlobal('localStorage', fakeStorage(true))
-    expect(() => saveDraft('cs', 1, { q1: '답' })).not.toThrow()
-    expect(loadDraft('cs', 1)).toEqual({})
-    expect(() => clearDraft('cs', 1)).not.toThrow()
+    expect(() => saveDraft('cs.a.t1', { q1: '답' })).not.toThrow()
+    expect(loadDraft('cs.a.t1')).toEqual({})
+    expect(() => clearDraft('cs.a.t1')).not.toThrow()
   })
 
   it('망가진 JSON 이 들어 있어도 빈 객체를 준다', () => {
     const s = fakeStorage()
-    s.setItem(draftKey('cs', 1), '{깨진')
+    s.setItem(draftKey('cs.a.t1'), '{깨진')
     vi.stubGlobal('localStorage', s)
-    expect(loadDraft('cs', 1)).toEqual({})
+    expect(loadDraft('cs.a.t1')).toEqual({})
   })
 
   it('배열이 들어 있어도 빈 객체를 준다 — 배열도 typeof object 다', () => {
     const s = fakeStorage()
-    s.setItem(draftKey('cs', 1), '[1,2,3]')
+    s.setItem(draftKey('cs.a.t1'), '[1,2,3]')
     vi.stubGlobal('localStorage', s)
-    expect(loadDraft('cs', 1)).toEqual({})
+    expect(loadDraft('cs.a.t1')).toEqual({})
   })
 
   it('null 이 들어 있어도 빈 객체를 준다', () => {
     const s = fakeStorage()
-    s.setItem(draftKey('cs', 1), 'null')
+    s.setItem(draftKey('cs.a.t1'), 'null')
     vi.stubGlobal('localStorage', s)
-    expect(loadDraft('cs', 1)).toEqual({})
+    expect(loadDraft('cs.a.t1')).toEqual({})
   })
 })

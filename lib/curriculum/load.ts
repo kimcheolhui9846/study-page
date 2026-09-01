@@ -1,40 +1,73 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse } from 'yaml'
-import { CurriculumSchema, SUBJECTS, type Curriculum, type DayEntry, type Subject } from './schema'
+import { DomainFileSchema, LinksFileSchema, SUBJECTS, type DomainFile, type Link } from './schema'
+import { buildGraph, CurriculumError, type CurriculumGraph } from './graph'
 
-// 소비자가 './load' 하나만 import 하면 되게 다시 내보낸다
-export type { Subject, DayEntry, Curriculum } from './schema'
-export { SUBJECTS } from './schema'
-
-const cache = new Map<Subject, Curriculum>()
+export * from './schema'
+export * from './graph'
 
 /**
- * 커리큘럼은 DB가 아니라 레포의 YAML 파일이다.
- * PR로 고치고, 리뷰가 남고, 롤백되고, 프로덕션 DB를 건드릴 일이 없다.
- * 형식 위반은 테스트에서 잡혀 배포가 막힌다.
+ * 커리큘럼은 DB 가 아니라 레포의 파일이다.
+ * PR 로 고치고, 리뷰가 남고, 롤백되고, 프로덕션 DB 를 건드릴 일이 없다.
+ *
+ * 그래프는 한 번 만들고 캐시한다. 검증이 여기서 한 번만 돌면 되고,
+ * 깨진 커리큘럼이면 첫 요청에서 크게 실패한다.
  */
-export function loadCurriculum(subject: Subject): Curriculum {
-  const cached = cache.get(subject)
-  if (cached) return cached
+let cached: CurriculumGraph | null = null
 
-  const path = join(process.cwd(), 'curriculum', `${subject}.yaml`)
-  const parsed = CurriculumSchema.parse(parse(readFileSync(path, 'utf8')))
+const ROOT = () => join(process.cwd(), 'curriculum')
 
-  if (parsed.subject !== subject) {
-    throw new Error(`${path} 의 subject 가 '${parsed.subject}' 입니다. 파일명과 일치해야 합니다`)
+function readDomainFiles(): DomainFile[] {
+  const files: DomainFile[] = []
+
+  for (const subject of SUBJECTS) {
+    const dir = join(ROOT(), subject)
+    if (!existsSync(dir)) continue
+
+    for (const name of readdirSync(dir).sort()) {
+      // '_' 로 시작하는 파일은 Topic 을 담지 않는다 (설명·메모용)
+      if (name.startsWith('_') || !name.endsWith('.yaml')) continue
+
+      const path = join(dir, name)
+      const parsed = DomainFileSchema.safeParse(parse(readFileSync(path, 'utf8')))
+      if (!parsed.success) {
+        const issue = parsed.error.issues[0]
+        throw new CurriculumError(
+          `${subject}/${name} 형식 오류: ${issue?.path.join('.')} — ${issue?.message}`,
+        )
+      }
+      if (parsed.data.subject !== subject) {
+        throw new CurriculumError(
+          `${subject}/${name} 의 subject 가 '${parsed.data.subject}' 입니다. 폴더명과 일치해야 합니다`,
+        )
+      }
+      files.push(parsed.data)
+    }
   }
 
-  cache.set(subject, parsed)
-  return parsed
+  if (files.length === 0) throw new CurriculumError('커리큘럼 파일이 하나도 없습니다')
+  return files
 }
 
-export function getDay(subject: Subject, dayNo: number): DayEntry | null {
-  return loadCurriculum(subject).days.find((d) => d.day === dayNo) ?? null
+function readLinks(): Link[] {
+  const path = join(ROOT(), '_links.yaml')
+  if (!existsSync(path)) return []
+
+  const parsed = LinksFileSchema.safeParse(parse(readFileSync(path, 'utf8')))
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0]
+    throw new CurriculumError(`_links.yaml 형식 오류: ${issue?.path.join('.')} — ${issue?.message}`)
+  }
+  return parsed.data.links
 }
 
-export function loadAll(): Record<Subject, Curriculum> {
-  return Object.fromEntries(
-    SUBJECTS.map((s) => [s, loadCurriculum(s)]),
-  ) as Record<Subject, Curriculum>
+export function loadGraph(): CurriculumGraph {
+  cached ??= buildGraph(readDomainFiles(), readLinks())
+  return cached
+}
+
+/** 테스트가 파일을 바꾼 뒤 다시 읽게 한다. 프로덕션에서는 부르지 않는다. */
+export function resetGraphCache(): void {
+  cached = null
 }

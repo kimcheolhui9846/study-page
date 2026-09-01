@@ -1,0 +1,47 @@
+subject: math
+domain: probability
+label: 확률과 통계
+order: 3
+
+modules:
+  - id: basics
+    label: 확률의 기초
+    topics:
+      - id: math.prob.basics
+        title: 확률의 기본 개념
+        goal: 표본공간과 사건으로 확률을 정의한다
+        difficulty: 1
+        estimatedMinutes: 20
+        keywords: [표본공간, 사건, 확률]
+
+      - id: math.prob.conditional
+        title: 조건부 확률
+        goal: 조건부 확률이 표본공간을 좁히는 일임을 설명한다
+        difficulty: 2
+        estimatedMinutes: 25
+        prerequisites: [math.prob.basics]
+        keywords: [조건부확률, 독립, 곱셈정리]
+
+      - id: math.prob.bayes
+        title: 베이즈 정리
+        goal: 사전확률이 증거로 사후확률이 되는 과정을 설명한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [math.prob.conditional]
+        keywords: [베이즈, 사전확률, 사후확률, 우도]
+
+      - id: math.prob.random-variable
+        title: 확률변수와 분포
+        goal: 확률변수가 결과를 수로 옮기는 함수임을 설명한다
+        difficulty: 2
+        estimatedMinutes: 30
+        prerequisites: [math.prob.basics]
+        keywords: [확률변수, 확률분포, 이산, 연속]
+
+      - id: math.prob.expectation
+        title: 기댓값과 분산
+        goal: 기댓값과 분산이 분포의 무엇을 요약하는지 설명한다
+        difficulty: 2
+        estimatedMinutes: 30
+        prerequisites: [math.prob.random-variable]
+        keywords: [기댓값, 분산, 표준편차]

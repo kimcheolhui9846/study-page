@@ -1,0 +1,40 @@
+# AI 수학 통합
+#
+# 이 영역은 다리다. B·C·D 를 선수로 갖고, _links.yaml 에서 CS 의 딥러닝
+# Topic 과 연결된다.
+
+subject: math
+domain: ai-math
+label: AI 수학 통합
+order: 4
+
+modules:
+  - id: learning-math
+    label: 학습의 수학
+    topics:
+      - id: math.ai.loss-function
+        title: 손실 함수
+        goal: 손실 함수가 '틀린 정도'를 하나의 수로 만드는 방식을 설명한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [math.calc.derivative, math.prob.expectation]
+        keywords: [손실함수, MSE, 크로스엔트로피]
+
+      - id: math.ai.gradient-descent
+        title: 경사하강법
+        goal: 기울기의 반대 방향으로 가는 것이 왜 손실을 줄이는지 설명한다
+        difficulty: 4
+        estimatedMinutes: 35
+        prerequisites: [math.calc.gradient, math.ai.loss-function]
+        keywords: [경사하강법, 학습률, 수렴, 국소최솟값]
+
+      - id: math.ai.backprop-math
+        title: 역전파의 수학
+        goal: 역전파가 연쇄법칙을 층마다 되풀이하는 것임을 설명한다
+        difficulty: 5
+        estimatedMinutes: 40
+        # core 다. cs.dl.backpropagation 이 이걸 선수로 갖는데 그쪽이 core 이므로,
+        # 여기가 recommended 면 30일 과정에서 역전파가 영원히 안 열린다.
+        # core 는 선수에 대해 닫혀 있어야 한다.
+        prerequisites: [math.calc.chain-rule, math.ai.gradient-descent, math.la.matrix-ops]
+        keywords: [역전파, 연쇄법칙, 계산그래프]

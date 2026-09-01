@@ -1,0 +1,48 @@
+subject: math
+domain: calculus
+label: 미적분
+order: 2
+
+modules:
+  - id: derivative
+    label: 변화율과 미분
+    topics:
+      - id: math.calc.rate-of-change
+        title: 함수의 변화율
+        goal: 평균변화율과 순간변화율의 차이를 그래프로 설명한다
+        difficulty: 1
+        estimatedMinutes: 20
+        keywords: [평균변화율, 순간변화율, 할선, 접선]
+        remediation: [math.foundation.functions]
+
+      - id: math.calc.derivative
+        title: 미분
+        goal: 미분계수가 접선의 기울기인 이유를 극한으로 설명한다
+        difficulty: 2
+        estimatedMinutes: 30
+        prerequisites: [math.calc.rate-of-change]
+        keywords: [극한, 미분계수, 도함수]
+
+      - id: math.calc.chain-rule
+        title: 연쇄법칙
+        goal: 합성함수의 미분이 왜 곱으로 나오는지 설명한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [math.calc.derivative]
+        keywords: [합성함수, 연쇄법칙, 중간변수]
+
+      - id: math.calc.partial
+        title: 편미분
+        goal: 편미분이 다른 변수를 고정한 채 재는 변화율임을 설명한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [math.calc.derivative]
+        keywords: [다변수함수, 편미분, 고정]
+
+      - id: math.calc.gradient
+        title: 기울기
+        goal: 기울기 벡터가 가장 가파른 방향을 가리키는 이유를 설명한다
+        difficulty: 4
+        estimatedMinutes: 35
+        prerequisites: [math.calc.partial, math.la.vector-ops]
+        keywords: [기울기, 경사, 방향미분]

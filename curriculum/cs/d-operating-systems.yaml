@@ -1,0 +1,32 @@
+subject: cs
+domain: operating-systems
+label: 운영체제
+order: 3
+
+modules:
+  - id: process
+    label: 프로세스와 메모리
+    topics:
+      - id: cs.os.process-thread
+        title: 프로세스와 스레드
+        goal: 컨텍스트 스위칭 비용이 왜 발생하는지 설명한다
+        difficulty: 2
+        estimatedMinutes: 25
+        prerequisites: [cs.prog.variables-types]
+        keywords: [PCB, 컨텍스트 스위칭, 주소공간, TCB]
+
+      - id: cs.os.synchronization
+        title: 동기화
+        goal: 뮤텍스와 세마포어의 소유권 개념 차이를 구분한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [cs.os.process-thread]
+        keywords: [상호배제, 세마포어, 경쟁상태, 데드락]
+
+      - id: cs.os.virtual-memory
+        title: 가상 메모리와 페이징
+        goal: 페이지 폴트가 났을 때 운영체제가 하는 일을 순서대로 말한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [cs.os.process-thread]
+        keywords: [페이지테이블, TLB, 페이지폴트, 스와핑]

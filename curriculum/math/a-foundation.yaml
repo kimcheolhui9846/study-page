@@ -1,0 +1,48 @@
+# 기초 수학 보충
+#
+# ★ 이 영역은 본선이 아니다. required: optional 이고, 계획 엔진이 여기 Topic 을
+# 고르는 경로는 단 하나 — 다른 Topic 의 remediation 에서 끌려 나오는 것뿐이다.
+# "필요한 경우에만 보충"을 의지가 아니라 구조로 만든다.
+
+subject: math
+domain: foundation
+label: 기초 수학 보충
+order: 0
+
+modules:
+  - id: algebra
+    label: 식과 함수
+    topics:
+      - id: math.foundation.expressions
+        title: 식의 계산
+        goal: 분배법칙과 인수분해가 같은 식을 다르게 쓰는 일임을 설명한다
+        difficulty: 1
+        estimatedMinutes: 20
+        required: optional
+        keywords: [분배법칙, 인수분해, 동류항]
+
+      - id: math.foundation.functions
+        title: 함수
+        goal: 함수를 입력과 출력의 대응으로 설명하고 그래프와 연결한다
+        difficulty: 1
+        estimatedMinutes: 25
+        required: optional
+        prerequisites: [math.foundation.expressions]
+        keywords: [정의역, 치역, 대응, 그래프]
+
+      - id: math.foundation.coordinates
+        title: 좌표와 그래프
+        goal: 좌표평면 위의 점과 순서쌍이 같은 것임을 설명한다
+        difficulty: 1
+        estimatedMinutes: 20
+        required: optional
+        keywords: [좌표평면, 순서쌍, 기울기]
+
+      - id: math.foundation.exp-log
+        title: 지수와 로그
+        goal: 로그가 지수의 역함수임을 설명하고 밑 변환의 의미를 말한다
+        difficulty: 2
+        estimatedMinutes: 30
+        required: optional
+        prerequisites: [math.foundation.functions]
+        keywords: [지수법칙, 로그, 밑, 역함수]

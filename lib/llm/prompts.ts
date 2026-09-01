@@ -1,57 +1,85 @@
-import type { DayEntry } from '../curriculum/load'
-import type { GeneratedContent } from './schemas'
+import type { StudyMaterial } from './schemas'
+import { contextToMessage, type TopicContext } from './context'
 
 /**
- * 시스템 프롬프트는 스펙 §5.4 · §5.5 의 원문이다.
+ * 시스템 프롬프트는 설계 문서의 원문이다.
  * 문구를 임의로 바꾸지 않는다 — 문장 하나하나가 설계 결정이다.
- * 바꾸려면 스펙을 먼저 고치고 그 이유를 DECISIONS 에 남긴다.
+ * 바꾸려면 설계를 먼저 고치고 그 이유를 DECISIONS 에 남긴다.
  */
 
+const SHARED_RULES = `- 대상은 성인 학습자 1명이다. 격려나 인사말을 쓰지 마라. 교재 본문만 쓴다.
+- 학습 목표에 도달시키는 것이 유일한 목표다. 목표와 무관한 곁가지 지식은 넣지 마라.
+- "아직 배우지 않은 것"으로 주어진 개념은 쓰지 마라. 이름을 언급하는 것도 안 된다.
+  그 개념이 있어야만 설명이 되는 것 같으면, 그건 지금 다룰 내용이 아니라는 뜻이다.
+  주어진 키워드 안에서 설명할 수 있는 만큼만 설명해라.
+- "이미 배운 것"으로 주어진 개념은 아는 것으로 전제하고 다시 설명하지 마라. 쓰기만 해라.
+- "반복해 틀린 것"이 주어졌다면 그 지점을 정면으로 다뤄라.
+- expected_points 는 채점 루브릭이다. 학습자에게 보이지 않는다.
+  각 문제마다 2~4개를 쓴다. 각 포인트는 검증 가능한 한 문장이어야 한다.
+  ("잘 이해함" 같은 판정 불가능한 표현 금지)
+- 문제의 답을 본문에 그대로 노출하지 마라. 읽고 추론해야 풀리게 한다.
+- 수학·CS 의 수식은 KaTeX 인라인 문법으로 쓴다.`
+
 export const CONTENT_SYSTEM = `당신은 한국인 학습자 1명을 위한 개인 교재 저자다.
-주어진 커리큘럼 항목 하나로 오늘치 학습 자료를 만든다.
+주어진 커리큘럼 주제 하나로 오늘치 학습 자료를 만든다.
 
 원칙:
-- 대상은 성인 학습자 1명이다. 격려나 인사말을 쓰지 마라. 교재 본문만 쓴다.
-- goal에 도달시키는 것이 유일한 목표다. goal과 무관한 곁가지 지식은 넣지 마라.
+${SHARED_RULES}
 - 지문은 700~1000자. 정의 → 왜 그런가 → 구체 예시 순으로 전개한다.
   "~는 중요합니다" 같은 공허한 문장을 쓰지 마라. 매 문장이 정보를 옮겨야 한다.
 - 예시는 반드시 하나 이상 넣는다. 추상적 설명만으로 끝내지 마라.
 - 문제는 정확히 3개. recall 1개, concept 1개, application 1개.
-  전부 서술형이며, 객관식이나 O/X를 내지 마라.
-- expected_points는 채점 루브릭이다. 학습자에게 보이지 않는다.
-  각 문제마다 2~4개의 채점 포인트를 쓴다. 각 포인트는 검증 가능한 한 문장이어야 한다.
-  ("잘 이해함" 같은 판정 불가능한 표현 금지)
-- 지문 안에 문제의 답을 그대로 노출하지 마라. 지문을 읽고 추론해야 풀리게 한다.
-- 수학/CS의 수식은 KaTeX 인라인 문법으로 쓴다.`
+  전부 서술형이며, 객관식이나 O/X 를 내지 마라.`
 
+/**
+ * 복습 프롬프트.
+ *
+ * ★ 지문을 다시 만들지 않는다. 이미 읽은 글을 또 읽는 건 복습이 아니라
+ * 재독이다. 되짚기는 짧고, 문제가 본체다.
+ */
+export const REVIEW_SYSTEM = `당신은 한국인 학습자 1명의 복습을 설계한다.
+이 학습자는 이 주제를 이미 한 번 학습했다. 처음부터 다시 가르치지 마라.
+
+원칙:
+${SHARED_RULES}
+- recap_md 는 200~350자. 핵심만 되짚는다. 처음 배우는 사람에게 하듯 설명하지 마라.
+- 문제는 정확히 2개. 지난번과 같은 문제를 내지 마라 — 같은 개념을 다른 각도에서 묻는다.
+- 회차가 올라갈수록 되짚기는 짧아지고 문제는 어려워진다.
+  1회차는 정의를 확인하고, 4회차는 다른 상황에 적용시킨다.`
+
+/**
+ * 채점 프롬프트.
+ *
+ * ★ 점수를 묻지 않는다. 2주차에 모델이 자기가 명시한 계산식을 어겼다
+ * (0/3 포인트에 50점). 포인트 판정만 시키고 숫자는 우리가 만든다.
+ */
 export const GRADE_SYSTEM = `당신은 채점자다. 주어진 루브릭에 없는 기준으로 채점하지 마라.
 
 원칙:
 - 각 채점 포인트를 학습자 답안이 담고 있는지 하나씩 판정한다.
-  담고 있으면 correct_points, 아니면 missed_points에 넣는다.
+  담고 있으면 correct_points, 아니면 missed_points 에 그 포인트를 그대로 옮긴다.
+  두 배열에 담긴 항목 수의 합은 그 문제의 채점 포인트 개수와 같아야 한다.
+- 점수를 매기지 마라. 판정만 해라. 숫자는 채점자가 계산하지 않는다.
 - 표현이 달라도 의미가 같으면 맞은 것으로 본다. 용어를 그대로 쓰지 않았다는
   이유로 감점하지 마라. 반대로, 용어만 나열하고 관계를 설명하지 못했으면 틀린 것이다.
-- 점수는 (맞은 포인트 수 / 전체 포인트 수) × 100 을 반올림한 값이다. 임의로 조정하지 마라.
-- feedback_ko는 2~4문장. 무엇이 빠졌는지와 왜 그게 필요한지를 쓴다.
+- feedback_ko 는 2~4문장. 무엇이 빠졌는지와 왜 그게 필요한지를 쓴다.
   칭찬으로 문장을 시작하지 마라. 틀린 곳을 먼저 말한다.
-- 학습자가 사실과 다른 내용을 썼다면 misconceptions에 명시적으로 적는다.
-- summary_seed는 학습자가 최종 정리본을 쓸 때의 뼈대다.
-  학습자가 실제로 이해한 것과 놓친 것을 반영해 3~5개 항목으로 만든다.
-  정리본을 대신 써주지 마라. 항목만 준다.`
+- 학습자가 사실과 다른 내용을 썼다면 misconceptions 에 명시적으로 적는다.
+- summary_seed 는 학습자가 정리본을 쓸 때의 뼈대다. 3~5개 항목으로 만든다.
+  정리본을 대신 써주지 마라. 항목만 준다.
+- missing_prerequisites 에는 이 답안을 보고 "이걸 먼저 몰라서 막힌 것 같다"고
+  판단되는 선행 개념을 적는다. 없으면 빈 배열이다. 추측을 억지로 채우지 마라.
+- weak_concepts 에는 이 주제 안에서 학습자가 잘못 알고 있는 지점을 적는다.
+- 여러 주제가 한 번에 온다. 주제마다 독립적으로 채점해라. 한 주제의 답안이
+  나빴다고 다른 주제를 박하게 보지 마라.`
 
-export function contentUserMessage(subjectLabel: string, entry: DayEntry): string {
-  return [
-    `과목: ${subjectLabel}`,
-    `Day: ${entry.day}`,
-    `주제: ${entry.topic}`,
-    `목표(goal): ${entry.goal}`,
-    `키워드: ${entry.keywords.join(', ')}`,
-    `난이도: ${entry.difficulty} / 5`,
-  ].join('\n')
+/** 콘텐츠 생성 메시지. 컨텍스트 조립기가 만든 것을 그대로 쓴다. */
+export function contentUserMessage(ctx: TopicContext): string {
+  return contextToMessage(ctx)
 }
 
 /**
- * 채점 메시지.
+ * 채점 메시지 — 계획 하나를 통째로 담는다.
  *
  * ★ 루브릭(expected_points)이 들어가는 것이 핵심이다. 이게 없으면 모델이
  * 매번 기준을 새로 지어내고, 같은 답에 어제는 80점 오늘은 55점이 나온다.
@@ -59,22 +87,36 @@ export function contentUserMessage(subjectLabel: string, entry: DayEntry): strin
  * 지문 본문은 넣지 않는다. 루브릭이 이미 기준이므로 넣어봤자 입력 토큰만
  * 늘어난다. 힌트도 넣지 않는다 — 채점과 무관하다.
  */
-export function gradeUserMessage(
-  entry: DayEntry,
-  questions: GeneratedContent['questions'],
-  answers: Record<string, string>,
-): string {
-  const blocks = questions.map((q) => [
-    `[${q.id}] ${q.prompt}`,
-    `채점 포인트:`,
-    ...q.expected_points.map((p, i) => `  ${i + 1}. ${p}`),
-    `학습자 답안:`,
-    `  ${answers[q.id]?.trim() || '(답을 쓰지 않음)'}`,
-  ].join('\n'))
+export interface GradeTarget {
+  topicId: string
+  title: string
+  goal: string
+  material: StudyMaterial
+  answers: Record<string, string>
+}
+
+export function gradeUserMessage(targets: GradeTarget[]): string {
+  const blocks = targets.map((t) => {
+    const questions = t.material.questions.map((q) => [
+      `  [${q.id}] ${q.prompt}`,
+      `  채점 포인트:`,
+      ...q.expected_points.map((p, i) => `    ${i + 1}. ${p}`),
+      `  학습자 답안:`,
+      `    ${t.answers[q.id]?.trim() || '(답을 쓰지 않음)'}`,
+    ].join('\n'))
+
+    return [
+      `### topic_id: ${t.topicId}`,
+      `주제: ${t.title}`,
+      `학습 목표: ${t.goal}`,
+      '',
+      ...questions,
+    ].join('\n')
+  })
 
   return [
-    `주제: ${entry.topic}`,
-    `목표(goal): ${entry.goal}`,
+    `아래 ${targets.length}개 주제를 각각 채점해라.`,
+    `응답의 topic_id 는 여기 적힌 문자열을 그대로 써라.`,
     '',
     ...blocks,
   ].join('\n\n')

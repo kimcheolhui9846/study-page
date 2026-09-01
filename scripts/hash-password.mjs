@@ -18,6 +18,7 @@ if (pw.length < 8) {
   process.exit(1)
 }
 
-console.log('\nAUTH_PASSWORD_HASH 에 아래 값을 넣으세요:\n')
+console.log('\nAUTH_PASSWORD_HASH 에 아래 값을 넣으세요 (따옴표 없이 그대로):\n')
 console.log(hashPassword(pw))
-console.log('\n이 값은 커밋해도 안전하지 않습니다. .env.local 에만 두세요.')
+console.log('\n이 값은 커밋해도 안전하지 않습니다. .env.local 과 버셀 환경변수에만 두세요.')
+console.log('구분자가 . 인 것은 의도한 것입니다 — $ 는 dotenv 가 변수로 확장해 값을 망칩니다.')

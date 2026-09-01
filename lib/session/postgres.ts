@@ -68,6 +68,25 @@ export class PostgresSessionStore implements SessionStore {
   }
 
   /** 멱등하다. 없는 토큰이든 이미 revoke 된 토큰이든 조용히 성공한다. */
+  /**
+   * 유휴 만료를 앞당긴다 (pagehide 유예).
+   *
+   * WHERE 에 `idleExpiresAt > soon` 을 넣어 **당기기만 하고 늘리지 않는다.**
+   * 이게 없으면 만료 20초 전에 도착한 beacon 이 오히려 30초로 되돌려
+   * 세션을 연장해 준다 — 종료 신호가 연장 신호가 되는 셈이다.
+   */
+  async expireSoon(token: string, withinMs: number): Promise<void> {
+    const soon = new Date(this.clock.now().getTime() + withinMs)
+    await this.db
+      .update(sessions)
+      .set({ idleExpiresAt: soon })
+      .where(and(
+        eq(sessions.tokenHash, hashToken(token)),
+        isNull(sessions.revokedAt),
+        gt(sessions.idleExpiresAt, soon),
+      ))
+  }
+
   async revoke(token: string): Promise<void> {
     await this.db
       .update(sessions)

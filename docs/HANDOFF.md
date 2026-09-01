@@ -20,7 +20,8 @@
 ƒ /                              대시보드 (진도 · 사용량)
 ƒ /login                         로그인
 ƒ /api/session                   POST 로그인
-ƒ /api/session/end               POST 종료 (가드 없음 — 만료된 세션도 쿠키를 지워야 한다)
+ƒ /api/session/end               POST [종료] 버튼 → 즉시 파기 (가드 없음)
+ƒ /api/session/leaving           POST pagehide beacon → 유휴 만료를 30초로 당김
 ƒ /api/session/status            GET 만료 시각 두 개
 ƒ /api/study/[subject]/content   POST 콘텐츠 (가짜 LLM)
 ```
@@ -31,13 +32,22 @@
 
 ## ★ 남은 일 — 사용자가 직접 (1주차를 닫으려면 필요)
 
-**아직 앱을 브라우저에서 띄워본 적이 없다.** `DATABASE_URL` 이 없어서
-내가 못 돌렸다. 아래를 하면 1주차가 끝난다.
+Neon 연결과 마이그레이션은 **끝났다.** Step 8 중 1~3(리다이렉트 / 오답 /
+5회 잠금)은 실제 Neon 상대로 확인했다. 남은 것은 로그인 이후다.
 
-1. **Neon 프로젝트 생성 → `DATABASE_URL`** 을 `.env.local` 에 넣는다
-2. 마이그레이션 적용 (`drizzle/0000_*.sql` 을 Neon 콘솔에서 실행하거나 `drizzle-kit push`)
-3. `npm run hash:password` → 출력값을 `.env.local` 의 `AUTH_PASSWORD_HASH` 에
-4. `npm run dev` 후 계획 Task 10 **Step 8** 의 6가지를 눈으로 확인
+```bash
+cp .env.example .env.local     # DATABASE_URL 을 Neon 것으로 채운다
+npm run db:migrate             # drizzle/ 의 마이그레이션을 적용한다
+npm run hash:password          # 출력값을 .env.local 의 AUTH_PASSWORD_HASH 에
+npm run dev
+```
+
+그다음 계획 Task 10 **Step 8** 의 6가지를 눈으로 확인한다.
+
+Neon 연결 문자열은 **pooled(`-pooler` 가 붙은 것)** 를 쓴다. 버셀 서버리스는
+요청마다 새 연결을 열기 때문에 direct 를 쓰면 연결 수가 금방 바닥난다.
+`drizzle-kit` 은 Next 가 아니라서 `.env.local` 을 자동으로 읽지 않는다 —
+`drizzle.config.ts` 가 `process.loadEnvFile()` 로 직접 읽는다.
 
 **키를 채팅에 붙여넣지 않는다.** `.env.local` 과 버셀 환경변수에 직접 넣는다.
 
@@ -71,6 +81,17 @@
 - **next/font 는 구글에 `subset` 파라미터를 보내지 않는다.** 한글 @font-face 까지
   전부 내려받아 자체 호스팅하므로 `subsets: ['latin']` 이어도 한글이 렌더된다.
   그 값은 preload 대상만 고르는 것이다 (`get-google-fonts-url.js` 에서 확인).
+- **★ `pagehide` 는 창 닫기 전용 신호가 아니다.** 새로고침과 전체 페이지 이동에서도
+  발생한다. 그래서 beacon 은 세션을 파기하지 않고 `POST /api/session/leaving` 으로
+  **유휴 만료를 30초로 당기기만** 한다. 즉시 파기하면 새로고침이 로그아웃이 된다
+  (실제로 그랬다). `[종료]` 버튼만 `POST /api/session/end` 로 즉시 파기한다.
+- **★ 환경변수 값에 `$` 를 넣지 말 것.** Next 의 dotenv 로더가 변수 확장을 해서
+  `$16384` 같은 조각을 빈 문자열로 치환한다. 비밀번호 해시가 이것 때문에 통째로
+  망가졌다 (`docs/DECISIONS.md`). 해시 형식은 이제 `scrypt.N.r.p.salt.hash` 다.
+  **버셀 대시보드에도 따옴표 없이 그대로** 넣는다 — 거기선 따옴표가 값이 된다.
+- **`.env` 값을 검증할 때는 `@next/env` 로 읽을 것.** `process.loadEnvFile()` 는
+  변수 확장을 하지 않아서 앱이 실제로 보는 값과 다르다. 그 차이 때문에
+  "형식 정상"이라는 잘못된 확인을 했다.
 - **HTTP 헤더는 ByteString 이다.** 테스트에서 쿠키 값에 한글을 넣으면 던진다.
 - **테스트가 느려지고 있다.** DB 테스트마다 PGlite 인스턴스를 새로 만든다.
   현재 156개에 23초. 40초를 넘기면 파일당 인스턴스 하나를 재사용하고
@@ -96,6 +117,9 @@
 - 1주차에 `OPENAI_API_KEY`를 넣지 말 것. 없는 것이 "실제 호출 0회"의 구조적 보장이다.
 - **`/api/session/status` 를 폴링하지 말 것.** 위 「알아둘 것」 참조.
 - 하트비트 ping을 넣지 말 것. 유휴 타임아웃을 무력화한다.
+- **`pagehide` beacon 을 `/api/session/end` 로 돌리지 말 것.** 새로고침이 로그아웃이 된다.
+- **`expireSoon` 의 `idleExpiresAt > soon` 가드를 지우지 말 것.** 없으면 만료 직전에
+  도착한 beacon 이 세션을 오히려 연장한다 — 종료 신호가 연장 신호가 된다.
 - **진도를 하드코딩하지 말 것.** `lib/study/progress.ts` 가 `study_days` 에서 파생한다.
 - `progress` 테이블을 만들지 말 것. 두 곳이 어긋나면 어느 쪽이 진실인지 정할 수 없다.
 - 커리큘럼을 DB에 넣지 말 것. 레포의 YAML 파일이다.

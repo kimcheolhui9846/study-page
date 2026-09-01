@@ -13,12 +13,39 @@ const KEYLEN = 32
  * 버셀 서버리스 번들링에서 깨질 위험이 있다. scrypt 는 표준 라이브러리이고
  * 메모리 하드 KDF 로서 비밀번호 하나를 지키기에 충분하다.
  *
- * 형식: scrypt$N$r$p$salt$hash (salt/hash 는 base64url)
+ * 형식: scrypt.N.r.p.salt.hash (salt/hash 는 base64url)
+ *
+ * ★ 구분자가 '$' 가 아니라 '.' 인 이유가 있다.
+ *
+ * Next 의 dotenv 로더는 변수 확장을 한다. 값에 '$16384' 가 들어 있으면
+ * 그것을 환경변수 참조로 보고 빈 문자열로 치환해 버린다. 그러면 앱이 읽는
+ * AUTH_PASSWORD_HASH 는 파일에 적힌 값과 다른, 망가진 문자열이 되고
+ * 모든 비밀번호가 조용히 거부된다 (실제로 겪었다 — DECISIONS 참조).
+ *
+ * .env.local 에서는 작은따옴표로 감싸면 피할 수 있지만, 버셀 대시보드는
+ * 따옴표를 값의 일부로 저장하므로 거기서 또 깨진다. 어디에 넣어도 안전한
+ * 구분자를 쓰는 것이 유일하게 일관된 해법이다.
+ *
+ * base64url 알파벳은 A-Za-z0-9_- 라서 '.' 과 겹치지 않는다.
  */
 export function hashPassword(plain: string): string {
   const salt = randomBytes(16)
   const hash = scryptSync(plain, salt, KEYLEN, { N, r: R, p: P })
-  return ['scrypt', N, R, P, salt.toString('base64url'), hash.toString('base64url')].join('$')
+  return ['scrypt', N, R, P, salt.toString('base64url'), hash.toString('base64url')].join('.')
+}
+
+/**
+ * 저장된 해시가 형식을 갖췄는지만 본다. 비밀번호는 보지 않는다.
+ *
+ * 설정이 망가진 것과 비밀번호가 틀린 것은 완전히 다른 사고인데
+ * verifyPassword 는 둘 다 false 로 답한다. 그 둘을 서버 로그에서
+ * 구분하려고 이 함수가 있다. 응답에는 절대 반영하지 않는다 —
+ * 설정 상태를 밖에 알려줄 이유가 없다.
+ */
+export function isHashFormatValid(stored: string): boolean {
+  if (typeof stored !== 'string') return false
+  const parts = stored.split('.')
+  return parts.length === 6 && parts[0] === 'scrypt'
 }
 
 /**
@@ -33,7 +60,7 @@ export function verifyPassword(plain: string, stored: string): boolean {
       return false
     }
 
-    const parts = stored.split('$')
+    const parts = stored.split('.')
     if (parts.length !== 6) return false
 
     const [tag, nStr, rStr, pStr, saltB64, hashB64] = parts

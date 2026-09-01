@@ -34,10 +34,19 @@
 **아직 앱을 브라우저에서 띄워본 적이 없다.** `DATABASE_URL` 이 없어서
 내가 못 돌렸다. 아래를 하면 1주차가 끝난다.
 
-1. **Neon 프로젝트 생성 → `DATABASE_URL`** 을 `.env.local` 에 넣는다
-2. 마이그레이션 적용 (`drizzle/0000_*.sql` 을 Neon 콘솔에서 실행하거나 `drizzle-kit push`)
-3. `npm run hash:password` → 출력값을 `.env.local` 의 `AUTH_PASSWORD_HASH` 에
-4. `npm run dev` 후 계획 Task 10 **Step 8** 의 6가지를 눈으로 확인
+```bash
+cp .env.example .env.local     # DATABASE_URL 을 Neon 것으로 채운다
+npm run db:migrate             # drizzle/ 의 마이그레이션을 적용한다
+npm run hash:password          # 출력값을 .env.local 의 AUTH_PASSWORD_HASH 에
+npm run dev
+```
+
+그다음 계획 Task 10 **Step 8** 의 6가지를 눈으로 확인한다.
+
+Neon 연결 문자열은 **pooled(`-pooler` 가 붙은 것)** 를 쓴다. 버셀 서버리스는
+요청마다 새 연결을 열기 때문에 direct 를 쓰면 연결 수가 금방 바닥난다.
+`drizzle-kit` 은 Next 가 아니라서 `.env.local` 을 자동으로 읽지 않는다 —
+`drizzle.config.ts` 가 `process.loadEnvFile()` 로 직접 읽는다.
 
 **키를 채팅에 붙여넣지 않는다.** `.env.local` 과 버셀 환경변수에 직접 넣는다.
 

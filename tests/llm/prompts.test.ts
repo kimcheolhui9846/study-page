@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest'
 import {
   CONTENT_SYSTEM, GRADE_SYSTEM, contentUserMessage, gradeUserMessage,
 } from '../../lib/llm/prompts'
-import { getDay } from '../../lib/curriculum/load'
+import { loadGraph } from '../../lib/curriculum/load'
 
-const entry = getDay('cs', 1)!
+const topic = loadGraph().topics.get('cs.os.process-thread')!
 
 describe('CONTENT_SYSTEM', () => {
   it('문제 수와 유형을 못박는다', () => {
@@ -45,14 +45,18 @@ describe('GRADE_SYSTEM', () => {
 })
 
 describe('contentUserMessage', () => {
-  it('커리큘럼 항목의 다섯 가지를 모두 담는다', () => {
-    const msg = contentUserMessage('컴퓨터 과학', entry)
-    expect(msg).toContain('컴퓨터 과학')
-    expect(msg).toContain(String(entry.day))
-    expect(msg).toContain(entry.topic)
-    expect(msg).toContain(entry.goal)
-    expect(msg).toContain(entry.keywords[0])
-    expect(msg).toContain(String(entry.difficulty))
+  it('Topic 의 메타데이터를 담는다', () => {
+    const msg = contentUserMessage(topic)
+    expect(msg).toContain(topic.title)
+    expect(msg).toContain(topic.goal)
+    expect(msg).toContain(topic.domainLabel)
+    expect(msg).toContain(topic.keywords[0])
+    expect(msg).toContain(String(topic.difficulty))
+    expect(msg).toContain(String(topic.estimatedMinutes))
+  })
+
+  it('★ Day 번호를 담지 않는다 — 몇 번째 날인지는 사용자마다 다르다', () => {
+    expect(contentUserMessage(topic)).not.toContain('Day')
   })
 })
 
@@ -65,34 +69,33 @@ describe('gradeUserMessage', () => {
   ]
 
   it('★ 루브릭을 담는다 — 이게 없으면 채점이 매번 달라진다', () => {
-    const msg = gradeUserMessage(entry, questions, { q1: '내 답' })
+    const msg = gradeUserMessage(topic, questions, { q1: '내 답' })
     expect(msg).toContain('포인트 A')
     expect(msg).toContain('포인트 B')
   })
 
   it('학습자 답안을 담는다', () => {
-    expect(gradeUserMessage(entry, questions, { q1: '내 답' })).toContain('내 답')
+    expect(gradeUserMessage(topic, questions, { q1: '내 답' })).toContain('내 답')
   })
 
   it('★ 힌트를 담지 않는다 — 채점과 무관한 토큰이다', () => {
-    expect(gradeUserMessage(entry, questions, { q1: '내 답' })).not.toContain('이건 힌트다')
+    expect(gradeUserMessage(topic, questions, { q1: '내 답' })).not.toContain('이건 힌트다')
   })
 
   it('답을 안 쓴 문제는 빈 답으로 표시한다', () => {
-    expect(gradeUserMessage(entry, questions, {})).toContain('(답을 쓰지 않음)')
+    expect(gradeUserMessage(topic, questions, {})).toContain('(답을 쓰지 않음)')
   })
 
   it('공백만 쓴 답도 빈 답으로 본다', () => {
-    expect(gradeUserMessage(entry, questions, { q1: '   \n ' })).toContain('(답을 쓰지 않음)')
+    expect(gradeUserMessage(topic, questions, { q1: '   \n ' })).toContain('(답을 쓰지 않음)')
   })
 
   it('goal 을 담는다 — goal_reached 판정의 근거다', () => {
-    expect(gradeUserMessage(entry, questions, { q1: 'x' })).toContain(entry.goal)
+    expect(gradeUserMessage(topic, questions, { q1: 'x' })).toContain(topic.goal)
   })
 
   it('★ 지문 본문을 담지 않는다 — 루브릭이 이미 기준이다', () => {
     // 지문을 넘기지 않으므로 애초에 들어갈 수 없다. 시그니처가 그것을 강제한다.
-    const msg = gradeUserMessage(entry, questions, { q1: 'x' })
-    expect(msg.length).toBeLessThan(600)
+    expect(gradeUserMessage(topic, questions, { q1: 'x' }).length).toBeLessThan(600)
   })
 })

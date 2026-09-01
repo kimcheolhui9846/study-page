@@ -1,0 +1,26 @@
+subject: cs
+domain: software-engineering
+label: 소프트웨어 공학
+order: 5
+
+modules:
+  - id: structure
+    label: 구조와 협업
+    topics:
+      - id: cs.se.modularity
+        title: 모듈화와 추상화
+        goal: 결합도와 응집도로 좋은 경계를 판단한다
+        difficulty: 2
+        estimatedMinutes: 25
+        required: recommended
+        prerequisites: [cs.prog.functions]
+        keywords: [모듈, 추상화, 결합도, 응집도]
+
+      - id: cs.se.testing
+        title: 테스트
+        goal: 단위 테스트가 무엇을 보장하고 무엇을 보장하지 않는지 설명한다
+        difficulty: 2
+        estimatedMinutes: 25
+        required: recommended
+        prerequisites: [cs.se.modularity]
+        keywords: [단위테스트, 통합테스트, 회귀]

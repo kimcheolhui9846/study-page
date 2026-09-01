@@ -1,0 +1,55 @@
+# AI·기술 어휘
+#
+# ★ kind: vocabulary 다. 단어 묶음을 다루므로 GPT 프롬프트가 개념 Topic 과
+# 다르다. 단순 암기가 아니라 AI 문맥에서 배운다.
+
+subject: english
+domain: vocabulary
+label: AI·기술 어휘
+order: 0
+
+modules:
+  - id: academic
+    label: 학술·프로그래밍 기초 어휘
+    topics:
+      - id: english.vocab.academic-basics
+        title: 일반 학술 어휘
+        goal: 논문에서 되풀이되는 학술 동사와 명사를 문맥으로 구분한다
+        kind: vocabulary
+        difficulty: 1
+        estimatedMinutes: 20
+        keywords: [propose, demonstrate, indicate, novel, framework]
+        questionTypes: [vocab-context, vocab-paper]
+
+      - id: english.vocab.programming
+        title: 프로그래밍 관련 어휘
+        goal: 코드와 문서에 나오는 기본 용어를 우리말 개념과 연결한다
+        kind: vocabulary
+        difficulty: 1
+        estimatedMinutes: 20
+        prerequisites: [english.vocab.academic-basics]
+        keywords: [invoke, instantiate, deprecate, overhead, throughput]
+        questionTypes: [vocab-context]
+
+  - id: ml-terms
+    label: 머신러닝 어휘
+    topics:
+      - id: english.vocab.data
+        title: 데이터 관련 어휘
+        goal: 데이터 처리 단계를 영어 용어로 말한다
+        kind: vocabulary
+        difficulty: 2
+        estimatedMinutes: 20
+        prerequisites: [english.vocab.programming]
+        keywords: [preprocess, normalize, augment, sparse, label]
+        questionTypes: [vocab-context, vocab-paper]
+
+      - id: english.vocab.ml-basics
+        title: 머신러닝 기본 어휘
+        goal: 학습·평가 단계의 핵심 용어를 문맥에서 구분한다
+        kind: vocabulary
+        difficulty: 2
+        estimatedMinutes: 25
+        prerequisites: [english.vocab.data]
+        keywords: [supervised, inference, generalize, overfit, baseline]
+        questionTypes: [vocab-context, vocab-paper]

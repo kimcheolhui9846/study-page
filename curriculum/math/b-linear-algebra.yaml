@@ -1,0 +1,63 @@
+subject: math
+domain: linear-algebra
+label: 선형대수
+order: 1
+
+modules:
+  - id: vectors
+    label: 벡터와 행렬의 기초
+    topics:
+      - id: math.la.scalar-vector-matrix
+        title: 스칼라·벡터·행렬
+        summary: 셋이 각각 무엇을 담는 그릇인지 구분한다
+        goal: 스칼라·벡터·행렬을 차원으로 구분하고 표기를 읽는다
+        difficulty: 1
+        estimatedMinutes: 20
+        keywords: [스칼라, 벡터, 행렬, 차원, 표기]
+        questionTypes: [concept, notation]
+        remediation: [math.foundation.coordinates]
+
+      - id: math.la.vector-ops
+        title: 벡터의 연산
+        goal: 덧셈과 스칼라배가 기하적으로 무엇을 하는지 설명한다
+        difficulty: 2
+        estimatedMinutes: 25
+        prerequisites: [math.la.scalar-vector-matrix]
+        keywords: [벡터합, 스칼라배, 선형결합]
+        remediation: [math.foundation.coordinates]
+
+      - id: math.la.dot-product
+        title: 내적
+        goal: 내적이 두 벡터의 방향 유사도를 재는 이유를 설명한다
+        difficulty: 2
+        estimatedMinutes: 25
+        prerequisites: [math.la.vector-ops]
+        keywords: [내적, 코사인 유사도, 직교, 사영]
+
+      - id: math.la.matrix-ops
+        title: 행렬의 연산
+        goal: 행렬 곱이 선형변환의 합성인 이유를 설명한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [math.la.dot-product]
+        keywords: [행렬곱, 전치, 단위행렬, 차원 규칙]
+
+  - id: structure
+    label: 구조와 분해
+    topics:
+      - id: math.la.linear-transform
+        title: 선형변환
+        goal: 행렬이 공간을 어떻게 늘이고 돌리는지 예로 설명한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [math.la.matrix-ops]
+        keywords: [선형변환, 상, 핵]
+
+      - id: math.la.eigen
+        title: 고유값과 고유벡터
+        goal: 고유벡터가 변환에도 방향이 바뀌지 않는 축임을 설명한다
+        difficulty: 4
+        estimatedMinutes: 35
+        required: recommended
+        prerequisites: [math.la.linear-transform]
+        keywords: [고유값, 고유벡터, 대각화]

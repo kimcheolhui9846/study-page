@@ -1,4 +1,4 @@
-import type { DayEntry } from '../curriculum/load'
+import type { TopicNode } from '../curriculum/graph'
 import type { GeneratedContent } from './schemas'
 
 /**
@@ -39,14 +39,21 @@ export const GRADE_SYSTEM = `당신은 채점자다. 주어진 루브릭에 없�
   학습자가 실제로 이해한 것과 놓친 것을 반영해 3~5개 항목으로 만든다.
   정리본을 대신 써주지 마라. 항목만 준다.`
 
-export function contentUserMessage(subjectLabel: string, entry: DayEntry): string {
+/**
+ * Topic 하나로 콘텐츠 생성 메시지를 만든다.
+ *
+ * ★ Day 번호가 들어가지 않는다. Topic 은 그래프의 노드이고 몇 번째 날에
+ * 학습하는지는 사용자마다 다르다 — 모델이 알 필요가 없다.
+ */
+export function contentUserMessage(topic: TopicNode): string {
   return [
-    `과목: ${subjectLabel}`,
-    `Day: ${entry.day}`,
-    `주제: ${entry.topic}`,
-    `목표(goal): ${entry.goal}`,
-    `키워드: ${entry.keywords.join(', ')}`,
-    `난이도: ${entry.difficulty} / 5`,
+    `과목: ${topic.subject}`,
+    `영역: ${topic.domainLabel}`,
+    `주제: ${topic.title}`,
+    `목표(goal): ${topic.goal}`,
+    `키워드: ${topic.keywords.join(', ')}`,
+    `난이도: ${topic.difficulty} / 5`,
+    `분량: ${topic.estimatedMinutes}분`,
   ].join('\n')
 }
 
@@ -60,7 +67,7 @@ export function contentUserMessage(subjectLabel: string, entry: DayEntry): strin
  * 늘어난다. 힌트도 넣지 않는다 — 채점과 무관하다.
  */
 export function gradeUserMessage(
-  entry: DayEntry,
+  topic: TopicNode,
   questions: GeneratedContent['questions'],
   answers: Record<string, string>,
 ): string {
@@ -73,8 +80,8 @@ export function gradeUserMessage(
   ].join('\n'))
 
   return [
-    `주제: ${entry.topic}`,
-    `목표(goal): ${entry.goal}`,
+    `주제: ${topic.title}`,
+    `목표(goal): ${topic.goal}`,
     '',
     ...blocks,
   ].join('\n\n')

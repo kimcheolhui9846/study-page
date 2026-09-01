@@ -1,0 +1,39 @@
+subject: cs
+domain: programming
+label: 프로그래밍 기초
+order: 0
+
+modules:
+  - id: basics
+    label: 언어의 기본
+    topics:
+      - id: cs.prog.variables-types
+        title: 변수와 자료형
+        goal: 값과 이름과 타입이 각각 무엇인지 구분해 설명한다
+        difficulty: 1
+        estimatedMinutes: 20
+        keywords: [변수, 자료형, 참조, 불변]
+
+      - id: cs.prog.control-flow
+        title: 조건문과 반복문
+        goal: 반복문을 조건과 종료 조건으로 나누어 설명한다
+        difficulty: 1
+        estimatedMinutes: 20
+        prerequisites: [cs.prog.variables-types]
+        keywords: [조건문, 반복문, 종료조건]
+
+      - id: cs.prog.functions
+        title: 함수와 재귀
+        goal: 재귀가 호출 스택에 무엇을 쌓는지 설명한다
+        difficulty: 2
+        estimatedMinutes: 25
+        prerequisites: [cs.prog.control-flow]
+        keywords: [함수, 인자, 재귀, 호출스택]
+
+      - id: cs.prog.numpy
+        title: NumPy 기초
+        goal: 배열 연산이 반복문보다 빠른 이유를 설명한다
+        difficulty: 2
+        estimatedMinutes: 30
+        prerequisites: [cs.prog.functions, math.la.matrix-ops]
+        keywords: [ndarray, 브로드캐스팅, 벡터화]

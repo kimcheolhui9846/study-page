@@ -1,0 +1,45 @@
+# 머신러닝
+#
+# ★ 이 영역부터 선수 관계가 과목을 넘는다. 수학 Topic 을 선수로 갖는다.
+# 진도는 과목별로 독립이지만 선수 관계는 독립이 아니다.
+
+subject: cs
+domain: machine-learning
+label: 머신러닝
+order: 6
+
+modules:
+  - id: foundations
+    label: 학습의 기초
+    topics:
+      - id: cs.ml.overview
+        title: 머신러닝 개요
+        goal: 지도·비지도·강화학습이 각각 무엇을 주어진 것으로 보는지 구분한다
+        difficulty: 2
+        estimatedMinutes: 25
+        prerequisites: [cs.prog.numpy, math.prob.basics]
+        keywords: [지도학습, 비지도학습, 강화학습, 일반화]
+
+      - id: cs.ml.overfitting
+        title: 과적합과 편향·분산
+        goal: 편향과 분산의 상충을 학습 곡선으로 설명한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [cs.ml.overview, math.prob.expectation]
+        keywords: [과적합, 과소적합, 편향, 분산, 검증]
+
+      - id: cs.ml.linear-regression
+        title: 선형회귀
+        goal: 최소제곱이 어떤 손실을 최소화하는지 수식으로 설명한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [cs.ml.overview, math.la.matrix-ops, math.ai.loss-function]
+        keywords: [최소제곱, 가중치, 잔차, 정규방정식]
+
+      - id: cs.ml.metrics
+        title: 평가 지표
+        goal: 정확도가 부적절한 상황을 예로 들고 대안을 제시한다
+        difficulty: 3
+        estimatedMinutes: 30
+        prerequisites: [cs.ml.overfitting]
+        keywords: [정밀도, 재현율, F1, ROC, 불균형]

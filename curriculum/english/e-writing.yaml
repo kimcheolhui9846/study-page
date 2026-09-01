@@ -1,0 +1,28 @@
+subject: english
+domain: writing
+label: 논문·기술 문서 작성
+order: 4
+
+modules:
+  - id: sentence
+    label: 문장에서 문단으로
+    topics:
+      - id: english.writing.precise-sentence
+        title: 정확한 문장 작성
+        goal: 모호한 문장을 주어와 동사가 분명한 문장으로 고친다
+        difficulty: 2
+        estimatedMinutes: 25
+        required: recommended
+        prerequisites: [english.grammar.sentence-structure]
+        keywords: [명확성, 주어 일치, 능동태]
+        questionTypes: [rewrite]
+
+      - id: english.writing.problem-statement
+        title: 문제 정의 작성
+        goal: 무엇이 왜 문제인지를 두 문장으로 쓴다
+        difficulty: 3
+        estimatedMinutes: 30
+        required: recommended
+        prerequisites: [english.writing.precise-sentence, english.reading.abstract]
+        keywords: [problem statement, gap, motivation]
+        questionTypes: [write]

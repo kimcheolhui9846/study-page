@@ -1,8 +1,9 @@
 import { and, eq, inArray, sql } from 'drizzle-orm'
-import { dailyPlans, planItems, topicProgress, users } from '../db/schema'
+import { dailyPlans, planItems, topicProgress } from '../db/schema'
 import type { Db } from '../db/types'
 import { kstToday, type Clock } from '../time'
 import { loadGraph } from '../curriculum/load'
+import { loadSettings } from '../settings/store'
 import { buildDailyPlan } from './build'
 import type { DailyPlan, PlanInput, ProgressState } from './types'
 import type { MasteryStatus } from '../mastery/transition'
@@ -11,23 +12,6 @@ import type { MasteryStatus } from '../mastery/transition'
  * 계획 엔진과 DB 사이. 순수 함수는 lib/plan/build.ts 에 있고
  * 여기는 그것을 읽고 쓰는 일만 한다.
  */
-
-export interface Settings {
-  targetDayCount: number
-  dailyStudyMinutes: number
-}
-
-const DEFAULT_SETTINGS: Settings = { targetDayCount: 90, dailyStudyMinutes: 60 }
-
-/** 설정은 한 행뿐이다. 없으면 기본값으로 만든다. */
-export async function loadSettings(db: Db): Promise<Settings> {
-  const [row] = await db.select().from(users).limit(1)
-  if (row) {
-    return { targetDayCount: row.targetDayCount, dailyStudyMinutes: row.dailyStudyMinutes }
-  }
-  await db.insert(users).values({}).onConflictDoNothing()
-  return DEFAULT_SETTINGS
-}
 
 export async function loadProgressMap(db: Db): Promise<Map<string, ProgressState>> {
   const rows = await db.select().from(topicProgress)
@@ -136,6 +120,8 @@ export async function ensureTodayPlan(
     targetDayCount: settings.targetDayCount,
     progress: await loadProgressMap(db),
     callsLeft,
+    // ★ 이걸 안 넘기면 users.subject_priority 는 저장만 되고 아무 일도 안 한다
+    subjectPriority: settings.subjectPriority,
   }
 
   const plan: DailyPlan = buildDailyPlan(loadGraph(), input, now)

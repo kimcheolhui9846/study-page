@@ -205,9 +205,12 @@ export default async function Dashboard() {
         <div className="mx-auto mt-16 h-px w-16 bg-rule" />
 
         <div className="mt-6 flex flex-col items-center gap-3">
-          <span className="font-mono text-[10.5px] tracking-[0.22em] text-faint">
+          <Link
+            href="/settings"
+            className="font-mono text-[10.5px] tracking-[0.22em] text-faint underline decoration-rule underline-offset-[6px] transition-colors hover:text-muted"
+          >
             목표 {d.targetDayCount}일 · 하루 {d.dailyStudyMinutes}분
-          </span>
+          </Link>
           {fit && (
             <span className={`text-[12.5px] ${fit.fits ? 'text-muted' : 'text-warn'}`}>
               {fit.fits

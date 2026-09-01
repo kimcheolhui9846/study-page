@@ -43,6 +43,11 @@ export function subjectRatios(
   }
 
   const total = SUBJECTS.reduce((n, s) => n + raw[s], 0)
+
+  // 전부 0 이면 0 으로 나눠 NaN 이 된다. NaN 한도는 아무것도 못 담게 만들고,
+  // 그러면 2차 채우기가 하루를 통째로 가져간다 — 조용히 망가지는 경로다.
+  if (total <= 0) return { ...DEFAULT_RATIO }
+
   return Object.fromEntries(
     SUBJECTS.map((s) => [s, raw[s] / total]),
   ) as Record<Subject, number>
@@ -77,8 +82,13 @@ function fitToTime(
 
   // 2차 — 남은 시간을 버리지 않는다. 영어가 오늘 할 게 없다고
   // 하루가 짧아질 이유는 없다. 우선순위 순서는 그대로다.
+  //
+  // ★ 단, 비중이 0 인 과목은 여기서도 안 담는다.
+  // "오늘 할 게 없다"와 "쉬기로 했다"는 다른 얘기다. 사용자가 0 으로
+  // 내려둔 과목을 남는 시간에 끼워 넣으면 그 설정은 장식이 된다.
   const deferred: PlanCandidate[] = []
   for (const c of overflow) {
+    if (ratios[c.subject] <= 0) { deferred.push(c); continue }
     if (usedTotal + c.minutes <= totalMinutes) {
       usedTotal += c.minutes
       chosen.push(c)

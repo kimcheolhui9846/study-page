@@ -8,7 +8,7 @@ import { loadGraph } from '@/lib/curriculum/load'
 import { overview } from '@/lib/curriculum/overview'
 import { SUBJECTS, type Subject } from '@/lib/curriculum/schema'
 import type { TopicNode } from '@/lib/curriculum/graph'
-import { loadSettings } from '@/lib/plan/store'
+import { loadSettings } from '@/lib/settings/store'
 import { SessionBar } from '@/components/SessionBar'
 
 export const dynamic = 'force-dynamic'

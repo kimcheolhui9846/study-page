@@ -23,10 +23,10 @@ export default async function LoginPage() {
     <main className="flex flex-1 items-center justify-center px-6 py-20">
       {/* text-center 로 글자만 모은다. items-center 를 쓰면 입력란과 버튼이
           내용 너비로 쪼그라든다. */}
-      <div className="flex w-[380px] flex-col text-center">
+      <div className="flex w-full max-w-[380px] flex-col text-center">
         <div className="font-mono text-[11px] tracking-[0.22em] text-faint">{dateLabel}</div>
 
-        <h1 className="mt-6 font-serif text-[52px] leading-[1.1] tracking-[-0.03em] text-ink">
+        <h1 className="mt-6 font-serif text-[40px] leading-[1.1] tracking-[-0.03em] text-ink sm:text-[52px]">
           오늘의 공부
         </h1>
 

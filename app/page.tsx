@@ -111,13 +111,13 @@ export default async function Dashboard() {
     <>
       <SessionBar />
 
-      <main className="mx-auto flex w-full max-w-[920px] flex-1 flex-col px-8 pt-24 pb-14">
+      <main className="mx-auto flex w-full max-w-[920px] flex-1 flex-col px-5 pt-14 pb-14 sm:px-8 sm:pt-24">
         <div className="text-center">
           <div className="font-mono text-[11px] tracking-[0.22em] text-faint">
             {kstDateLabel(systemClock.now())}
           </div>
 
-          <h1 className="mt-6 font-serif text-[52px] leading-[1.1] tracking-[-0.03em] text-ink">
+          <h1 className="mt-6 font-serif text-[40px] leading-[1.1] tracking-[-0.03em] text-ink sm:text-[52px]">
             오늘
           </h1>
 
@@ -134,7 +134,7 @@ export default async function Dashboard() {
         </div>
 
         {/* 계기판 — 진도 · 연속 · 복습 부담 · 예상 완료 */}
-        <div className="mt-16 grid grid-cols-4 gap-6 rounded-card bg-surface px-8 py-9 shadow-[inset_0_0_0_1px_var(--color-rule)]">
+        <div className="mt-12 grid grid-cols-2 gap-y-8 rounded-card bg-surface px-6 py-8 shadow-[inset_0_0_0_1px_var(--color-rule)] sm:mt-16 sm:grid-cols-4 sm:gap-6 sm:px-8 sm:py-9">
           <Stat
             label="숙달"
             value={`${mastered}`}
@@ -181,14 +181,14 @@ export default async function Dashboard() {
           </p>
         )}
 
-        <ul className="mt-8 grid grid-cols-3 gap-6">
+        <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6">
           {d.subjects.map((s) => (
             <SubjectCard key={s.subject} s={s} />
           ))}
         </ul>
 
         {d.recent.length > 0 && (
-          <div className="mt-8 rounded-card bg-surface px-8 py-7 shadow-[inset_0_0_0_1px_var(--color-rule)]">
+          <div className="mt-8 rounded-card bg-surface px-6 py-7 shadow-[inset_0_0_0_1px_var(--color-rule)] sm:px-8">
             <h2 className="text-center font-mono text-[10px] tracking-[0.22em] text-faint">
               최근 채점
             </h2>

@@ -100,7 +100,7 @@ export function SettingsForm({ initial, totalMinutes }: SettingsFormProps) {
           : `이 커리큘럼은 ${requiredDays}일치다 · 목표보다 ${requiredDays - form.targetDayCount}일 길다`}
       </p>
 
-      <div className="mt-2 rounded-card bg-surface px-8 py-7 shadow-[inset_0_0_0_1px_var(--color-rule)]">
+      <div className="mt-2 rounded-card bg-surface px-6 py-6 shadow-[inset_0_0_0_1px_var(--color-rule)] sm:px-8 sm:py-7">
         <h2 className="text-center font-mono text-[10px] tracking-[0.22em] text-faint">
           과목 비중
         </h2>
@@ -112,7 +112,7 @@ export function SettingsForm({ initial, totalMinutes }: SettingsFormProps) {
         <div className="mt-7 flex flex-col gap-5">
           {(['english', 'math', 'cs'] as const).map((s) => (
             <div key={s} className="flex items-center gap-4">
-              <span className="w-24 shrink-0 text-[13.5px] text-body">{SUBJECT_LABEL[s]}</span>
+              <span className="w-20 shrink-0 text-[13.5px] text-body sm:w-24">{SUBJECT_LABEL[s]}</span>
               <input
                 type="range"
                 min={0}
@@ -168,7 +168,7 @@ function Field(props: {
   onChange: (n: number) => void
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-card bg-surface px-8 py-7 text-center shadow-[inset_0_0_0_1px_var(--color-rule)]">
+    <div className="flex flex-col items-center gap-3 rounded-card bg-surface px-6 py-6 text-center shadow-[inset_0_0_0_1px_var(--color-rule)] sm:px-8 sm:py-7">
       <span className="font-mono text-[10px] tracking-[0.22em] text-faint">{props.label}</span>
 
       <div className="flex items-baseline gap-2">

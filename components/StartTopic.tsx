@@ -53,7 +53,7 @@ export function StartTopic({ topicId, kind, round, callsLeft }: StartTopicProps)
   }
 
   return (
-    <div className="mt-12 flex flex-col items-center rounded-card bg-surface px-9 py-11 text-center shadow-[inset_0_0_0_1px_var(--color-rule)]">
+    <div className="mt-10 flex flex-col items-center rounded-card bg-surface px-6 py-9 text-center shadow-[inset_0_0_0_1px_var(--color-rule)] sm:mt-12 sm:px-9 sm:py-11">
       <p className="max-w-[380px] text-balance text-[14.5px] leading-[1.85] text-body">
         {COPY[kind]}
       </p>

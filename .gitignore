@@ -27,3 +27,6 @@ coverage/
 
 # 디자인 캔버스 씨딩 산출물 (~2MB). 원본은 design/canvas/*.dc.html 이다.
 design/canvas/study-page-daily-flow.html
+
+# Playwright MCP 가 남기는 스크린샷·스냅샷
+.playwright-mcp/

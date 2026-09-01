@@ -35,11 +35,11 @@ export default async function SettingsPage() {
     <>
       <SessionBar />
 
-      <main className="mx-auto flex w-full max-w-[560px] flex-1 flex-col px-8 pt-24 pb-20">
+      <main className="mx-auto flex w-full max-w-[560px] flex-1 flex-col px-5 pt-14 pb-16 sm:px-8 sm:pt-24 sm:pb-20">
         <div className="text-center">
           <div className="font-mono text-[11px] tracking-[0.22em] text-faint">설정</div>
 
-          <h1 className="mt-6 font-serif text-[44px] leading-[1.1] tracking-[-0.03em] text-ink">
+          <h1 className="mt-6 font-serif text-[34px] leading-[1.1] tracking-[-0.03em] text-ink sm:text-[44px]">
             어떻게 공부할까
           </h1>
 

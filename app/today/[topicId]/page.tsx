@@ -68,7 +68,7 @@ export default async function TopicPage(
     <>
       <SessionBar label={`DAY ${plan.dayNumber}`} />
 
-      <main className="mx-auto flex w-full max-w-[720px] flex-1 flex-col px-8 pt-20 pb-20">
+      <main className="mx-auto flex w-full max-w-[720px] flex-1 flex-col px-5 pt-14 pb-16 sm:px-8 sm:pt-20 sm:pb-20">
         <div className="text-center">
           <div className="font-mono text-[11px] tracking-[0.22em] text-faint">
             {subjectLabel(graph, topic.subject)} · {topic.domainLabel}
@@ -76,7 +76,7 @@ export default async function TopicPage(
 
           <Link
             href={`/topic/${encodeURIComponent(topicId)}`}
-            className="mt-6 block text-balance font-serif text-[42px] leading-[1.15] tracking-[-0.03em] text-ink underline decoration-transparent underline-offset-8 transition-colors hover:decoration-rule-strong"
+            className="mt-6 block text-balance font-serif text-[32px] leading-[1.15] tracking-[-0.03em] text-ink underline decoration-transparent underline-offset-8 transition-colors hover:decoration-rule-strong sm:text-[42px]"
           >
             {topic.title}
           </Link>

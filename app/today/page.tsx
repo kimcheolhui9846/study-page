@@ -63,7 +63,7 @@ function ItemCard(
     <li>
       <Link
         href={`/today/${encodeURIComponent(item.topicId)}`}
-        className={`flex flex-col items-center rounded-card px-7 pt-7 pb-6 text-center transition-shadow ${
+        className={`flex flex-col items-center rounded-card px-5 pt-6 pb-5 text-center transition-shadow sm:px-7 sm:pt-7 sm:pb-6 ${
           done ? 'bg-note' : 'bg-surface'
         } shadow-[inset_0_0_0_1px_var(--color-rule)] hover:shadow-[inset_0_0_0_1.5px_var(--color-rule-strong)]`}
       >
@@ -123,13 +123,13 @@ export default async function TodayPage() {
     <>
       <SessionBar label={`DAY ${plan.dayNumber}`} />
 
-      <main className="mx-auto flex w-full max-w-[720px] flex-1 flex-col px-8 pt-20 pb-20">
+      <main className="mx-auto flex w-full max-w-[720px] flex-1 flex-col px-5 pt-14 pb-16 sm:px-8 sm:pt-20 sm:pb-20">
         <div className="text-center">
           <div className="font-mono text-[11px] tracking-[0.22em] text-faint">
             {kstDateLabel(systemClock.now())} · DAY {plan.dayNumber}
           </div>
 
-          <h1 className="mt-6 font-serif text-[48px] leading-[1.1] tracking-[-0.03em] text-ink">
+          <h1 className="mt-6 font-serif text-[38px] leading-[1.1] tracking-[-0.03em] text-ink sm:text-[48px]">
             오늘의 학습
           </h1>
 

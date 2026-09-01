@@ -22,8 +22,8 @@ export interface PassageProps {
  */
 export function Passage({ title, bodyMd, keyTerms }: PassageProps) {
   return (
-    <article className="mt-12 flex flex-col rounded-card bg-surface px-9 py-10 shadow-[inset_0_0_0_1px_var(--color-rule)]">
-      <h2 className="text-balance text-center font-serif text-[28px] leading-snug tracking-[-0.02em] text-ink">
+    <article className="mt-10 flex flex-col rounded-card bg-surface px-5 py-8 shadow-[inset_0_0_0_1px_var(--color-rule)] sm:mt-12 sm:px-9 sm:py-10">
+      <h2 className="text-balance text-center font-serif text-[23px] leading-snug tracking-[-0.02em] text-ink sm:text-[28px]">
         {title}
       </h2>
 
@@ -40,8 +40,8 @@ export function Passage({ title, bodyMd, keyTerms }: PassageProps) {
           <div className="mt-9 h-px bg-rule-soft" />
           <dl className="mt-6 flex flex-col gap-3">
             {keyTerms.map((t) => (
-              <div key={t.term} className="flex gap-4 text-[13.5px] leading-[1.7]">
-                <dt className="w-40 shrink-0 font-mono text-[12.5px] text-muted">{t.term}</dt>
+              <div key={t.term} className="flex flex-col gap-1 text-[13.5px] leading-[1.7] sm:flex-row sm:gap-4">
+                <dt className="font-mono text-[12.5px] text-muted sm:w-40 sm:shrink-0">{t.term}</dt>
                 <dd className="text-pretty text-body">{t.definition}</dd>
               </div>
             ))}

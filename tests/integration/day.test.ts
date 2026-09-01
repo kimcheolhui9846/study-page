@@ -58,16 +58,19 @@ class RoutingFake implements LlmClient {
       // 채점 — 프롬프트에 실린 topic_id 를 그대로 되돌려준다
       const ids = [...req.user.matchAll(/topic_id: (\S+)/g)].map((m) => m[1]!)
       this.lastGradeTargets = ids
+      // 전부 맞은 것으로 채점한다 — 그래야 Topic 이 숙달되고 이튿날
+      // 진짜 "복습 회차"가 잡힌다. 못 넘긴 Topic 은 무료 재학습이 되므로
+      // 복습 경로를 시험하지 못한다.
       data = {
         topics: ids.map((id) => ({
           topic_id: id,
-          questions: [{
-            id: 'q1',
-            correct_points: ['포인트 A'],
+          questions: [1, 2, 3].map((n) => ({
+            id: `q${n}`,
+            correct_points: ['포인트 A', '포인트 B'],
             missed_points: [],
             misconceptions: [],
             feedback_ko: '무엇이 빠졌는지 적었다. 왜 필요한지도 적었다.',
-          }],
+          })),
           summary_seed: ['항목 1', '항목 2', '항목 3'],
           missing_prerequisites: [],
           weak_concepts: [],

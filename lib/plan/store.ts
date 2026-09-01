@@ -38,6 +38,7 @@ export async function loadProgressMap(db: Db): Promise<Map<string, ProgressState
       topicId: r.topicId,
       status: r.status as MasteryStatus,
       masteryScore: r.masteryScore,
+      attemptCount: r.attemptCount,
       wrongCount: r.wrongCount,
       nextReviewAt: r.nextReviewAt,
       reviewRound: r.reviewRound,

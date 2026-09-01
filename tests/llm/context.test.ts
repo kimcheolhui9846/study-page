@@ -9,7 +9,7 @@ function progress(entries: Array<{ id: string; score: number; weak?: string[] }>
   const m = new Map<string, ProgressState>()
   for (const e of entries) {
     m.set(e.id, {
-      topicId: e.id, status: 'mastered', masteryScore: e.score, wrongCount: 0,
+      topicId: e.id, status: 'mastered', masteryScore: e.score, attemptCount: 1, wrongCount: 0,
       nextReviewAt: null, reviewRound: 0, lastStudiedAt: null, weakConcepts: e.weak ?? [],
     })
   }

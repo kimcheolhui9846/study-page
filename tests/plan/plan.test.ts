@@ -22,7 +22,7 @@ function progress(entries: Array<Partial<ProgressState> & { topicId: string }>) 
   const m = new Map<string, ProgressState>()
   for (const e of entries) {
     m.set(e.topicId, {
-      status: 'not_started', masteryScore: 0, wrongCount: 0,
+      status: 'not_started', masteryScore: 0, attemptCount: 0, wrongCount: 0,
       nextReviewAt: null, reviewRound: 0, lastStudiedAt: null, weakConcepts: [],
       ...e,
     })
@@ -116,22 +116,32 @@ describe('후보 모으기', () => {
     expect(review?.reason).toContain('밀림')
   })
 
-  it('★ 취약한 Topic 의 선수가 부족하면 그 선수를 보충으로 뽑는다', () => {
-    // 후속만 취약하고 선수는 아직 학습 중이다 — 선수가 근본 원인이다
+  it('★ 복습에서도 틀리면 그 하위 개념으로 내려간다', () => {
+    // 후속만 취약하고 선수는 아직 학습 중이다 — 선수가 근본 원인이다.
+    // attemptCount 2 = 처음 배우고, 한 번 다시 해봤는데 또 못 넘었다.
     const p = progress([
       { topicId: 'cs.prog.variables-types', status: 'learning', masteryScore: 30 },
-      { topicId: 'cs.ds.array', status: 'weak', masteryScore: 35 },
+      { topicId: 'cs.ds.array', status: 'weak', masteryScore: 35, attemptCount: 2 },
     ])
     const cs = collectCandidates(graph, input({ progress: p }), NOW)
     const remediation = cs.find((c) => c.kind === 'remediation')
 
     expect(remediation?.topicId).toBe('cs.prog.variables-types')
-    expect(remediation?.reason).toContain('열려면 먼저')
+    expect(remediation?.reason).toContain('기초를 보충')
+  })
+
+  it('★ 하위로 내려간 날에는 본인을 하지 않는다 — 기초가 흔들리는 채로 또 풀지 않는다', () => {
+    const p = progress([
+      { topicId: 'cs.prog.variables-types', status: 'learning', masteryScore: 30 },
+      { topicId: 'cs.ds.array', status: 'weak', masteryScore: 35, attemptCount: 2 },
+    ])
+    const cs = collectCandidates(graph, input({ progress: p }), NOW)
+    expect(cs.find((c) => c.topicId === 'cs.ds.array')).toBeUndefined()
   })
 
   it('★ 취약한 Topic 이 무엇을 막고 있는지 이유에 담는다', () => {
     const p = progress([
-      { topicId: 'cs.prog.variables-types', status: 'weak', masteryScore: 30 },
+      { topicId: 'cs.prog.variables-types', status: 'weak', masteryScore: 30, attemptCount: 1 },
     ])
     const cs = collectCandidates(graph, input({ progress: p }), NOW)
     const item = cs.find((c) => c.topicId === 'cs.prog.variables-types')
@@ -227,5 +237,110 @@ describe('★ 예산에 맞춰 자른다 — 캡을 올리지 않는다', () => 
     expect(estimateCalls([])).toBe(0)
     // 콘텐츠 5 + 채점 1
     expect(estimateCalls(Array(5).fill({ minutes: 10 }))).toBe(6)
+  })
+})
+
+/**
+ * 사용자가 정한 회복 정책 (2026-09-02):
+ *   복습 1번 → 또 틀리면 하위 개념 → 하위 통과 시 다시 한 번 → 결과와 무관하게 다음 진도
+ */
+describe('회복 정책', () => {
+  const array = 'cs.ds.array'
+  const prereq = 'cs.prog.variables-types'
+
+  const weakArray = (attemptCount: number, lastStudiedAt = '2026-08-31') => ({
+    topicId: array, status: 'weak' as const, masteryScore: 35, attemptCount, lastStudiedAt,
+  })
+
+  it('첫 실패 뒤에는 스스로 한 번 더 — 무료 재학습이다', () => {
+    const cs = collectCandidates(
+      graph, input({ progress: progress([{ ...weakArray(1) },
+        { topicId: prereq, status: 'mastered', masteryScore: 90 }]) }), NOW,
+    )
+    const item = cs.find((c) => c.topicId === array)
+
+    expect(item?.kind).toBe('review')
+    // ★ round 가 null 이면 콘텐츠를 새로 만들지 않는다 = 호출 0회
+    expect(item?.round).toBeNull()
+  })
+
+  it('하위를 다 넘겼으면 마지막으로 한 번 더 준다', () => {
+    const cs = collectCandidates(
+      graph, input({ progress: progress([{ ...weakArray(2) },
+        { topicId: prereq, status: 'mastered', masteryScore: 90 }]) }), NOW,
+    )
+    const item = cs.find((c) => c.topicId === array)
+
+    expect(item?.kind).toBe('review')
+    expect(item?.reason).toContain('마지막으로 다시')
+  })
+
+  it('★ 세 번 하고도 못 넘기면 접어둔다 — 다음 진도로 간다', () => {
+    const cs = collectCandidates(
+      graph, input({ progress: progress([{ ...weakArray(3) },
+        { topicId: prereq, status: 'mastered', masteryScore: 90 }]) }), NOW,
+    )
+    expect(cs.find((c) => c.topicId === array)).toBeUndefined()
+  })
+
+  it('★ 접어둔 Topic 은 기한 복습으로도 안 끌려온다', () => {
+    // 실패하면 resetSchedule 이 복습을 내일로 잡는다. ① 이 그걸 집어가면
+    // 접어둔 것이 접어둔 것이 아니게 된다.
+    const p = progress([
+      { ...weakArray(3), nextReviewAt: '2026-08-30', reviewRound: 1 },
+      { topicId: prereq, status: 'mastered', masteryScore: 90 },
+    ])
+    expect(collectCandidates(graph, input({ progress: p }), NOW)
+      .find((c) => c.topicId === array)).toBeUndefined()
+  })
+
+  it('★ 접어둬도 2주 뒤에는 다시 온다 — 영영 버리지 않는다', () => {
+    const cs = collectCandidates(
+      graph, input({ progress: progress([{ ...weakArray(3, '2026-08-10') },
+        { topicId: prereq, status: 'mastered', masteryScore: 90 }]) }), NOW,
+    )
+    expect(cs.find((c) => c.topicId === array)?.kind).toBe('review')
+  })
+
+  it('★ 취약한 Topic 은 복습 회차로 잡히지 않는다 — 생성 비용이 붙으면 안 된다', () => {
+    const p = progress([
+      { topicId: prereq, status: 'weak', masteryScore: 30, attemptCount: 1,
+        nextReviewAt: '2026-08-30', reviewRound: 2, lastStudiedAt: '2026-08-29' },
+    ])
+    const item = collectCandidates(graph, input({ progress: p }), NOW)
+      .find((c) => c.topicId === prereq)
+
+    expect(item?.kind).toBe('review')
+    expect(item?.round).toBeNull()
+  })
+})
+
+describe('빈 계획을 만들지 않는다', () => {
+  it('★ 접어둔 것뿐이어도 하루가 비지 않는다 — 되살려서 하나 준다', () => {
+    // 열려 있는 첫 Topic 들을 전부 접어둔 상태로 만든다
+    const entries = graph.order
+      .filter((id) => graph.topics.get(id)!.prerequisites.length === 0)
+      .map((topicId) => ({
+        topicId, status: 'weak' as const, masteryScore: 20,
+        attemptCount: 5, lastStudiedAt: '2026-08-31',
+      }))
+
+    const cs = collectCandidates(graph, input({ progress: progress(entries) }), NOW)
+
+    expect(cs.length).toBeGreaterThan(0)
+    expect(cs[0]!.kind).toBe('review')
+    // 되살린 것도 재학습이라 생성이 0회다
+    expect(cs[0]!.round).toBeNull()
+    expect(cs[0]!.reason).toContain('새로 열린 것이 없다')
+  })
+
+  it('되살리기는 다른 할 일이 있으면 나오지 않는다', () => {
+    const p = progress([
+      { topicId: 'cs.ds.array', status: 'weak', masteryScore: 20, attemptCount: 5 },
+    ])
+    const cs = collectCandidates(graph, input({ progress: p }), NOW)
+
+    expect(cs.length).toBeGreaterThan(0)
+    expect(cs.some((c) => c.reason.includes('새로 열린 것이 없다'))).toBe(false)
   })
 })

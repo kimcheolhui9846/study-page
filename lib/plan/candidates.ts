@@ -1,7 +1,8 @@
 import type { CurriculumGraph, TopicNode } from '../curriculum/graph'
 import { topicsFor } from '../curriculum/graph'
-import { blockingPrerequisites, isUnlocked } from '../mastery/transition'
+import { isUnlocked } from '../mastery/transition'
 import { daysOverdue, isDue } from '../mastery/schedule'
+import { recoveryPhaseOf, type RecoveryTarget } from '../mastery/recovery'
 import type { PlanCandidate, PlanInput, ProgressState } from './types'
 
 /**
@@ -12,7 +13,7 @@ import type { PlanCandidate, PlanInput, ProgressState } from './types'
  */
 
 const NOT_STARTED = (topicId: string): ProgressState => ({
-  topicId, status: 'not_started', masteryScore: 0, wrongCount: 0,
+  topicId, status: 'not_started', masteryScore: 0, attemptCount: 0, wrongCount: 0,
   nextReviewAt: null, reviewRound: 0, lastStudiedAt: null, weakConcepts: [],
 })
 
@@ -26,6 +27,36 @@ function prereqStates(graph: CurriculumGraph, input: PlanInput, topic: TopicNode
     const pre = graph.topics.get(id)!
     return { id, score: stateOf(input, id).masteryScore, passThreshold: pre.passThreshold, node: pre }
   })
+}
+
+/**
+ * 내려갈 하위 개념. 선수와 보충 Topic 을 합친다.
+ *
+ * 선수는 "이걸 모르면 못 연다"이고 보충은 "이게 흔들려서 못 넘었다"이다.
+ * 회복 단계에서는 둘 다 내려갈 곳이므로 같이 본다.
+ */
+function recoveryTargets(
+  graph: CurriculumGraph, input: PlanInput, topic: TopicNode,
+): RecoveryTarget[] {
+  const seen = new Set<string>()
+  const out: RecoveryTarget[] = []
+
+  for (const id of [...topic.prerequisites, ...topic.remediation]) {
+    if (seen.has(id)) continue
+    const node = graph.topics.get(id)
+    if (!node) continue
+    seen.add(id)
+    out.push({ id, score: stateOf(input, id).masteryScore, passThreshold: node.passThreshold })
+  }
+  return out
+}
+
+/** 이 Topic 을 마지막으로 공부한 지 며칠. 한 번도 안 했으면 null */
+function daysSinceStudied(input: PlanInput, st: ProgressState): number | null {
+  if (!st.lastStudiedAt) return null
+  const a = new Date(`${input.studyDate}T12:00:00Z`).getTime()
+  const b = new Date(`${st.lastStudiedAt}T12:00:00Z`).getTime()
+  return Math.max(0, Math.round((a - b) / 86_400_000))
 }
 
 /**
@@ -85,6 +116,32 @@ export function collectCandidates(
     return idleCache.get(s)!
   }
 
+  // 회복 단계는 한 번만 계산한다. 부모의 보충 대상을 볼 때 다시 필요하다.
+  const recoveryCache = new Map<string, ReturnType<typeof recoveryPhaseOf>>()
+  const recoveryOf = (topic: TopicNode) => {
+    let r = recoveryCache.get(topic.id)
+    if (!r) {
+      const st = stateOf(input, topic.id)
+      r = recoveryPhaseOf({
+        attemptCount: st.attemptCount,
+        targets: recoveryTargets(graph, input, topic),
+        daysSinceStudied: daysSinceStudied(input, st),
+      })
+      recoveryCache.set(topic.id, r)
+    }
+    return r
+  }
+
+  /**
+   * 이 하위 개념을 오늘 할 수 있는가.
+   *
+   * ★ 접어둔 Topic 은 부모의 보충으로도 끌어내지 않는다. 이걸 안 막으면
+   * 접어두기가 뒷문으로 무력화된다 — 부모는 계속 취약이므로 같은 하위를
+   * 매일 다시 요구한다.
+   */
+  const canStudy = (node: TopicNode) =>
+    stateOf(input, node.id).status !== 'weak' || recoveryOf(node).phase !== 'parked'
+
   const out: PlanCandidate[] = []
   const taken = new Set<string>()
 
@@ -99,6 +156,11 @@ export function collectCandidates(
   for (const topic of included) {
     const st = stateOf(input, topic.id)
     if (!isDue(st.nextReviewAt, now)) continue
+    // ★ 취약한 Topic 은 ② 가 다룬다.
+    // 여기가 먼저 돌고 push 가 topicId 로 중복을 막기 때문에, 걸러내지 않으면
+    // 취약 Topic 이 "복습 N회차"로 잡혀 콘텐츠 생성 비용이 붙는다.
+    // 취약은 원래 지문을 다시 읽는 것이고 생성이 0회여야 한다.
+    if (st.status === 'weak') continue
 
     push({
       topicId: topic.id,
@@ -122,54 +184,50 @@ export function collectCandidates(
     })
   }
 
-  // ② 취약 — 다시 봐야 한다
+  // ② 취약 — 회복 단계에 따라 다르게 다룬다 (설계 §8.3, 사용자 정책 2026-09-02)
   for (const topic of included) {
     const st = stateOf(input, topic.id)
     if (st.status !== 'weak') continue
 
-    const blocking = blockingPrerequisites(prereqStates(graph, input, topic))
+    const recovery = recoveryOf(topic)
 
-    // ③ 선수가 부족하면 그 선수를 먼저 — 본인이 아니라 조상을 뽑는다
-    if (blocking.length > 0) {
-      const worst = blocking.reduce((a, b) => (a.score <= b.score ? a : b))
+    // ★ 접어둔 Topic 은 오늘 일정에 넣지 않는다.
+    // 이것이 "계속 틀리는 Topic 이 일정을 독점한다"를 끊는 지점이다.
+    if (recovery.phase === 'parked') continue
+
+    // ③ 하위 개념으로 내려간다. **이 Topic 은 오늘 하지 않는다** —
+    // 기초가 흔들리는 채로 같은 문제를 또 푸는 것은 시간 낭비다.
+    if (recovery.phase === 'remediation') {
+      // 점수가 낮은 것부터, 오늘 할 수 있는 첫 번째 하위 개념.
+      const node = recovery.blocking
+        .map((t) => graph.topics.get(t.id))
+        .find((n): n is TopicNode => n !== undefined && canStudy(n))
+
+      // 내려갈 곳이 전부 접혀 있다. 이 Topic 도 오늘은 넘긴다.
+      if (!node) continue
+
       push({
-        topicId: worst.id,
-        subject: worst.node.subject,
+        topicId: node.id,
+        subject: node.subject,
         kind: 'remediation',
         round: null,
-        minutes: worst.node.estimatedMinutes,
+        minutes: node.estimatedMinutes,
         priority: priorityOf({
           dueDays: 0,
-          wrongCount: stateOf(input, worst.id).wrongCount,
+          wrongCount: stateOf(input, node.id).wrongCount,
           blocksCount: 1,
           inProgress: true,
-          subjectIdleDays: idle(worst.node.subject),
-          difficulty: worst.node.difficulty,
+          subjectIdleDays: idle(node.subject),
+          difficulty: node.difficulty,
         }),
-        reason: `${topic.title} 을 열려면 먼저`,
+        reason: `${topic.title} 의 기초를 보충`,
       })
       continue
     }
 
-    // 선수는 멀쩡한데 못 넘었으면 remediation 목록으로
-    const fallback = topic.remediation.map((id) => graph.topics.get(id)!).find(Boolean)
-    if (fallback) {
-      push({
-        topicId: fallback.id,
-        subject: fallback.subject,
-        kind: 'remediation',
-        round: null,
-        minutes: fallback.estimatedMinutes,
-        priority: priorityOf({
-          dueDays: 0, wrongCount: 0, blocksCount: 1, inProgress: true,
-          subjectIdleDays: idle(fallback.subject), difficulty: fallback.difficulty,
-        }),
-        reason: `${topic.title} 의 기초를 보충`,
-      })
-    }
-
-    // 이 Topic 이 막고 있는 것이 있으면 이유에 담는다.
-    // "왜 오늘 이걸 또 하나"의 답이고, 화면이 그대로 보여준다.
+    // retry | final-retry — 본인을 다시 본다.
+    // 이 Topic 이 막고 있는 것이 있으면 이유에 담는다. "왜 오늘 이걸 또 하나"의
+    // 답이고, 화면이 그대로 보여준다.
     const blocked = graph.dependents.get(topic.id) ?? []
     push({
       topicId: topic.id,
@@ -189,9 +247,11 @@ export function collectCandidates(
         subjectIdleDays: idle(topic.subject),
         difficulty: topic.difficulty,
       }),
-      reason: blocked.length > 0
-        ? `이해가 부족했다 · ${blocked.length}개를 막고 있다`
-        : '이해가 부족했다',
+      reason: recovery.phase === 'final-retry'
+        ? '기초를 보충했다 · 마지막으로 다시'
+        : blocked.length > 0
+          ? `이해가 부족했다 · ${blocked.length}개를 막고 있다`
+          : '이해가 부족했다',
     })
   }
 
@@ -218,6 +278,37 @@ export function collectCandidates(
       }),
       reason: st.status === 'learning' ? '이어서' : '새로 배운다',
     })
+  }
+
+  /**
+   * ★ 마지막 안전망 — 오늘 할 것이 하나도 없으면 접어둔 것을 되살린다.
+   *
+   * 접어두기의 취지는 "**다음 진도가 있을 때** 비켜준다"이지 할 일을 없애는
+   * 것이 아니다. 전부 못 넘겨 새 Topic 이 하나도 안 열린 학습자에게 빈 하루를
+   * 주면, 그건 앱이 포기한 것이다.
+   *
+   * 가장 오래 안 본 것부터 하나만 되살린다. 재학습이라 생성이 0회다.
+   */
+  if (out.length === 0) {
+    const revived = included
+      .filter((t) => stateOf(input, t.id).status === 'weak')
+      .sort((a, b) => {
+        const sa = stateOf(input, a.id).lastStudiedAt ?? ''
+        const sb = stateOf(input, b.id).lastStudiedAt ?? ''
+        return sa.localeCompare(sb) || a.id.localeCompare(b.id)
+      })[0]
+
+    if (revived) {
+      push({
+        topicId: revived.id,
+        subject: revived.subject,
+        kind: 'review',
+        round: null,
+        minutes: revived.estimatedMinutes,
+        priority: 0,
+        reason: '오늘 새로 열린 것이 없다 · 다시 본다',
+      })
+    }
   }
 
   return out.sort((a, b) => b.priority - a.priority || a.topicId.localeCompare(b.topicId))

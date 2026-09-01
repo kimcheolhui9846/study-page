@@ -92,6 +92,7 @@ function simulate(opts: SimOptions): SimResult {
         topicId: item.topicId,
         status: outcome.status,
         masteryScore: score,
+        attemptCount: (prev?.attemptCount ?? 0) + 1,
         wrongCount,
         weakConcepts: prev?.weakConcepts ?? [],
         nextReviewAt: sched.nextReviewAt,
@@ -213,20 +214,41 @@ describe('30일 시뮬레이션 — 한 과목만 못하는 학습자', () => {
   })
 
   /**
-   * ★ 알려진 한계를 눈에 보이게 둔다.
+   * ★ 회복 정책이 실제로 독점을 끊는가 (사용자 정책 2026-09-02).
    *
-   * 계속 틀리는 Topic 은 wrongCount 계수(80 × 최대 5 = 400)로 매일 최상위에
-   * 올라오고, 취약 재학습은 생성이 없어 예산에도 안 걸린다. 그래서 한 과목이
-   * 막히면 30일 중 대부분이 그 과목의 재학습으로 채워지고 새 Topic 을 거의
-   * 못 만난다. 숫자를 여기 박아 두어, 이 균형을 손보면 테스트가 말하게 한다.
+   * 전에는 계속 틀리는 Topic 이 wrongCount 계수(최대 400점)로 매일 최상위에
+   * 올라왔고, 취약 재학습은 생성이 없어 예산에도 안 걸렸다. 그래서 한 과목이
+   * 막히면 30일 중 대부분이 그 과목 재시도였다 — 복습 120 / 신규 9, 건드린
+   * Topic 9개.
+   *
+   * 이제 한 Topic 은 최대 3번까지만 일정을 잡아두고 접힌다.
    */
-  it('한 과목이 막히면 새 Topic 을 거의 못 만난다 (알려진 한계)', () => {
+  it('★ 막힌 과목이 일정을 독점하지 않는다', () => {
     const kinds = sim.plans.flatMap((p) => p.items).map((i) => i.kind)
+    const fresh = kinds.filter((k) => k === 'new').length
     const review = kinds.filter((k) => k === 'review').length
-    const fresh = kinds.length - review
 
-    expect(review).toBeGreaterThan(fresh * 5)
-    expect(sim.progress.size).toBeLessThan(15)
+    // 복습이 여전히 많은 것은 정상이다 — 간격 반복이 원래 그렇다.
+    // 문제였던 것은 신규가 한 자리로 눌리던 것이다.
+    expect(fresh).toBeGreaterThan(20)
+    expect(review).toBeLessThan(fresh * 4)
+  })
+
+  it('★ 30일이면 커리큘럼의 상당 부분을 만난다', () => {
+    expect(sim.progress.size).toBeGreaterThan(20)
+  })
+
+  it('★ 못 넘긴 Topic 도 세 번까지만 붙잡는다', () => {
+    const counts = new Map<string, number>()
+    for (const item of sim.plans.flatMap((p) => p.items)) {
+      counts.set(item.topicId, (counts.get(item.topicId) ?? 0) + 1)
+    }
+
+    const math = [...counts.entries()].filter(([id]) => id.startsWith('math.'))
+    expect(math.length).toBeGreaterThan(0)
+    // 30일 중 접어둔 기간(14일)이 한 번 지나면 한 바퀴 더 돌 수 있다.
+    // 그래도 매일 나오는 일은 없다.
+    for (const [id, n] of math) expect(n, id).toBeLessThanOrEqual(6)
   })
 
   it('수학은 숙달하지 못한다', () => {

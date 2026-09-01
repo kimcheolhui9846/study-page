@@ -13,6 +13,8 @@ export interface ProgressState {
   topicId: string
   status: MasteryStatus
   masteryScore: number
+  /** 이 Topic 을 몇 번 공부했나. 회복 단계가 이 숫자에서 나온다 */
+  attemptCount: number
   wrongCount: number
   /** KST 날짜 'YYYY-MM-DD'. null 이면 복습 예정 없음 */
   nextReviewAt: string | null

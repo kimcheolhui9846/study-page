@@ -3,6 +3,7 @@ import { topicsFor } from '../curriculum/graph'
 import { isUnlocked } from '../mastery/transition'
 import { daysOverdue, isDue } from '../mastery/schedule'
 import { recoveryPhaseOf, type RecoveryTarget } from '../mastery/recovery'
+import { daysBetween } from '../time'
 import type { PlanCandidate, PlanInput, ProgressState } from './types'
 
 /**
@@ -54,9 +55,7 @@ function recoveryTargets(
 /** 이 Topic 을 마지막으로 공부한 지 며칠. 한 번도 안 했으면 null */
 function daysSinceStudied(input: PlanInput, st: ProgressState): number | null {
   if (!st.lastStudiedAt) return null
-  const a = new Date(`${input.studyDate}T12:00:00Z`).getTime()
-  const b = new Date(`${st.lastStudiedAt}T12:00:00Z`).getTime()
-  return Math.max(0, Math.round((a - b) / 86_400_000))
+  return Math.max(0, daysBetween(st.lastStudiedAt, input.studyDate))
 }
 
 /**
@@ -70,10 +69,7 @@ function daysSinceSubject(input: PlanInput, graph: CurriculumGraph, subject: str
     if (s.lastStudiedAt && (latest === null || s.lastStudiedAt > latest)) latest = s.lastStudiedAt
   }
   if (latest === null) return 7 // 한 번도 안 했으면 최대치로 본다
-
-  const a = new Date(`${input.studyDate}T12:00:00Z`).getTime()
-  const b = new Date(`${latest}T12:00:00Z`).getTime()
-  return Math.min(7, Math.max(0, Math.round((a - b) / 86_400_000)))
+  return Math.min(7, Math.max(0, daysBetween(latest, input.studyDate)))
 }
 
 /**

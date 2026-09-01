@@ -5,11 +5,13 @@ import { db } from '@/lib/db/client'
 import { systemClock } from '@/lib/time'
 import { PostgresSessionStore } from '@/lib/session/postgres'
 import { SUBJECTS, getDay, loadCurriculum, type Subject } from '@/lib/curriculum/load'
-import { loadProgress } from '@/lib/study/progress'
+import { loadProgress, loadUsage } from '@/lib/study/progress'
 import { attempts, studyDays } from '@/lib/db/schema'
 import { SessionBar } from '@/components/SessionBar'
 import { Passage } from '@/components/Passage'
 import { AnswerForm } from '@/components/AnswerForm'
+import { GradeResult } from '@/components/GradeResult'
+import { StartDay } from '@/components/StartDay'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,18 +35,23 @@ export default async function StudyPage({ params }: PageProps<'/study/[subject]'
 
   const [day] = await db.select().from(studyDays)
     .where(and(eq(studyDays.subject, subject), eq(studyDays.dayNo, progress.dayNo)))
-  // 아직 콘텐츠가 없으면 대시보드로. 생성 버튼은 Task 11 에서 붙인다.
-  if (!day) redirect('/')
 
-  const tries = await db.select().from(attempts).where(eq(attempts.studyDayId, day.id))
+  // day 가 없으면 아직 시작 전이다. attempts 도 content 도 읽을 게 없다.
+  const tries = day
+    ? await db.select().from(attempts).where(eq(attempts.studyDayId, day.id))
+    : []
   const graded = tries
     .filter((t) => t.feedback !== null)
     .sort((a, b) => b.attemptNo - a.attemptNo)[0]
 
-  const content = day.content as {
-    passage: { title: string; body_md: string; key_terms: Array<{ term: string; definition: string }> }
-    questions: Array<{ id: string; type: string; prompt: string }>
-  }
+  const content = day
+    ? (day.content as {
+        passage: { title: string; body_md: string; key_terms: Array<{ term: string; definition: string }> }
+        questions: Array<{ id: string; type: string; prompt: string }>
+      })
+    : null
+
+  const usage = await loadUsage(db, systemClock)
   const label = loadCurriculum(subject as Subject).label
 
   return (
@@ -69,23 +76,39 @@ export default async function StudyPage({ params }: PageProps<'/study/[subject]'
           </p>
         </div>
 
-        <Passage
-          title={content.passage.title}
-          bodyMd={content.passage.body_md}
-          keyTerms={content.passage.key_terms}
-        />
-
-        {graded ? (
-          <p className="mt-16 text-center text-[14px] leading-[1.7] text-muted">
-            채점 결과 화면은 Task 9 에서 붙인다.
-          </p>
-        ) : (
-          <AnswerForm
+        {content === null ? (
+          <StartDay
             subject={subject}
             dayNo={progress.dayNo}
-            questions={content.questions}
-            attemptsLeft={ATTEMPT_CAP - tries.length}
+            callsLeft={Math.max(0, usage.dailyCap - usage.dailyCalls)}
           />
+        ) : (
+          <>
+            <Passage
+              title={content.passage.title}
+              bodyMd={content.passage.body_md}
+              keyTerms={content.passage.key_terms}
+            />
+
+            {graded ? (
+              <GradeResult
+                subject={subject}
+                dayNo={progress.dayNo}
+                attemptNo={graded.attemptNo}
+                attemptsLeft={ATTEMPT_CAP - tries.length}
+                questions={content.questions}
+                answers={graded.answers as Record<string, string>}
+                feedback={graded.feedback as never}
+              />
+            ) : (
+              <AnswerForm
+                subject={subject}
+                dayNo={progress.dayNo}
+                questions={content.questions}
+                attemptsLeft={ATTEMPT_CAP - tries.length}
+              />
+            )}
+          </>
         )}
       </main>
     </>

@@ -89,7 +89,11 @@ Neon 연결 문자열은 **pooled(`-pooler` 가 붙은 것)** 를 쓴다. 버셀
 
 ## 바로 다음에 할 일 (Step 8 이 끝난 뒤)
 
-2주차 계획을 작성한다. 첫 작업은 `lib/llm/client.ts` — OpenAI Structured Outputs.
+**2주차 계획이 나왔다:** `docs/plans/2026-09-01-week2-llm-loop.md` (태스크 12개)
+
+Task 1~3 은 순수 함수라 API 키 없이 돈다 (단가 계산 · JSON Schema · 프롬프트).
+**Task 4 에서 첫 실호출이 일어난다** — 그 앞에 하드 리밋 확인 스텝이 있다.
+Task 12 의 완료 기준은 코드가 아니라 **CS Day 1 을 화면에서 완주하는 것**이다.
 **여기서부터 돈이 나간다.** `tests/no-real-llm.test.ts` 가 빨갛게 뜨는 것이
 그 신호이고, 지울 때 대시보드 하드 리밋을 함께 확인한다.
 

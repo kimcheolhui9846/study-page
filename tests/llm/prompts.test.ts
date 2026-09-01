@@ -14,6 +14,48 @@ const ctx = buildTopicContext(graph, topic, {
   kind: 'new', reviewRound: null, minutes: 30, progress: new Map(),
 })
 
+/**
+ * ★ 실호출 표본 3개가 전부 존댓말로 나왔다. 앱의 다른 모든 문장은 평서체라서
+ * 지문만 존댓말이면 한 화면에 목소리가 둘이 된다.
+ *
+ * 이 테스트가 지키는 것은 "프롬프트가 문체를 말하는가"까지다. 모델이 실제로
+ * 지키는지는 실호출로만 알 수 있다 — 테스트에서 LLM 을 부르지 않기 때문이다.
+ */
+describe('문체 규칙', () => {
+  const prompts = { CONTENT_SYSTEM, REVIEW_SYSTEM, GRADE_SYSTEM }
+
+  it('★ 세 프롬프트 모두 평서체를 요구한다', () => {
+    for (const [name, prompt] of Object.entries(prompts)) {
+      expect(prompt, name).toContain('문체는 평서체다')
+    }
+  })
+
+  it('★ 금지할 존댓말 어미를 하나하나 적는다 — "평서체로 써라"만으로는 안 지킨다', () => {
+    for (const [name, prompt] of Object.entries(prompts)) {
+      for (const ending of ['~합니다', '~입니다', '~하세요']) {
+        expect(prompt, `${name} 에 ${ending}`).toContain(ending)
+      }
+    }
+  })
+
+  it('고쳐 쓴 예시를 준다', () => {
+    expect(CONTENT_SYSTEM).toContain('→ "변수는 값에 붙인 이름이다"')
+  })
+
+  it('문제는 "~하라"로 쓰라고 한다 — "~하시오"가 실제로 나왔다', () => {
+    expect(CONTENT_SYSTEM).toContain('"~하라"')
+    expect(CONTENT_SYSTEM).toContain('"~하시오"')
+  })
+
+  it('★ 프롬프트 자신도 평서체다 — 시키는 문체로 쓰여 있어야 한다', () => {
+    for (const [name, prompt] of Object.entries(prompts)) {
+      // 큰따옴표 안은 금지 표현을 인용한 예시다. 그걸 걷어낸 나머지를 본다.
+      const withoutExamples = prompt.replace(/"[^"]*"/g, '')
+      expect(withoutExamples, name).not.toMatch(/합니다|입니다|하세요/)
+    }
+  })
+})
+
 describe('CONTENT_SYSTEM', () => {
   it('문제 수와 유형을 못박는다', () => {
     expect(CONTENT_SYSTEM).toContain('정확히 3개')

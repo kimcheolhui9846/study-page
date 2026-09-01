@@ -5,6 +5,7 @@ import { kstToday, type Clock } from '../time'
 import { getDay, type Subject } from '../curriculum/load'
 import { recordUsage, reserve, rollback } from '../budget/reserve'
 import type { LlmClient } from '../llm/types'
+import { CONTENT_JSON_SCHEMA } from '../llm/schemas'
 
 export interface ContentDeps {
   db: Db
@@ -93,6 +94,7 @@ export async function getOrCreateContent(
         `난이도: ${entry.difficulty} / 5`,
       ].join('\n'),
       schemaName: 'study_content',
+      jsonSchema: CONTENT_JSON_SCHEMA,
       maxTokens: 2000,
       temperature: 0.6,
     })

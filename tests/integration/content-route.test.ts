@@ -134,12 +134,18 @@ describe('③ 예산 캡', () => {
 })
 
 describe('루브릭 유출 방지', () => {
+  // 문제 3개여야 한다 — 스키마 검증이 들어온 뒤로는 형식이 맞아야 저장까지 간다.
+  // 유출 여부를 보는 테스트이므로 비밀은 q1 에만 심는다.
   const withSecrets = {
     passage: { title: '제목', body_md: '본문', key_terms: [] },
-    questions: [{
-      id: 'q1', type: 'concept', prompt: '설명하라',
-      expected_points: ['비밀 루브릭'], hint: '비밀 힌트',
-    }],
+    questions: [
+      {
+        id: 'q1', type: 'concept', prompt: '설명하라',
+        expected_points: ['비밀 루브릭'], hint: '비밀 힌트',
+      },
+      { id: 'q2', type: 'recall', prompt: '두 번째', expected_points: ['포인트'], hint: '' },
+      { id: 'q3', type: 'application', prompt: '세 번째', expected_points: ['포인트'], hint: '' },
+    ],
   }
 
   it('★ expected_points 와 hint 가 응답에 섞여 나가지 않는다', async () => {
@@ -171,6 +177,8 @@ describe('루브릭 유출 방지', () => {
 
     expect(out.content.questions).toEqual([
       { id: 'q1', type: 'concept', prompt: '설명하라' },
+      { id: 'q2', type: 'recall', prompt: '두 번째' },
+      { id: 'q3', type: 'application', prompt: '세 번째' },
     ])
   })
 })

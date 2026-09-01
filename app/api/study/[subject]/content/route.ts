@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db/client'
 import { systemClock } from '@/lib/time'
 import { withSession } from '@/lib/session/guard'
-import { FakeLlmClient } from '@/lib/llm/fake'
+import { OpenAiLlmClient } from '@/lib/llm/client'
 import { getOrCreateContent, type ContentOutcome } from '@/lib/study/content'
 import { SUBJECTS, type Subject } from '@/lib/curriculum/schema'
 
-// 1주차에는 가짜 클라이언트만 존재한다. 2주차에 OpenAiLlmClient 로 교체한다.
-const llm = new FakeLlmClient()
+// ★ 여기서부터 실제 호출이다. 4겹은 lib/study/content.ts 안에 있다.
+const llm = new OpenAiLlmClient()
 
 const STATUS_CODE: Record<Exclude<ContentOutcome['status'], 'ok'>, number> = {
   no_such_day: 404,

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { kstToday, kstMonth } from '../lib/time'
+import { kstToday, kstMonth, kstDateLabel } from '../lib/time'
 import { fixedClock } from './helpers/clock'
 
 describe('kstToday', () => {
@@ -72,5 +72,19 @@ describe('fixedClock', () => {
     const first = clock.now()
     first.setFullYear(1999)
     expect(clock.now().toISOString()).toBe('2026-09-01T00:00:00.000Z')
+  })
+})
+
+describe('kstDateLabel', () => {
+  it('KST 날짜와 요일을 준다', () => {
+    // 2026-09-01 은 화요일
+    expect(kstDateLabel(new Date('2026-09-01T01:00:00Z'))).toBe('2026 · 09 · 01  화')
+  })
+
+  it('★ UTC 자정 이전에도 KST 날짜를 준다', () => {
+    // UTC 2026-08-31 15:30 = KST 2026-09-01 00:30 (화)
+    expect(kstDateLabel(new Date('2026-08-31T15:30:00Z'))).toBe('2026 · 09 · 01  화')
+    // UTC 2026-08-31 14:30 = KST 2026-08-31 23:30 (월)
+    expect(kstDateLabel(new Date('2026-08-31T14:30:00Z'))).toBe('2026 · 08 · 31  월')
   })
 })

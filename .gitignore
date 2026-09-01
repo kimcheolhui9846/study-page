@@ -24,3 +24,6 @@ npm-debug.log*
 yarn-error.log*
 coverage/
 *.tsbuildinfo
+
+# 디자인 캔버스 씨딩 산출물 (~2MB). 원본은 design/canvas/*.dc.html 이다.
+design/canvas/study-page-daily-flow.html

@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "IBM Plex Sans KR", system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+    p, h1, h2, h3 { margin: 0; font-weight: 400; }
+    input, textarea, button { font: inherit; }
+    a { color: #24765F; text-decoration: none; }
+    a:hover { color: #1A5A48; text-decoration: underline; }
+  </style>
+</helmet>
+
+<div style="min-height: 900px; display: flex; flex-direction: column; background: #FAF7F2;">
+
+  <!-- 세션 바 · 대시보드 변형 (과목 표시 없음) -->
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 52px; padding: 0 32px; background: #FFFDF9; border-bottom: 1px solid #E7E0D5;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="width: 7px; height: 7px; border-radius: 50%; background: #24765F; flex: none;"></span>
+      <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.1em; color: #3D382F;">STUDY</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 18px;">
+      <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12.5px; color: #7A7266;">남은 시간 <span style="color: #23201C;">14:58</span></span>
+      <button style="height: 30px; padding: 0 14px; border: 1px solid #D8CFC0; border-radius: 3px; background: transparent; color: #3D382F; font-size: 12.5px; cursor: pointer;">종료</button>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; flex-grow: 1; width: 100%; max-width: 880px; margin: 0 auto; padding: 56px 32px 40px;">
+
+    <div style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.14em; color: #9C948A;">2026 · 09 · 01 &nbsp;월</div>
+    <h1 style="margin-top: 14px; font-family: 'Gowun Batang', Georgia, 'Times New Roman', serif; font-size: 38px; line-height: 1.25; color: #23201C;">오늘</h1>
+    <p style="margin-top: 10px; font-size: 14.5px; line-height: 1.7; color: #7A7266;">과목마다 하루 한 번. 시작하면 그날의 지문이 만들어지고, 같은 날 다시 만들 수는 없다.</p>
+
+    <!-- 과목 3카드 -->
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-top: 40px;">
+
+      <!-- 영어 — 오늘 완료 -->
+      <div style="display: flex; flex-direction: column; padding: 24px 22px 22px; background: #FFFDF9; border: 1px solid #E7E0D5; border-radius: 4px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+          <h2 style="font-family: 'Gowun Batang', Georgia, serif; font-size: 22px; color: #23201C;">영어</h2>
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; color: #9C948A;">DAY 3 / 14</span>
+        </div>
+
+        <div style="height: 3px; margin-top: 16px; background: #EDE6DA; border-radius: 2px;">
+          <div style="width: 21%; height: 3px; background: #24765F; border-radius: 2px;"></div>
+        </div>
+
+        <p style="margin-top: 20px; font-size: 15px; line-height: 1.6; color: #3D382F;">분사구문</p>
+        <p style="margin-top: 6px; font-size: 13px; line-height: 1.65; color: #9C948A; flex-grow: 1;">부사절을 분사구문으로 바꾸고 원래 접속사의 의미를 복원한다</p>
+
+        <div style="display: flex; align-items: center; gap: 7px; margin-top: 22px;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex: none;"><path d="M2.5 7.4L5.5 10.4L11.5 3.6" stroke="#24765F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span style="font-size: 13px; color: #24765F;">오늘 마쳤다</span>
+        </div>
+        <button style="margin-top: 14px; height: 40px; border: 1px solid #D8CFC0; border-radius: 3px; background: transparent; color: #3D382F; font-size: 14px; cursor: pointer;">다시 보기</button>
+      </div>
+
+      <!-- 수학 — 아직 -->
+      <div style="display: flex; flex-direction: column; padding: 24px 22px 22px; background: #FFFDF9; border: 1px solid #E7E0D5; border-radius: 4px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+          <h2 style="font-family: 'Gowun Batang', Georgia, serif; font-size: 22px; color: #23201C;">수학</h2>
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; color: #9C948A;">DAY 2 / 14</span>
+        </div>
+
+        <div style="height: 3px; margin-top: 16px; background: #EDE6DA; border-radius: 2px;">
+          <div style="width: 14%; height: 3px; background: #C4BAA9; border-radius: 2px;"></div>
+        </div>
+
+        <p style="margin-top: 20px; font-size: 15px; line-height: 1.6; color: #3D382F;">미분계수와 접선</p>
+        <p style="margin-top: 6px; font-size: 13px; line-height: 1.65; color: #9C948A; flex-grow: 1;">미분 가능성이 연속성보다 강한 조건인 이유를 반례로 보인다</p>
+
+        <div style="display: flex; align-items: center; gap: 7px; margin-top: 22px;">
+          <span style="width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid #C4BAA9; flex: none;"></span>
+          <span style="font-size: 13px; color: #9C948A;">아직 시작 전</span>
+        </div>
+        <button style="margin-top: 14px; height: 40px; border: none; border-radius: 3px; background: #23201C; color: #FAF7F2; font-size: 14px; font-weight: 500; cursor: pointer;">시작하기</button>
+      </div>
+
+      <!-- CS — 진행 중 -->
+      <div style="display: flex; flex-direction: column; padding: 24px 22px 22px; background: #FFFDF9; border: 1.5px solid #C4BAA9; border-radius: 4px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+          <h2 style="font-family: 'Gowun Batang', Georgia, serif; font-size: 22px; color: #23201C;">CS</h2>
+          <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; color: #9C948A;">DAY 5 / 14</span>
+        </div>
+
+        <div style="height: 3px; margin-top: 16px; background: #EDE6DA; border-radius: 2px;">
+          <div style="width: 32%; height: 3px; background: #83682C; border-radius: 2px;"></div>
+        </div>
+
+        <p style="margin-top: 20px; font-size: 15px; line-height: 1.6; color: #3D382F;">HTTP 캐시</p>
+        <p style="margin-top: 6px; font-size: 13px; line-height: 1.65; color: #9C948A; flex-grow: 1;">ETag 와 Cache-Control 이 각각 어떤 문제를 푸는지 구분한다</p>
+
+        <div style="display: flex; align-items: center; gap: 7px; margin-top: 22px;">
+          <span style="width: 7px; height: 7px; border-radius: 50%; background: #83682C; flex: none;"></span>
+          <span style="font-size: 13px; color: #83682C;">푸는 중 &mdash; 문제 2 / 3</span>
+        </div>
+        <button style="margin-top: 14px; height: 40px; border: none; border-radius: 3px; background: #23201C; color: #FAF7F2; font-size: 14px; font-weight: 500; cursor: pointer;">이어서 하기</button>
+      </div>
+
+    </div>
+
+    <div style="flex-grow: 1;"></div>
+
+    <!-- 사용량 -->
+    <div style="height: 1px; margin-top: 48px; background: #E7E0D5;"></div>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 18px;">
+      <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; letter-spacing: 0.1em; color: #9C948A;">오늘 호출 2 / 20</span>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 11.5px; color: #9C948A;">이번 달 ₩1,240 / ₩30,000</span>
+        <div style="width: 120px; height: 3px; background: #EDE6DA; border-radius: 2px;">
+          <div style="width: 4%; height: 3px; background: #24765F; border-radius: 2px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

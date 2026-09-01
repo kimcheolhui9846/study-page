@@ -9,7 +9,7 @@ import { subjectLabel } from '@/lib/curriculum/overview'
 import { ensureTodayPlan, loadSettings, type StoredPlan } from '@/lib/plan/store'
 import { loadUsage } from '@/lib/budget/usage'
 import { SessionBar } from '@/components/SessionBar'
-import { ScoreEntry } from '@/components/ScoreEntry'
+import { GradePlan } from '@/components/GradePlan'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,13 +19,17 @@ const KIND_LABEL: Record<string, { label: string; className: string }> = {
   remediation: { label: '보충', className: 'text-stop' },
 }
 
-function Item({
-  item, planId, graph,
-}: {
-  item: StoredPlan['items'][number]
-  planId: number
-  graph: ReturnType<typeof loadGraph>
-}) {
+type Item = StoredPlan['items'][number]
+
+/** 항목이 지금 어디까지 왔는가. 화면의 한 줄이 이 판정에서 나온다. */
+function stageOf(item: Item): { label: string; className: string } {
+  if (item.status === 'done') return { label: `${item.score}점 · 채점됨`, className: 'text-ok' }
+  if (item.answers) return { label: '답 씀 · 채점 대기', className: 'text-warn' }
+  if (item.status === 'studying') return { label: '자료 있음 · 답 쓰기', className: 'text-muted' }
+  return { label: '자료 없음', className: 'text-faint' }
+}
+
+function ItemCard({ item, graph }: { item: Item; graph: ReturnType<typeof loadGraph> }) {
   const topic = graph.topics.get(item.topicId)
   const kind = KIND_LABEL[item.kind] ?? { label: item.kind, className: 'text-muted' }
   const done = item.status === 'done'
@@ -41,37 +45,38 @@ function Item({
     )
   }
 
+  const stage = stageOf(item)
+
   return (
-    <li
-      className={`flex flex-col items-center rounded-card px-7 pt-7 pb-6 text-center transition-opacity ${
-        done ? 'bg-note opacity-60' : 'bg-surface'
-      } shadow-[inset_0_0_0_1px_var(--color-rule)]`}
-    >
-      <div className="flex items-center gap-2.5">
-        <span className={`font-mono text-[10.5px] tracking-[0.22em] ${kind.className}`}>
-          {kind.label}
-          {item.round !== null && ` ${item.round}회차`}
-        </span>
-        <span className="font-mono text-[10.5px] tracking-[0.18em] text-faint">
-          {subjectLabel(graph, topic.subject)} · {item.minutes}분
-        </span>
-      </div>
+    <li>
+      <Link
+        href={`/today/${encodeURIComponent(item.topicId)}`}
+        className={`flex flex-col items-center rounded-card px-7 pt-7 pb-6 text-center transition-shadow ${
+          done ? 'bg-note' : 'bg-surface'
+        } shadow-[inset_0_0_0_1px_var(--color-rule)] hover:shadow-[inset_0_0_0_1.5px_var(--color-rule-strong)]`}
+      >
+        <div className="flex items-center gap-2.5">
+          <span className={`font-mono text-[10.5px] tracking-[0.22em] ${kind.className}`}>
+            {kind.label}
+            {item.round !== null && ` ${item.round}회차`}
+          </span>
+          <span className="font-mono text-[10.5px] tracking-[0.18em] text-faint">
+            {subjectLabel(graph, topic.subject)} · {item.minutes}분
+          </span>
+        </div>
 
-      <h3 className="mt-3 text-balance font-serif text-[24px] leading-snug tracking-[-0.02em] text-ink">
-        {topic.title}
-      </h3>
+        <h3 className="mt-3 text-balance font-serif text-[24px] leading-snug tracking-[-0.02em] text-ink">
+          {topic.title}
+        </h3>
 
-      <p className="mt-3 max-w-[420px] text-balance text-[13px] leading-[1.8] text-muted">
-        {topic.goal}
-      </p>
-
-      {done ? (
-        <p className="mt-5 font-mono text-[11px] tracking-[0.18em] text-ok">
-          {item.score}점 · 마쳤다
+        <p className="mt-3 max-w-[420px] text-balance text-[13px] leading-[1.8] text-muted">
+          {topic.goal}
         </p>
-      ) : (
-        <ScoreEntry topicId={item.topicId} planId={planId} />
-      )}
+
+        <span className={`mt-5 font-mono text-[10.5px] tracking-[0.18em] ${stage.className}`}>
+          {stage.label}
+        </span>
+      </Link>
     </li>
   )
 }
@@ -92,6 +97,10 @@ export default async function TodayPage() {
 
   const done = plan.items.filter((i) => i.status === 'done').length
   const allDone = plan.items.length > 0 && done === plan.items.length
+  // 답을 다 쓴 항목. 이만큼이 호출 1회로 채점된다.
+  const ready = plan.items.filter((i) => i.status === 'studying' && i.answers).length
+  // 남은 것이 하나라도 있으면 채점을 미룬다 — 채점은 하루에 한 번이다.
+  const waiting = plan.items.filter((i) => i.status !== 'done' && !i.answers).length
 
   return (
     <>
@@ -130,14 +139,22 @@ export default async function TodayPage() {
 
             <ul className="mt-12 flex flex-col gap-5">
               {plan.items.map((item) => (
-                <Item key={item.id} item={item} planId={plan.id} graph={graph} />
+                <ItemCard key={item.id} item={item} graph={graph} />
               ))}
             </ul>
           </>
         )}
 
+        {ready > 0 && waiting === 0 && <GradePlan ready={ready} callsLeft={callsLeft} />}
+
+        {ready > 0 && waiting > 0 && (
+          <p className="mt-12 text-center text-balance text-[13px] leading-[1.8] text-muted">
+            {waiting}개가 남았다. 오늘 것을 다 쓰면 한 번에 채점한다 — AI 호출 1회다.
+          </p>
+        )}
+
         {allDone && (
-          <p className="mt-10 text-center text-balance text-[14px] leading-[1.8] text-ok">
+          <p className="mt-12 text-center text-balance text-[14px] leading-[1.8] text-ok">
             오늘을 마쳤다. 내일 계획은 오늘 결과를 반영해 달라진다.
           </p>
         )}

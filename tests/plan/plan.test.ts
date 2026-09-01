@@ -23,7 +23,7 @@ function progress(entries: Array<Partial<ProgressState> & { topicId: string }>) 
   for (const e of entries) {
     m.set(e.topicId, {
       status: 'not_started', masteryScore: 0, wrongCount: 0,
-      nextReviewAt: null, reviewRound: 0, lastStudiedAt: null,
+      nextReviewAt: null, reviewRound: 0, lastStudiedAt: null, weakConcepts: [],
       ...e,
     })
   }
@@ -35,17 +35,17 @@ const NOW = new Date('2026-09-01T01:00:00Z') // KST 2026-09-01
 describe('우선순위', () => {
   it('★ 밀린 복습이 다른 모든 것을 이긴다', () => {
     const overdue = priorityOf({
-      overdueDays: 1, wrongCount: 0, blocksCount: 0,
+      dueDays: 1, wrongCount: 0, blocksCount: 0,
       inProgress: false, subjectIdleDays: 0, difficulty: 5,
     })
     const everythingElseMaxed = priorityOf({
-      overdueDays: 0, wrongCount: 5, blocksCount: 1,
+      dueDays: 0, wrongCount: 5, blocksCount: 1,
       inProgress: true, subjectIdleDays: 7, difficulty: 1,
     })
     expect(overdue).toBeGreaterThan(0)
     // 기한 7일 초과면 확실히 이긴다
     const veryOverdue = priorityOf({
-      overdueDays: 7, wrongCount: 0, blocksCount: 0,
+      dueDays: 7, wrongCount: 0, blocksCount: 0,
       inProgress: false, subjectIdleDays: 0, difficulty: 5,
     })
     expect(veryOverdue).toBeGreaterThan(everythingElseMaxed)
@@ -53,11 +53,11 @@ describe('우선순위', () => {
 
   it('반복해 틀린 것이 새 것보다 앞선다', () => {
     const repeated = priorityOf({
-      overdueDays: 0, wrongCount: 3, blocksCount: 0,
+      dueDays: 0, wrongCount: 3, blocksCount: 0,
       inProgress: false, subjectIdleDays: 0, difficulty: 3,
     })
     const fresh = priorityOf({
-      overdueDays: 0, wrongCount: 0, blocksCount: 0,
+      dueDays: 0, wrongCount: 0, blocksCount: 0,
       inProgress: false, subjectIdleDays: 0, difficulty: 3,
     })
     expect(repeated).toBeGreaterThan(fresh)
@@ -65,11 +65,11 @@ describe('우선순위', () => {
 
   it('오래 안 한 과목이 앞으로 온다', () => {
     const idle = priorityOf({
-      overdueDays: 0, wrongCount: 0, blocksCount: 0,
+      dueDays: 0, wrongCount: 0, blocksCount: 0,
       inProgress: false, subjectIdleDays: 7, difficulty: 3,
     })
     const recent = priorityOf({
-      overdueDays: 0, wrongCount: 0, blocksCount: 0,
+      dueDays: 0, wrongCount: 0, blocksCount: 0,
       inProgress: false, subjectIdleDays: 0, difficulty: 3,
     })
     expect(idle).toBeGreaterThan(recent)

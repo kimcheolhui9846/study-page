@@ -13,7 +13,7 @@ import type { PlanCandidate, PlanInput, ProgressState } from './types'
 
 const NOT_STARTED = (topicId: string): ProgressState => ({
   topicId, status: 'not_started', masteryScore: 0, wrongCount: 0,
-  nextReviewAt: null, reviewRound: 0, lastStudiedAt: null,
+  nextReviewAt: null, reviewRound: 0, lastStudiedAt: null, weakConcepts: [],
 })
 
 export function stateOf(input: PlanInput, topicId: string): ProgressState {
@@ -48,11 +48,17 @@ function daysSinceSubject(input: PlanInput, graph: CurriculumGraph, subject: str
 /**
  * 우선순위 점수. 설계 §7.2 를 그대로 옮겼다.
  *
- * ★ 밀린 복습이 신규를 항상 이긴다. 계수 120 이 그 뜻이다 —
- * 다른 항목이 전부 최대여도 기한 하루 초과를 넘지 못한다.
+ * ★ 기한이 된 복습이 신규를 항상 이긴다. 계수 120 이 그 뜻이다 —
+ * 다른 항목이 전부 최대여도 기한 하루치를 넘지 못한다.
+ *
+ * ★ dueDays 는 "며칠째 기한인가"이지 "며칠 밀렸나"가 아니다.
+ * 오늘이 기한이면 1이다. 0으로 두면 간격 [1,3,7,14] 의 1회차 복습이
+ * 예약된 바로 그날 신규 Topic 에 밀리고, 밀린 다음에야 120점을 받는다 —
+ * 간격 반복이 하루씩 늦게 도는 셈이라 예약이 의미를 잃는다.
  */
 export function priorityOf(args: {
-  overdueDays: number
+  /** 기한이 된 지 며칠인가. 오늘이 기한이면 1, 기한이 아니면 0 */
+  dueDays: number
   wrongCount: number
   blocksCount: number
   inProgress: boolean
@@ -60,7 +66,7 @@ export function priorityOf(args: {
   difficulty: number
 }): number {
   return (
-    120 * Math.min(7, args.overdueDays) +
+    120 * Math.min(7, args.dueDays) +
     80 * Math.min(5, args.wrongCount) +
     60 * (args.blocksCount > 0 ? 1 : 0) +
     40 * (args.inProgress ? 1 : 0) +
@@ -104,7 +110,8 @@ export function collectCandidates(
       round: st.reviewRound,
       minutes: Math.round(topic.estimatedMinutes * 0.5), // 복습은 신규의 절반
       priority: priorityOf({
-        overdueDays: daysOverdue(st.nextReviewAt, now),
+        // 오늘이 기한이면 1. 하루 밀렸으면 2. isDue 를 통과했으므로 최소 1이다.
+        dueDays: daysOverdue(st.nextReviewAt, now) + 1,
         wrongCount: st.wrongCount,
         blocksCount: 0,
         inProgress: false,
@@ -132,7 +139,7 @@ export function collectCandidates(
         round: null,
         minutes: worst.node.estimatedMinutes,
         priority: priorityOf({
-          overdueDays: 0,
+          dueDays: 0,
           wrongCount: stateOf(input, worst.id).wrongCount,
           blocksCount: 1,
           inProgress: true,
@@ -154,7 +161,7 @@ export function collectCandidates(
         round: null,
         minutes: fallback.estimatedMinutes,
         priority: priorityOf({
-          overdueDays: 0, wrongCount: 0, blocksCount: 1, inProgress: true,
+          dueDays: 0, wrongCount: 0, blocksCount: 1, inProgress: true,
           subjectIdleDays: idle(fallback.subject), difficulty: fallback.difficulty,
         }),
         reason: `${topic.title} 의 기초를 보충`,
@@ -175,7 +182,7 @@ export function collectCandidates(
       round: null,
       minutes: topic.estimatedMinutes,
       priority: priorityOf({
-        overdueDays: 0,
+        dueDays: 0,
         wrongCount: st.wrongCount,
         blocksCount: blocked.length,
         inProgress: true,
@@ -202,7 +209,7 @@ export function collectCandidates(
       round: null,
       minutes: topic.estimatedMinutes,
       priority: priorityOf({
-        overdueDays: 0,
+        dueDays: 0,
         wrongCount: st.wrongCount,
         blocksCount: 0,
         inProgress: st.status === 'learning',

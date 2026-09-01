@@ -19,6 +19,8 @@ export interface ProgressState {
   reviewRound: number
   /** KST 날짜. null 이면 학습한 적 없음 */
   lastStudiedAt: string | null
+  /** 반복해서 틀린 개념. 계획 엔진은 안 쓰고 GPT 컨텍스트가 쓴다 */
+  weakConcepts: string[]
 }
 
 export type PlanItemKind = 'new' | 'review' | 'remediation'

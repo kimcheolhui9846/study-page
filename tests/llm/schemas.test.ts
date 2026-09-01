@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
-  CONTENT_JSON_SCHEMA, GRADE_JSON_SCHEMA,
-  ContentSchema, GradeSchema,
+  CONTENT_JSON_SCHEMA, REVIEW_JSON_SCHEMA, GRADE_JSON_SCHEMA,
+  ContentSchema, ReviewSchema, GradeSchema,
+  materialOfContent, materialOfReview,
 } from '../../lib/llm/schemas'
 
 /**
@@ -42,14 +43,35 @@ describe('CONTENT_JSON_SCHEMA', () => {
   })
 })
 
+describe('REVIEW_JSON_SCHEMA', () => {
+  it('★ strict 모드 요구사항을 만족한다', () => {
+    assertStrictShape(REVIEW_JSON_SCHEMA)
+  })
+
+  it('복습 문제는 2개다 — 신규보다 짧다', () => {
+    const q = REVIEW_JSON_SCHEMA.properties.questions
+    expect(q.minItems).toBe(2)
+    expect(q.maxItems).toBe(2)
+  })
+
+  it('★ 지문을 다시 만들지 않는다 — passage 필드가 없다', () => {
+    expect(Object.keys(REVIEW_JSON_SCHEMA.properties)).not.toContain('passage')
+  })
+})
+
 describe('GRADE_JSON_SCHEMA', () => {
   it('★ strict 모드 요구사항을 만족한다', () => {
     assertStrictShape(GRADE_JSON_SCHEMA)
   })
 
-  it('verdict 는 pass 또는 revise 다', () => {
-    expect(GRADE_JSON_SCHEMA.properties.overall.properties.verdict.enum)
-      .toEqual(['pass', 'revise'])
+  it('★ 모델에게 점수를 묻지 않는다 — 숫자는 우리가 만든다', () => {
+    expect(JSON.stringify(GRADE_JSON_SCHEMA)).not.toContain('\"score\"')
+  })
+
+  it('★ Topic 단위로 응답한다 — 계획 하나를 한 번에 채점하므로', () => {
+    expect(Object.keys(GRADE_JSON_SCHEMA.properties)).toEqual(['topics'])
+    expect(Object.keys(GRADE_JSON_SCHEMA.properties.topics.items.properties))
+      .toContain('topic_id')
   })
 })
 
@@ -103,39 +125,109 @@ describe('ContentSchema', () => {
   })
 })
 
-const validGrade = {
-  per_question: [1, 2, 3].map((i) => ({
+const validReview = {
+  recap_md: '되짚기 본문',
+  questions: [1, 2].map((i) => ({
     id: `q${i}`,
-    score: 67,
+    type: 'concept',
+    prompt: '설명하라',
+    expected_points: ['포인트 하나'],
+    hint: '',
+  })),
+}
+
+describe('ReviewSchema', () => {
+  it('정상 응답을 통과시킨다', () => {
+    expect(ReviewSchema.safeParse(validReview).success).toBe(true)
+  })
+
+  it('문제가 2개가 아니면 거른다', () => {
+    const bad = { ...validReview, questions: validReview.questions.slice(0, 1) }
+    expect(ReviewSchema.safeParse(bad).success).toBe(false)
+  })
+
+  it('★ expected_points 가 비면 거른다 — 복습도 채점 근거가 필요하다', () => {
+    const bad = {
+      ...validReview,
+      questions: validReview.questions.map((q) => ({ ...q, expected_points: [] })),
+    }
+    expect(ReviewSchema.safeParse(bad).success).toBe(false)
+  })
+})
+
+describe('StudyMaterial', () => {
+  it('신규 콘텐츠를 공통 모양으로 좁힌다', () => {
+    const m = materialOfContent(ContentSchema.parse(validContent))
+    expect(m.title).toBe('HTTP 캐시')
+    expect(m.questions).toHaveLength(3)
+    expect(m.keyTerms).toHaveLength(1)
+  })
+
+  it('복습을 공통 모양으로 좁힌다 — 제목은 Topic 에서 온다', () => {
+    const m = materialOfReview(ReviewSchema.parse(validReview), '배열')
+    expect(m.title).toBe('배열')
+    expect(m.bodyMd).toBe('되짚기 본문')
+    expect(m.questions).toHaveLength(2)
+    expect(m.keyTerms).toEqual([])
+  })
+})
+
+const gradedTopic = {
+  topic_id: 'cs.ds.array',
+  questions: [1, 2, 3].map((i) => ({
+    id: `q${i}`,
     correct_points: ['맞은 것'],
     missed_points: ['놓친 것'],
     misconceptions: [],
     feedback_ko: '두 문장이다. 이유도 적었다.',
   })),
-  overall: { score: 67, goal_reached: false, verdict: 'revise' },
   summary_seed: ['항목 1', '항목 2', '항목 3'],
+  missing_prerequisites: [],
+  weak_concepts: ['인덱스는 0부터'],
 }
+
+const validGrade = { topics: [gradedTopic] }
 
 describe('GradeSchema', () => {
   it('정상 응답을 통과시킨다', () => {
     expect(GradeSchema.safeParse(validGrade).success).toBe(true)
   })
 
-  it('점수가 0~100 밖이면 거른다', () => {
-    const bad = { ...validGrade, overall: { ...validGrade.overall, score: 120 } }
+  it('★ snake_case 를 camelCase 로 옮긴다', () => {
+    const g = GradeSchema.parse(validGrade)
+    expect(g.topics[0]!.topicId).toBe('cs.ds.array')
+    expect(g.topics[0]!.weakConcepts).toEqual(['인덱스는 0부터'])
+    expect(g.topics[0]!.missingPrerequisites).toEqual([])
+  })
+
+  it('★ 여러 Topic 을 한 응답에 담는다 — 계획 단위 채점', () => {
+    const two = { topics: [gradedTopic, { ...gradedTopic, topic_id: 'english.grammar.tense' }] }
+    const g = GradeSchema.parse(two)
+    expect(g.topics.map((t) => t.topicId))
+      .toEqual(['cs.ds.array', 'english.grammar.tense'])
+  })
+
+  it('★ summary_seed 가 비면 거른다 — 정리본 화면이 이걸 쓴다', () => {
+    const bad = { topics: [{ ...gradedTopic, summary_seed: [] }] }
     expect(GradeSchema.safeParse(bad).success).toBe(false)
   })
 
-  it('★ summary_seed 가 비면 거른다 — 3주차 정리본 화면이 이걸 쓴다', () => {
-    expect(GradeSchema.safeParse({ ...validGrade, summary_seed: [] }).success).toBe(false)
+  it('Topic 이 하나도 없으면 거른다', () => {
+    expect(GradeSchema.safeParse({ topics: [] }).success).toBe(false)
   })
 
   it('놓친 포인트가 없는 만점 답안도 통과시킨다', () => {
     const perfect = {
-      ...validGrade,
-      per_question: validGrade.per_question.map((q) => ({ ...q, score: 100, missed_points: [] })),
-      overall: { score: 100, goal_reached: true, verdict: 'pass' },
+      topics: [{
+        ...gradedTopic,
+        questions: gradedTopic.questions.map((q) => ({ ...q, missed_points: [] })),
+      }],
     }
     expect(GradeSchema.safeParse(perfect).success).toBe(true)
+  })
+
+  it('weak_concepts 가 비어 있어도 통과시킨다 — 힌트일 뿐이다', () => {
+    const none = { topics: [{ ...gradedTopic, weak_concepts: [] }] }
+    expect(GradeSchema.safeParse(none).success).toBe(true)
   })
 })

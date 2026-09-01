@@ -11,13 +11,13 @@
  */
 export type Answers = Record<string, string>
 
-export function draftKey(subject: string, dayNo: number): string {
-  return `study-page:draft:${subject}:${dayNo}`
+export function draftKey(topicId: string): string {
+  return `study-page:draft:${topicId}`
 }
 
-export function loadDraft(subject: string, dayNo: number): Answers {
+export function loadDraft(topicId: string): Answers {
   try {
-    const raw = localStorage.getItem(draftKey(subject, dayNo))
+    const raw = localStorage.getItem(draftKey(topicId))
     if (!raw) return {}
 
     const parsed: unknown = JSON.parse(raw)
@@ -29,17 +29,17 @@ export function loadDraft(subject: string, dayNo: number): Answers {
   }
 }
 
-export function saveDraft(subject: string, dayNo: number, answers: Answers): void {
+export function saveDraft(topicId: string, answers: Answers): void {
   try {
-    localStorage.setItem(draftKey(subject, dayNo), JSON.stringify(answers))
+    localStorage.setItem(draftKey(topicId), JSON.stringify(answers))
   } catch {
     // 저장 못 해도 화면은 계속 돈다
   }
 }
 
-export function clearDraft(subject: string, dayNo: number): void {
+export function clearDraft(topicId: string): void {
   try {
-    localStorage.removeItem(draftKey(subject, dayNo))
+    localStorage.removeItem(draftKey(topicId))
   } catch {
     // 무시
   }

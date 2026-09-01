@@ -43,6 +43,8 @@ export async function loadProgressMap(db: Db): Promise<Map<string, ProgressState
       reviewRound: r.reviewRound,
       // timestamp 를 KST 날짜 문자열로 좁힌다. 계획 엔진은 날짜만 본다.
       lastStudiedAt: r.lastStudiedAt ? kstToday(r.lastStudiedAt) : null,
+      // jsonb 는 타입이 unknown 으로 온다. 모양이 깨졌으면 빈 배열로 떨어뜨린다.
+      weakConcepts: Array.isArray(r.weakConcepts) ? (r.weakConcepts as string[]) : [],
     })
   }
   return m
@@ -72,6 +74,10 @@ export interface StoredPlan {
     priority: number
     status: string
     score: number | null
+    /** 학습자가 쓴 답. 아직 안 썼으면 null */
+    answers: Record<string, string> | null
+    /** 채점 결과. 아직 안 받았으면 null */
+    feedback: unknown | null
   }>
 }
 
@@ -98,6 +104,8 @@ export async function readPlan(db: Db, studyDate: string): Promise<StoredPlan | 
         priority: i.priority,
         status: i.status,
         score: i.score,
+        answers: (i.answers as Record<string, string> | null) ?? null,
+        feedback: i.feedback ?? null,
       }))
       .sort((a, b) => b.priority - a.priority || a.topicId.localeCompare(b.topicId)),
   }
@@ -153,6 +161,41 @@ export async function ensureTodayPlan(
   }
 
   return (await readPlan(db, studyDate))!
+}
+
+/**
+ * 자료가 만들어졌음을 표시한다. 이미 답을 쓴 항목은 건드리지 않는다.
+ *
+ * `status` 를 되돌리지 않는 이유: 채점까지 끝난 항목의 자료를 다시 열었을 때
+ * 'done' 이 'studying' 으로 내려가면 그날의 진도가 사라진 것처럼 보인다.
+ */
+export async function markStudying(db: Db, planId: number, topicId: string): Promise<void> {
+  await db.update(planItems)
+    .set({ status: 'studying' })
+    .where(and(
+      eq(planItems.planId, planId),
+      eq(planItems.topicId, topicId),
+      eq(planItems.status, 'pending'),
+    ))
+}
+
+/**
+ * 답안을 저장한다. **LLM 을 부르지 않는다.**
+ *
+ * 채점은 계획 전체를 모아 한 번에 부르므로, 답을 쓰는 것과 채점받는 것이
+ * 분리되어 있다. 여기서 저장된 답이 나중에 한 번의 호출로 전부 채점된다.
+ */
+export async function saveAnswers(
+  db: Db, planId: number, topicId: string, answers: Record<string, string>,
+): Promise<void> {
+  await db.update(planItems)
+    .set({ answers, status: 'studying' })
+    .where(and(
+      eq(planItems.planId, planId),
+      eq(planItems.topicId, topicId),
+      // 채점이 끝난 항목의 답을 덮어쓰지 않는다
+      eq(planItems.status, 'studying'),
+    ))
 }
 
 /** 계획 항목 하나에 결과를 기록한다. 숙련도 갱신은 호출자가 한다. */

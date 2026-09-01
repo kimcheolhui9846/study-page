@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { topicProgress } from '../db/schema'
 import type { Db } from '../db/types'
-import { kstToday, type Clock } from '../time'
+import type { Clock } from '../time'
 import { loadGraph } from '../curriculum/load'
 import { masteryScore } from './score'
 import { outcomeFor } from './transition'
@@ -103,11 +103,11 @@ export async function applyResult(
 }
 
 /**
- * 점수만 손으로 넣는 경로 (2단계).
+ * 점수만 손으로 넣는 경로.
  *
- * 3단계에서 GPT 채점이 붙으면 correct/missed 포인트가 실제 근거로 채워진다.
- * 그때까지는 0~100 을 받아 포인트 비율로 되돌린다 — 같은 함수를 타므로
- * 상태 전이와 복습 예약이 실제 경로와 완전히 같다.
+ * 3단계에서 실제 채점이 붙은 뒤로 화면에서는 쓰지 않는다. 테스트가
+ * 숙련도·복습 예약 기계를 LLM 없이 굴리는 데 쓴다 — applyResult 를 그대로
+ * 타므로 상태 전이와 복습 예약이 실제 경로와 완전히 같다.
  */
 export async function applyManualScore(
   db: Db, clock: Clock, topicId: string, score: number,

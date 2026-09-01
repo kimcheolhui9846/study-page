@@ -11,30 +11,41 @@ export interface Question {
 }
 
 export interface AnswerFormProps {
-  subject: string
-  dayNo: number
+  topicId: string
   questions: Question[]
-  attemptsLeft: number
+  /** 이미 저장된 답. 다시 열었을 때 그대로 보여야 한다 */
+  saved: Answers | null
 }
 
 const TYPE_LABEL: Record<string, string> = {
   recall: '기억', concept: '개념', application: '적용',
 }
 
-export function AnswerForm({ subject, dayNo, questions, attemptsLeft }: AnswerFormProps) {
+/**
+ * 답안을 저장한다. **채점하지 않는다.**
+ *
+ * 채점은 하루의 모든 항목을 모아 한 번에 부르므로(호출 1회), 여기서
+ * 저장만 하고 「오늘의 학습」으로 돌아간다. 이 버튼은 돈을 쓰지 않는다.
+ */
+export function AnswerForm({ topicId, questions, saved }: AnswerFormProps) {
   const router = useRouter()
-  const [answers, setAnswers] = useState<Answers>({})
+  const [answers, setAnswers] = useState<Answers>(saved ?? {})
   const [hints, setHints] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // 초안은 마운트 후에 읽는다. 서버 렌더에는 localStorage 가 없다.
-  useEffect(() => { setAnswers(loadDraft(subject, dayNo)) }, [subject, dayNo])
+  // 서버에 저장된 답이 있으면 그쪽이 원본이므로 초안을 덮어쓰지 않는다.
+  useEffect(() => {
+    if (saved) return
+    const draft = loadDraft(topicId)
+    if (Object.keys(draft).length > 0) setAnswers(draft)
+  }, [topicId, saved])
 
   function update(id: string, value: string) {
     const next = { ...answers, [id]: value }
     setAnswers(next)
-    saveDraft(subject, dayNo, next)
+    saveDraft(topicId, next)
   }
 
   const allAnswered = questions.every((q) => (answers[q.id] ?? '').trim().length > 0)
@@ -43,24 +54,25 @@ export function AnswerForm({ subject, dayNo, questions, attemptsLeft }: AnswerFo
     setBusy(true)
     setError(null)
 
-    const res = await fetch(`/api/study/${subject}/grade`, {
+    const res = await fetch('/api/topic/answers', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ dayNo, answers }),
+      body: JSON.stringify({ topicId, answers }),
     })
 
     if (res.ok) {
-      // 채점까지 갔으면 초안의 역할이 끝났다. attempts 행이 원본이다.
-      clearDraft(subject, dayNo)
+      // 서버에 남았으면 초안의 역할이 끝났다. plan_items.answers 가 원본이다.
+      clearDraft(topicId)
+      router.push('/today')
       router.refresh()
       return
     }
 
     const body = await res.json().catch(() => ({}))
     setError(
-      body.error === 'CAP_EXCEEDED' ? '오늘 쓸 수 있는 AI 호출을 다 썼다. 자정에 초기화된다.'
-      : body.error === 'ATTEMPT_CAP' ? '채점은 하루 2회까지다.'
-      : '채점에 실패했다. 답은 그대로 남아 있으니 잠시 뒤 다시 시도해라.',
+      body.error === 'NOT_STUDYING'
+        ? '이 주제는 지금 답을 받을 상태가 아니다. 「오늘의 학습」에서 다시 확인해라.'
+        : '저장하지 못했다. 답은 브라우저에 남아 있으니 잠시 뒤 다시 시도해라.',
     )
     setBusy(false)
   }
@@ -69,7 +81,7 @@ export function AnswerForm({ subject, dayNo, questions, attemptsLeft }: AnswerFo
     <div className="mt-16 flex flex-col">
       <h2 className="text-center font-serif text-[28px] tracking-[-0.02em] text-ink">문제</h2>
       <p className="mt-3 text-center font-mono text-[10.5px] tracking-[0.22em] text-faint">
-        서술형 3문항
+        서술형 {questions.length}문항
       </p>
 
       <div className="mt-10 flex flex-col gap-10">
@@ -125,15 +137,14 @@ export function AnswerForm({ subject, dayNo, questions, attemptsLeft }: AnswerFo
       <div className="mt-6 flex flex-col items-center gap-4">
         <button
           onClick={submit}
-          disabled={busy || !allAnswered || attemptsLeft === 0}
+          disabled={busy || !allAnswered}
           className="h-12 w-full max-w-[280px] cursor-pointer rounded-control bg-ink text-[14px] font-medium tracking-[0.04em] text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-25"
         >
-          {busy ? '채점 중…' : '제출하고 채점받기'}
+          {busy ? '저장 중…' : saved ? '답 고치기' : '답 저장하기'}
         </button>
-        <span className="text-[12px] text-faint">
-          채점은 하루 2회까지. 남은 횟수{' '}
-          <span className="font-mono text-muted">{attemptsLeft}</span>
-        </span>
+        <p className="max-w-[380px] text-balance text-center text-[12px] leading-[1.8] text-faint">
+          저장은 AI 를 부르지 않는다. 채점은 오늘 것을 다 쓴 뒤 한 번에 받는다.
+        </p>
       </div>
     </div>
   )
@@ -141,7 +152,9 @@ export function AnswerForm({ subject, dayNo, questions, attemptsLeft }: AnswerFo
   /** 힌트는 DB 에 이미 있다. LLM 을 부르지 않으므로 비용이 0원이다. */
   async function showHint(id: string) {
     if (hints[id]) return
-    const res = await fetch(`/api/study/${subject}/hint?dayNo=${dayNo}&questionId=${id}`)
+    const res = await fetch(
+      `/api/topic/hint?topicId=${encodeURIComponent(topicId)}&questionId=${encodeURIComponent(id)}`,
+    )
     if (!res.ok) return
     const body = await res.json()
     setHints((h) => ({ ...h, [id]: body.hint }))

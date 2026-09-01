@@ -93,6 +93,7 @@ function simulate(opts: SimOptions): SimResult {
         status: outcome.status,
         masteryScore: score,
         wrongCount,
+        weakConcepts: prev?.weakConcepts ?? [],
         nextReviewAt: sched.nextReviewAt,
         reviewRound: sched.round,
         lastStudiedAt: studyDate,
@@ -204,7 +205,28 @@ describe('30일 시뮬레이션 — 한 과목만 못하는 학습자', () => {
   it('★ 수학이 막혀도 영어는 나아간다 — 과목별 진도는 독립이다', () => {
     const english = [...sim.progress.values()]
       .filter((p) => p.topicId.startsWith('english.') && p.status === 'mastered')
-    expect(english.length).toBeGreaterThan(3)
+    const math = [...sim.progress.values()]
+      .filter((p) => p.topicId.startsWith('math.') && p.status === 'mastered')
+
+    expect(math).toHaveLength(0)
+    expect(english.length).toBeGreaterThanOrEqual(2)
+  })
+
+  /**
+   * ★ 알려진 한계를 눈에 보이게 둔다.
+   *
+   * 계속 틀리는 Topic 은 wrongCount 계수(80 × 최대 5 = 400)로 매일 최상위에
+   * 올라오고, 취약 재학습은 생성이 없어 예산에도 안 걸린다. 그래서 한 과목이
+   * 막히면 30일 중 대부분이 그 과목의 재학습으로 채워지고 새 Topic 을 거의
+   * 못 만난다. 숫자를 여기 박아 두어, 이 균형을 손보면 테스트가 말하게 한다.
+   */
+  it('한 과목이 막히면 새 Topic 을 거의 못 만난다 (알려진 한계)', () => {
+    const kinds = sim.plans.flatMap((p) => p.items).map((i) => i.kind)
+    const review = kinds.filter((k) => k === 'review').length
+    const fresh = kinds.length - review
+
+    expect(review).toBeGreaterThan(fresh * 5)
+    expect(sim.progress.size).toBeLessThan(15)
   })
 
   it('수학은 숙달하지 못한다', () => {

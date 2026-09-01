@@ -82,8 +82,15 @@ export default async function Dashboard() {
           </h1>
 
           <p className="mx-auto mt-5 max-w-[440px] text-balance text-[14px] leading-[1.8] text-muted">
-            학습 계획은 2단계에서 붙는다. 지금은 커리큘럼이 무엇을 담고 있는지 보여준다.
+            어제 무엇을 틀렸는지가 오늘 무엇을 배울지를 바꾼다.
           </p>
+
+          <Link
+            href="/today"
+            className="mx-auto mt-9 flex h-12 w-full max-w-[260px] items-center justify-center rounded-control bg-ink text-[14px] font-medium tracking-[0.04em] text-paper transition-opacity hover:opacity-90"
+          >
+            오늘의 학습
+          </Link>
         </div>
 
         <ul className="mt-16 grid grid-cols-3 gap-6">

@@ -29,7 +29,6 @@ export const TopicSchema = z.object({
   title: z.string().min(1),
   /** 채점 기준의 앵커. LLM 이 매번 기준을 새로 지어내지 않도록 파일에 고정한다. */
   goal: z.string().min(1),
-  summary: z.string().default(''),
   kind: z.enum(TOPIC_KINDS).default('concept'),
   difficulty: z.number().int().min(1).max(5),
   estimatedMinutes: z.number().int().min(5).max(120),

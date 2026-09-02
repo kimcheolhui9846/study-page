@@ -1,4 +1,5 @@
 import type { CurriculumGraph, TopicNode } from '../curriculum/graph'
+import type { TopicKind } from '../curriculum/schema'
 import type { PlanItemKind, ProgressState } from '../plan/types'
 
 /**
@@ -17,7 +18,17 @@ export interface TopicContext {
   keywords: string[]
   difficulty: number
   minutes: number
-  kind: PlanItemKind
+  /**
+   * ★ Topic 의 성격. 커리큘럼 파일의 `kind` 다.
+   *
+   * 어휘 Topic 을 개념 Topic 처럼 가르치면 「일반 학술 어휘」에 대한
+   * 700자짜리 한국어 설명문이 나온다. 단어 공부가 아니다.
+   */
+  kind: TopicKind
+  /** 오늘 이걸 왜 하는가 — 신규 · 복습 · 보충. Topic 의 성격과 다른 축이다 */
+  mode: PlanItemKind
+  /** 커리큘럼이 지정한 문제 유형. 없으면 성격의 기본 유형을 쓴다 */
+  questionTypes: string[]
   reviewRound: number | null
 
   /** 이미 넘긴 선수. 다시 설명하느라 분량을 낭비하지 않게 한다 */
@@ -75,7 +86,8 @@ export function buildTopicContext(
   graph: CurriculumGraph,
   topic: TopicNode,
   args: {
-    kind: PlanItemKind
+    /** 오늘 이걸 왜 하는가. Topic 의 성격(`topic.kind`)과 다른 축이다 */
+    mode: PlanItemKind
     reviewRound: number | null
     minutes: number
     progress: Map<string, ProgressState>
@@ -114,13 +126,55 @@ export function buildTopicContext(
     keywords: topic.keywords,
     difficulty: topic.difficulty,
     minutes: args.minutes,
-    kind: args.kind,
+    kind: topic.kind,
+    mode: args.mode,
+    questionTypes: topic.questionTypes,
     reviewRound: args.reviewRound,
     alreadyLearned,
     weakConcepts: args.progress.get(topic.id)?.weakConcepts ?? [],
     forbidden,
     connections,
   }
+}
+
+/**
+ * Topic 의 성격을 사람 말로. 모델은 `vocabulary` 라는 낱말이 아니라
+ * 무엇을 만들어야 하는지를 알아야 한다.
+ */
+const KIND_LABEL: Record<TopicKind, string> = {
+  concept: '개념 학습',
+  vocabulary: '어휘 학습',
+  reading: '독해',
+  practice: '문제 풀이',
+}
+
+/**
+ * 문제 유형 슬러그를 지시문으로 옮긴다.
+ *
+ * 커리큘럼은 `vocab-paper` 같은 슬러그로 적는다 — 사람이 쓰고 읽기 위한
+ * 것이다. 모델에게 슬러그를 그대로 주면 아무 뜻도 없다.
+ *
+ * ★ 모르는 슬러그를 조용히 버린다. 그래서 테스트가 커리큘럼에 실제로 쓰인
+ * 값을 전부 훑어 여기 있는지 확인한다 — 오타가 나면 그 Topic 만 조용히
+ * 유형 지시를 잃는데, 그건 눈에 안 띈다.
+ */
+const QUESTION_TYPE: Record<string, string> = {
+  'vocab-context': '단어가 문맥에서 어떤 뜻으로 쓰였는지 묻는다',
+  'vocab-paper': '논문에 나올 법한 문장을 주고 그 안에서의 쓰임을 묻는다',
+  comprehension: '지문의 내용을 제대로 읽었는지 묻는다',
+  'structure-analysis': '문장의 구조를 나누어 분석하게 한다',
+  summary: '읽은 것을 자기 말로 요약하게 한다',
+  'situation-response': '상황을 주고 영어로 답하게 한다',
+  write: '영어로 직접 쓰게 한다',
+  rewrite: '주어진 문장을 고쳐 쓰게 한다',
+  notation: '기호와 표기를 정확히 쓰게 한다',
+  explain: '왜 그런지 설명하게 한다',
+  concept: '개념의 정의와 경계를 묻는다',
+}
+
+/** 커리큘럼이 쓰는 문제 유형 슬러그. 테스트가 이걸로 커리큘럼을 검사한다. */
+export function knownQuestionTypes(): Set<string> {
+  return new Set(Object.keys(QUESTION_TYPE))
 }
 
 /** 컨텍스트를 사용자 메시지로 편다. 빈 항목은 줄을 만들지 않는다. */
@@ -130,15 +184,21 @@ export function contextToMessage(ctx: TopicContext): string {
     `영역: ${ctx.domainLabel}`,
     `주제: ${ctx.title}`,
     `학습 목표: ${ctx.goal}`,
+    `성격: ${KIND_LABEL[ctx.kind]}`,
     `다뤄야 할 키워드: ${ctx.keywords.join(', ')}`,
     `난이도: ${ctx.difficulty} / 5`,
     `분량: ${ctx.minutes}분`,
   ]
 
-  if (ctx.kind === 'review' && ctx.reviewRound !== null) {
+  const types = ctx.questionTypes.map((t) => QUESTION_TYPE[t]).filter((t) => t !== undefined)
+  if (types.length > 0) {
+    lines.push(`문제는 이렇게 낸다: ${types.join(' / ')}`)
+  }
+
+  if (ctx.mode === 'review' && ctx.reviewRound !== null) {
     lines.push(`이번은 복습 ${ctx.reviewRound}회차다. 처음부터 다시 설명하지 말고 핵심만 되짚어라.`)
   }
-  if (ctx.kind === 'remediation') {
+  if (ctx.mode === 'remediation') {
     lines.push('이번은 보충이다. 이 개념이 선수로 막고 있어 앞으로 못 나가는 상태다.')
   }
   if (ctx.alreadyLearned.length > 0) {

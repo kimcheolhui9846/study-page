@@ -7,7 +7,7 @@ import type { ProgressState } from '../plan/types'
 import { recordUsage, reserve, rollback } from '../budget/reserve'
 import { MODEL } from './pricing'
 import { buildTopicContext } from './context'
-import { CONTENT_SYSTEM, REVIEW_SYSTEM, contentUserMessage } from './prompts'
+import { contentSystem, REVIEW_SYSTEM, contentUserMessage } from './prompts'
 import {
   CONTENT_JSON_SCHEMA, REVIEW_JSON_SCHEMA,
   ContentSchema, ReviewSchema,
@@ -121,7 +121,7 @@ export async function ensureMaterial(
 
   const review = isReviewRound(req)
   const ctx = buildTopicContext(deps.graph, topic, {
-    kind: req.kind, reviewRound: req.round, minutes: req.minutes, progress,
+    mode: req.kind, reviewRound: req.round, minutes: req.minutes, progress,
   })
 
   // ③ 예산. 못 잡으면 호출하지 않는다.
@@ -136,7 +136,7 @@ export async function ensureMaterial(
   try {
     result = await deps.llm.generate<unknown>({
       route,
-      system: review ? REVIEW_SYSTEM : CONTENT_SYSTEM,
+      system: review ? REVIEW_SYSTEM : contentSystem(topic.kind),
       user: contentUserMessage(ctx),
       schemaName: review ? 'review_content' : 'study_content',
       jsonSchema: review ? REVIEW_JSON_SCHEMA : CONTENT_JSON_SCHEMA,

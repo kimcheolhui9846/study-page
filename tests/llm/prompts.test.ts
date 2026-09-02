@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import {
-  CONTENT_SYSTEM, REVIEW_SYSTEM, GRADE_SYSTEM,
+  contentSystem, REVIEW_SYSTEM, GRADE_SYSTEM,
   contentUserMessage, gradeUserMessage, type GradeTarget,
 } from '../../lib/llm/prompts'
-import { buildTopicContext } from '../../lib/llm/context'
+import { buildTopicContext, knownQuestionTypes } from '../../lib/llm/context'
+import { TOPIC_KINDS } from '../../lib/curriculum/schema'
 import { loadGraph } from '../../lib/curriculum/load'
 import type { StudyMaterial } from '../../lib/llm/schemas'
 
@@ -11,8 +12,13 @@ const graph = loadGraph()
 const topic = graph.topics.get('cs.os.process-thread')!
 
 const ctx = buildTopicContext(graph, topic, {
-  kind: 'new', reviewRound: null, minutes: 30, progress: new Map(),
+  mode: 'new', reviewRound: null, minutes: 30, progress: new Map(),
 })
+
+const CONTENT_SYSTEM = contentSystem('concept')
+
+/** 공통 규칙만 해도 이 길이는 넘는다. 레시피가 빈 문자열이면 여기서 걸린다. */
+const CONTENT_BASE_MIN = 600
 
 /**
  * ★ 실호출 표본 3개가 전부 존댓말로 나왔다. 앱의 다른 모든 문장은 평서체라서
@@ -220,5 +226,84 @@ describe('gradeUserMessage', () => {
   it('★ topic_id 를 그대로 쓰라고 지시한다 — 응답을 항목에 다시 붙여야 한다', () => {
     expect(gradeUserMessage([target({ q1: 'x' })]))
       .toContain('그대로 써라')
+  })
+})
+
+/**
+ * ★ 커리큘럼은 `kind: vocabulary` · `kind: reading` 을 진작 달아뒀는데
+ * 코드가 그 필드를 읽지 않아 65개 Topic 전부가 개념 레시피로 나갔다.
+ *
+ * 여기서 지키는 것은 "성격마다 다른 것을 시키는가"다.
+ */
+describe('Topic 성격별 레시피', () => {
+  it('★ 모든 성격에 레시피가 있다 — 없으면 조용히 엉뚱한 자료가 나온다', () => {
+    for (const kind of TOPIC_KINDS) {
+      const prompt = contentSystem(kind)
+      expect(prompt.length, kind).toBeGreaterThan(CONTENT_BASE_MIN)
+      expect(prompt, kind).toContain('문체는 평서체다') // 공통 규칙은 전부 갖는다
+    }
+  })
+
+  it('★ 성격마다 실제로 다른 것을 시킨다', () => {
+    const recipes = TOPIC_KINDS.map((k) => contentSystem(k))
+    expect(new Set(recipes).size).toBe(TOPIC_KINDS.length)
+  })
+
+  it('★ 어휘는 개념 레시피를 받지 않는다', () => {
+    const vocab = contentSystem('vocabulary')
+    // 개념 레시피의 문제 구성이 어휘로 새면 안 된다
+    expect(vocab).not.toContain('recall 1개, concept 1개, application 1개')
+    expect(vocab).not.toContain('정의 → 왜 그런가 → 구체 예시')
+    expect(vocab).toContain('단어에 대한 설명문을 쓰지 마라')
+  })
+
+  it('★ 어휘와 독해는 영어 지문을 요구한다 — 한국어 설명문이 아니다', () => {
+    expect(contentSystem('vocabulary')).toContain('지문은 **영어**로 쓴다')
+    expect(contentSystem('reading')).toContain('지문은 **영어**로 쓴다')
+  })
+
+  it('독해는 번역을 금지한다 — 번역이 있으면 아무도 영어를 읽지 않는다', () => {
+    expect(contentSystem('reading')).toContain('한국어 번역을 붙이지 마라')
+  })
+
+  it('개념 레시피는 그대로다', () => {
+    expect(contentSystem('concept')).toContain('정확히 3개')
+    expect(contentSystem('concept')).toContain('recall')
+    expect(contentSystem('concept')).toContain('application')
+  })
+})
+
+describe('실제 커리큘럼과의 정합', () => {
+  it('★ 커리큘럼이 쓰는 문제 유형이 전부 사전에 있다', () => {
+    /*
+     * 사전에 없는 슬러그는 조용히 버려진다 — 그 Topic 만 유형 지시를 잃는데
+     * 아무 신호도 안 난다. 오타든 새 유형이든 여기서 걸린다.
+     */
+    const known = knownQuestionTypes()
+    const unknown = new Set<string>()
+
+    for (const t of graph.topics.values()) {
+      for (const q of t.questionTypes) if (!known.has(q)) unknown.add(q)
+    }
+
+    expect([...unknown]).toEqual([])
+  })
+
+  it('★ 어휘·독해 Topic 이 실제로 다른 프롬프트를 받는다', () => {
+    const byKind = new Map<string, string[]>()
+    for (const t of graph.topics.values()) {
+      byKind.set(t.kind, [...(byKind.get(t.kind) ?? []), t.id])
+    }
+
+    // 커리큘럼에 어휘와 독해가 실제로 있다 (없으면 이 테스트가 무의미하다)
+    expect(byKind.get('vocabulary')?.length).toBeGreaterThan(0)
+    expect(byKind.get('reading')?.length).toBeGreaterThan(0)
+
+    for (const [kind, ids] of byKind) {
+      for (const id of ids) {
+        const t = graph.topics.get(id)!
+        expect(contentSystem(t.kind), id).toBe(contentSystem(kind as typeof t.kind))
+      }
+    }
   })
 })

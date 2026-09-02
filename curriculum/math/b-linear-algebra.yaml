@@ -9,7 +9,6 @@ modules:
     topics:
       - id: math.la.scalar-vector-matrix
         title: 스칼라·벡터·행렬
-        summary: 셋이 각각 무엇을 담는 그릇인지 구분한다
         goal: 스칼라·벡터·행렬을 차원으로 구분하고 표기를 읽는다
         difficulty: 1
         estimatedMinutes: 20

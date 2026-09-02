@@ -19,10 +19,10 @@ function progress(entries: Array<{ id: string; score: number; weak?: string[] }>
 function ctxFor(
   topicId: string,
   p: Map<string, ProgressState> = new Map(),
-  over: Partial<{ kind: PlanItemKind; reviewRound: number | null; minutes: number }> = {},
+  over: Partial<{ mode: PlanItemKind; reviewRound: number | null; minutes: number }> = {},
 ) {
   return buildTopicContext(graph, graph.topics.get(topicId)!, {
-    kind: 'new', reviewRound: null, minutes: 25, progress: p, ...over,
+    mode: 'new', reviewRound: null, minutes: 25, progress: p, ...over,
   })
 }
 
@@ -125,13 +125,13 @@ describe('메시지 조립', () => {
   })
 
   it('복습이면 회차를 말하고 처음부터 설명하지 말라고 한다', () => {
-    const msg = contextToMessage(ctxFor('cs.ds.array', new Map(), { kind: 'review', reviewRound: 2 }))
+    const msg = contextToMessage(ctxFor('cs.ds.array', new Map(), { mode: 'review', reviewRound: 2 }))
     expect(msg).toContain('복습 2회차')
     expect(msg).toContain('처음부터 다시 설명하지 말고')
   })
 
   it('보충이면 왜 보충인지 말한다', () => {
-    const msg = contextToMessage(ctxFor('cs.ds.array', new Map(), { kind: 'remediation' }))
+    const msg = contextToMessage(ctxFor('cs.ds.array', new Map(), { mode: 'remediation' }))
     expect(msg).toContain('보충이다')
   })
 
@@ -139,5 +139,41 @@ describe('메시지 조립', () => {
     const msg = contextToMessage(ctxFor('cs.ds.array'))
     expect(msg).not.toContain('회차')
     expect(msg).not.toContain('보충이다')
+  })
+})
+
+describe('Topic 의 성격이 메시지에 실린다', () => {
+  it('★ 성격을 사람 말로 넘긴다 — 모델은 vocabulary 라는 낱말을 모른다', () => {
+    const msg = contextToMessage(ctxFor('english.vocab.academic-basics'))
+    expect(msg).toContain('성격: 어휘 학습')
+    expect(msg).not.toContain('vocabulary')
+  })
+
+  it('개념 Topic 도 성격을 밝힌다', () => {
+    expect(contextToMessage(ctxFor('cs.prog.variables-types'))).toContain('성격: 개념 학습')
+  })
+
+  it('독해 Topic', () => {
+    const reading = [...graph.topics.values()].find((t) => t.kind === 'reading')!
+    expect(contextToMessage(ctxFor(reading.id))).toContain('성격: 독해')
+  })
+
+  it('★ 문제 유형을 슬러그가 아니라 지시문으로 넘긴다', () => {
+    const msg = contextToMessage(ctxFor('english.vocab.academic-basics'))
+    expect(msg).toContain('문제는 이렇게 낸다:')
+    expect(msg).toContain('논문에 나올 법한 문장')
+    expect(msg).not.toContain('vocab-paper')
+  })
+
+  it('문제 유형이 없으면 줄을 만들지 않는다', () => {
+    const bare = [...graph.topics.values()].find((t) => t.questionTypes.length === 0)!
+    expect(contextToMessage(ctxFor(bare.id))).not.toContain('문제는 이렇게 낸다')
+  })
+
+  it('모르는 슬러그는 버린다 — 그 자리에 빈 항목을 남기지 않는다', () => {
+    const ctx = { ...ctxFor('cs.prog.variables-types'), questionTypes: ['없는유형', 'explain'] }
+    const msg = contextToMessage(ctx)
+    expect(msg).toContain('왜 그런지 설명하게 한다')
+    expect(msg).not.toContain('없는유형')
   })
 })

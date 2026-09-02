@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { db } from '@/lib/db/client'
-import { kstTimeLabel, systemClock } from '@/lib/time'
+import { kstTimeLabel, kstToday, systemClock } from '@/lib/time'
 import { PostgresSessionStore } from '@/lib/session/postgres'
 import { loadUsageReport, type UsageReport } from '@/lib/budget/ledger'
 import { formatUsd, type DayCost, type LedgerRow, type RouteCost } from '@/lib/budget/report'
@@ -101,8 +101,10 @@ function CallRow({ r }: { r: LedgerRow }) {
   return (
     <li className="flex items-baseline justify-between gap-3 border-b border-rule-soft pb-2.5 last:border-0">
       <span className="flex min-w-0 items-baseline gap-2.5">
+        {/* 날짜를 같이 준다. 시각만 있으면 22:14 가 어제 것인지 알 수 없다.
+            둘 다 KST 다 — 원장은 UTC 로 저장된다. */}
         <span className="shrink-0 font-mono text-[10.5px] tracking-[0.14em] text-ghost">
-          {kstTimeLabel(r.createdAt)}
+          {kstToday(r.createdAt).slice(5).replace('-', '·')} {kstTimeLabel(r.createdAt)}
         </span>
         <span className={`truncate text-[12.5px] ${r.ok ? 'text-body' : 'text-stop'}`}>
           {ROUTE_LABEL[r.route] ?? r.route}

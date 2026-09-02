@@ -99,8 +99,11 @@ describe('비용 원장', () => {
     const r = await loadUsageReport(db, clock)
 
     expect(r.burn.spentMicros).toBe(999_999)
-    expect(r.burn.capMicros).toBe(3_000_000)
     expect(r.totalCostMicros).toBe(1767) // 원장 합계는 따로 남는다
+
+    // 쓴 금액은 행에서, 캡은 환경에서 온다. 행에 굳은 캡을 읽으면
+    // 행을 만든 환경의 캡이 화면에 남는다 (테스트 환경은 $0.50).
+    expect(r.burn.capMicros).toBe(500_000)
   })
 
   it('오늘 호출 수는 일 카운터에서 온다', async () => {

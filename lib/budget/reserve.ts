@@ -49,13 +49,24 @@ export async function reserve(db: Db, clock: Clock): Promise<Reservation | null>
       .values({ periodKey: key, capCalls, capMicros })
       .onConflictDoNothing()
 
+    /*
+     * ★ 캡은 **행이 아니라 환경**에서 온다.
+     *
+     * 행의 cap 컬럼과 비교하면, 행을 처음 만든 환경의 캡이 그 기간 내내
+     * 굳어버린다. 로컬에서 하루를 열어보고 배포하면 배포된 앱이 그날 내내
+     * 로컬 캡(3회)에 묶이고, 달 카운터는 그 달 내내 $0.50 에 묶인다.
+     * 실제로 그렇게 됐다 — 배포 첫날 카운터가 로컬 캡을 들고 있었다.
+     *
+     * 캡을 정하는 것은 환경이다. 행은 세기만 한다. 행의 cap 컬럼은
+     * 마지막으로 예약한 환경이 무엇이었는지 남기는 기록으로만 쓴다.
+     */
     const updated = await db
       .update(budgetCounters)
-      .set({ calls: sql`${budgetCounters.calls} + 1` })
+      .set({ calls: sql`${budgetCounters.calls} + 1`, capCalls, capMicros })
       .where(and(
         eq(budgetCounters.periodKey, key),
-        lt(budgetCounters.calls, budgetCounters.capCalls),
-        lt(budgetCounters.costMicros, budgetCounters.capMicros),
+        lt(budgetCounters.calls, capCalls),
+        lt(budgetCounters.costMicros, capMicros),
       ))
       .returning({ calls: budgetCounters.calls })
 

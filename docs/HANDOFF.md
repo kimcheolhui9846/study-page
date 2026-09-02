@@ -1,6 +1,9 @@
 # 핸드오프
 
-**갱신:** 2026-09-02 · **브랜치:** `feat/admin-usage` · PR #24~#30 머지됨
+**갱신:** 2026-09-02 · **브랜치:** `fix/budget-caps` · PR #24~#31 머지됨
+
+**배포됨 → https://study-page-kimcheolhui9846s-projects.vercel.app**
+(`main` 에 머지하면 자동 배포된다)
 
 > 이 파일은 **현재 상태**만 담는다. 매번 통째로 덮어쓴다.
 > 과거 결정의 이유는 `docs/DECISIONS.md`에 있다.
@@ -182,9 +185,19 @@ Topic 을 추가할 때 그래프가 부팅에서 검증한다 — 중복 ID · 
 | 다음 | 커리큘럼 Topic 채우기 (65개가 뼈대만) |
 | 열린 결정 | 취약 Topic 우선순위 균형 (위 2번) — 며칠 써보고 판단 |
 
-## 사용자 쪽 남은 일
+## 배포
 
-- Vercel 프로젝트 연결 + 환경변수
-  (`DATABASE_URL`, `AUTH_PASSWORD_HASH`, `OPENAI_API_KEY`, `APP_ENV=production`)
-- 배포 후 `APP_ENV=production` 이면 캡이 하루 20회 / 월 $3.00 로 올라간다
-  (로컬·Preview 는 3회 / $0.50)
+**https://study-page-kimcheolhui9846s-projects.vercel.app** · `main` 에 머지하면 자동 배포.
+
+환경변수 4개가 **Production 환경에만** 들어가 있다 —
+`DATABASE_URL` · `AUTH_PASSWORD_HASH` · `OPENAI_API_KEY` · `APP_ENV=production`.
+
+**Preview 에는 아무것도 넣지 않았다.** `APP_ENV` 가 없으면 `dailyCallCap()` 이
+3을 반환하므로, PR 프리뷰가 돈을 쓸 수 없다. 안 넣는 것이 곧 방어다.
+
+### 남은 것
+
+- **함수 리전** — Settings → Functions → Function Region 이 Neon 리전과
+  같은지. 다르면 매 요청이 태평양을 왕복한다
+- `OPENAI_API_KEY` 는 아직 실호출로 확인 안 됨. 09-03 복습 때 배포된 앱에서
+  하면 한 번에 확인된다

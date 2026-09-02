@@ -31,6 +31,17 @@ export function kstDateLabel(now: Date): string {
 }
 
 /**
+ * KST 기준 시각 '08:30'.
+ *
+ * 원장의 `created_at` 은 UTC 로 저장된다. 화면에서 toLocaleTimeString 을 쓰면
+ * 보는 사람의 시간대를 따라가 서버가 판정하는 '오늘'과 어긋난다 —
+ * 날짜와 같은 이유로 시각도 여기서만 만든다.
+ */
+export function kstTimeLabel(at: Date): string {
+  return new Date(at.getTime() + KST_OFFSET_MS).toISOString().slice(11, 16)
+}
+
+/**
  * 시간을 주입 가능하게 만드는 지점.
  * 세션 만료(15분/2시간)와 예산 캡(일/월) 테스트에서 sleep 을 없애기 위해 존재한다.
  */

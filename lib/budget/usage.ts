@@ -25,10 +25,17 @@ export async function loadUsage(db: Db, clock: Clock): Promise<UsageSnapshot> {
   const [month] = await db.select().from(budgetCounters)
     .where(eq(budgetCounters.periodKey, `month:${kstMonth(now)}`))
 
+  /*
+   * ★ 캡은 환경에서 읽는다. 행에 저장된 cap 컬럼을 읽지 않는다.
+   *
+   * `reserve()` 가 환경 캡으로 판정하므로 화면도 같은 곳을 봐야 한다.
+   * 행의 값을 보여주면 마지막으로 예약한 환경의 캡이 나와서, 실제로
+   * 막히는 지점과 화면이 어긋난다.
+   */
   return {
     dailyCalls: day?.calls ?? 0,
-    dailyCap: day?.capCalls ?? dailyCallCap(),
+    dailyCap: dailyCallCap(),
     monthlyCostMicros: month?.costMicros ?? 0,
-    monthlyCapMicros: month?.capMicros ?? monthlyCostCapMicros(),
+    monthlyCapMicros: monthlyCostCapMicros(),
   }
 }

@@ -169,3 +169,49 @@ describe('캡 값', () => {
     expect(dailyCallCap()).toBe(3)
   })
 })
+
+describe('캡은 행이 아니라 환경에서 온다', () => {
+  /*
+   * 배포 첫날 실제로 겪은 일이다. 로컬에서 만들어진 카운터 행이 로컬 캡
+   * (3회 / $0.50)을 들고 있어서, production 으로 배포한 뒤에도 그 기간
+   * 내내 로컬 캡에 묶였다.
+   */
+  it('★ 행에 굳은 낮은 캡이 환경 캡을 이기지 않는다', async () => {
+    for (let i = 0; i < 3; i++) expect(await reserve(db, clock)).not.toBeNull()
+    expect(await reserve(db, clock)).toBeNull()   // 로컬 캡 3 에서 막힌다
+
+    vi.stubEnv('APP_ENV', 'production')           // 같은 행, 캡만 20 으로
+    expect(await reserve(db, clock)).not.toBeNull()
+    expect((await counter(DAY_KEY)).calls).toBe(4)
+  })
+
+  it('★ 환경 캡이 낮아지면 즉시 막힌다 — 완화 쪽으로만 움직이지 않는다', async () => {
+    vi.stubEnv('APP_ENV', 'production')
+    for (let i = 0; i < 4; i++) expect(await reserve(db, clock)).not.toBeNull()
+
+    vi.stubEnv('APP_ENV', 'local')                // 캡 3 < 이미 쓴 4
+    expect(await reserve(db, clock)).toBeNull()
+  })
+
+  it('행의 cap 컬럼은 마지막으로 예약한 환경을 남긴다', async () => {
+    await reserve(db, clock)
+    expect((await counter(DAY_KEY)).capCalls).toBe(3)
+
+    vi.stubEnv('APP_ENV', 'production')
+    await reserve(db, clock)
+    expect((await counter(DAY_KEY)).capCalls).toBe(20)
+  })
+
+  it('★ 월 비용 캡도 환경에서 온다', async () => {
+    await reserve(db, clock)
+    await recordUsage(db, clock, {
+      route: 'content', subject: 'cs', model: 'gpt-4o-mini',
+      promptTokens: 1, completionTokens: 1, costMicros: 600_000, ok: true,
+    })
+    expect(await reserve(db, clock)).toBeNull()   // 로컬 캡 $0.50 초과
+
+    vi.stubEnv('APP_ENV', 'production')           // $3.00
+    expect(await reserve(db, clock)).not.toBeNull()
+  })
+})
+

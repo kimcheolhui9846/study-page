@@ -1,5 +1,6 @@
 import { recordUsage, reserve, rollback } from '../budget/reserve'
 import { applyResult, type ApplyResult } from '../mastery/apply'
+import { countPoints } from '../mastery/score'
 import {
   completePlanIfDone, recordItemResult, type StoredPlan,
 } from '../plan/store'
@@ -107,16 +108,6 @@ function reconcileTopic(
   }
 }
 
-/** 정리된 결과의 포인트를 센다. 숫자는 우리가 만든다. */
-function countPoints(graded: GradeResult['topics'][number]): {
-  correct: number; missed: number
-} {
-  return {
-    correct: graded.questions.reduce((n, q) => n + q.correct_points.length, 0),
-    missed: graded.questions.reduce((n, q) => n + q.missed_points.length, 0),
-  }
-}
-
 /** 답안이 채워진 항목 수 × 대략적인 응답 길이. 무제한을 두지 않는다. */
 function maxTokensFor(count: number): number {
   return 700 * count + 300
@@ -217,7 +208,9 @@ export async function gradePlan(
 
     // ★ 저장하고 세는 것은 정리된 결과다. 화면과 점수가 어긋날 수 없다.
     const reconciled = reconcileTopic(target.material, graded)
-    const { correct, missed } = countPoints(reconciled)
+    // 세는 일은 lib/mastery/score.ts 가 한다. 채점의 근거와 숙련도의 분모가
+    // 같은 함수에서 나와야 화면과 점수가 어긋날 수 없다.
+    const { correctPoints: correct, missedPoints: missed } = countPoints(reconciled.questions)
     const applied = await applyResult(deps.db, deps.clock, {
       topicId: target.topicId,
       correctPoints: correct,

@@ -34,11 +34,19 @@ export function AnswerForm({ topicId, questions, saved }: AnswerFormProps) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // 초안은 마운트 후에 읽는다. 서버 렌더에는 localStorage 가 없다.
-  // 서버에 저장된 답이 있으면 그쪽이 원본이므로 초안을 덮어쓰지 않는다.
+  /*
+   * 초안은 마운트 후에 읽는다. 서버 렌더에는 localStorage 가 없다.
+   * 서버에 저장된 답이 있으면 그쪽이 원본이므로 초안을 덮어쓰지 않는다.
+   *
+   * 규칙은 효과 본문의 동기 setState 를 막는다. 여기서는 그것이 의도다 —
+   * 초기값으로 읽으면 서버(빈 값)와 클라이언트(초안)의 렌더가 어긋나
+   * 하이드레이션이 깨진다. 한 번 더 그리는 대가로 그걸 피한다.
+   * 폼은 한 번 마운트되고 마므로 그 대가가 눈에 띄지 않는다.
+   */
   useEffect(() => {
     if (saved) return
     const draft = loadDraft(topicId)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (Object.keys(draft).length > 0) setAnswers(draft)
   }, [topicId, saved])
 

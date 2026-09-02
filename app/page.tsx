@@ -7,6 +7,8 @@ import { PostgresSessionStore } from '@/lib/session/postgres'
 import { loadGraph } from '@/lib/curriculum/load'
 import { feasibility } from '@/lib/curriculum/overview'
 import { loadDashboard } from '@/lib/progress/load'
+import { loadUsage } from '@/lib/budget/usage'
+import { formatUsd } from '@/lib/budget/report'
 import type { RecentScore, SubjectProgress } from '@/lib/progress/summary'
 import { SessionBar } from '@/components/SessionBar'
 
@@ -95,6 +97,7 @@ export default async function Dashboard() {
   if (!session) redirect('/login')
 
   const d = await loadDashboard(db, systemClock)
+  const usage = await loadUsage(db, systemClock)
   const mastered = d.subjects.reduce((n, s) => n + s.mastered, 0)
   const total = d.subjects.reduce((n, s) => n + s.total, 0)
 
@@ -205,12 +208,21 @@ export default async function Dashboard() {
         <div className="mx-auto mt-16 h-px w-16 bg-rule" />
 
         <div className="mt-6 flex flex-col items-center gap-3">
-          <Link
-            href="/settings"
-            className="font-mono text-[10.5px] tracking-[0.22em] text-faint underline decoration-rule underline-offset-[6px] transition-colors hover:text-muted"
-          >
-            목표 {d.targetDayCount}일 · 하루 {d.dailyStudyMinutes}분
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+            <Link
+              href="/settings"
+              className="font-mono text-[10.5px] tracking-[0.22em] text-faint underline decoration-rule underline-offset-[6px] transition-colors hover:text-muted"
+            >
+              목표 {d.targetDayCount}일 · 하루 {d.dailyStudyMinutes}분
+            </Link>
+            {/* 이 앱의 제약은 돈이다. 대시보드에서 한 번은 보이게 둔다. */}
+            <Link
+              href="/admin/usage"
+              className="font-mono text-[10.5px] tracking-[0.22em] text-faint underline decoration-rule underline-offset-[6px] transition-colors hover:text-muted"
+            >
+              이번 달 {formatUsd(usage.monthlyCostMicros)} · 오늘 {usage.dailyCalls}/{usage.dailyCap}회
+            </Link>
+          </div>
           {fit && (
             <span className={`text-[12.5px] ${fit.fits ? 'text-muted' : 'text-warn'}`}>
               {fit.fits

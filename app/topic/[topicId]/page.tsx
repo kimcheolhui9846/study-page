@@ -248,9 +248,26 @@ export default async function TopicPage(
               오늘 이걸 한다
             </Link>
           ) : (
-            <span className="text-balance text-center text-[12.5px] leading-relaxed text-faint">
-              오늘 계획에 없다. 학습은 계획에 담긴 것만 할 수 있다.
-            </span>
+            /*
+             * ★ 여기가 막다른 길이었다.
+             *
+             * "오늘 계획에 없다"고 말하기만 하고 **갈 곳을 주지 않았다.**
+             * 커리큘럼에서 Topic 을 눌러 들어온 사람은 이 화면에서 멈춘다 —
+             * 화면 어디에도 오늘의 학습으로 가는 링크가 없었다. 실제로 멈췄다.
+             *
+             * 설명은 남기되 문 옆에 둔다. 안내문은 길을 대신하지 못한다.
+             */
+            <>
+              <Link
+                href="/today"
+                className="flex h-12 w-full max-w-[260px] items-center justify-center rounded-control text-[14px] font-medium tracking-[0.04em] text-body shadow-[inset_0_0_0_1px_var(--color-rule-strong)] transition-colors hover:bg-paper"
+              >
+                오늘의 학습으로
+              </Link>
+              <span className="text-balance text-center text-[12.5px] leading-relaxed text-faint">
+                이 화면은 읽기용이다. 학습은 오늘 계획에 담긴 것만 할 수 있다.
+              </span>
+            </>
           )}
 
           <span className="font-mono text-[10px] tracking-[0.18em] text-ghost">

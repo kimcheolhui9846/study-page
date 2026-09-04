@@ -167,6 +167,25 @@ export default async function CurriculumPage({
             </section>
           ))}
         </div>
+
+        {/* ★ 이 화면에도 나갈 길이 없었다. 커리큘럼은 읽는 곳이고
+            공부하는 곳은 /today 인데, 그리로 가는 링크가 없었다. */}
+        <div className="mx-auto mt-16 h-px w-16 bg-rule" />
+
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+          <Link
+            href="/today"
+            className="text-[12.5px] text-body underline decoration-rule-strong underline-offset-4 hover:text-ink"
+          >
+            오늘의 학습
+          </Link>
+          <Link
+            href="/"
+            className="text-[12.5px] text-muted underline underline-offset-4 hover:text-body"
+          >
+            대시보드로
+          </Link>
+        </div>
       </main>
     </>
   )

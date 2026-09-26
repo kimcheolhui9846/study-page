@@ -13,6 +13,36 @@ import { z } from 'zod'
  * 확인한다 — 스키마를 고쳤는데 한쪽만 고치는 실수를 zod 가 잡는다.
  */
 
+/**
+ * 해설. **채점을 받은 뒤에만 보인다.**
+ *
+ * ★ 학습자가 막히던 자리가 여기였다. 「놓침 — 'propose'의 정의」 같은 루브릭
+ * 조각만 보고 같은 지문으로 다시 푸는 구조라, 틀린 채로 다시 틀렸다.
+ * 실제로 6개 Topic 중 5개가 두 번씩 틀리고 `weak` 로 남아 있었다.
+ *
+ * 세 조각으로 나눠 받는다. 마크다운 한 덩어리로 받으면 모델이 매번 다르게
+ * 구성해 화면이 일정하지 않고, 빠뜨려도 알 수 없다.
+ *
+ * ★ `expected_points` · `hint` 와 같은 급의 비밀이다. `publicQuestions` 가
+ * 지운다 — 학습 화면에 새면 이 앱은 의미가 없다.
+ */
+const SolutionSchema = z.object({
+  /** 온전한 답이 어떤 모습인지 */
+  answer_md: z.string().min(1),
+  /** 답에 이르는 단계. 정의 문제면 1~2, 계산이면 3~5 */
+  steps: z.array(z.string().min(1)).min(1),
+  /**
+   * 지문에서 근거가 된 문장 그대로.
+   *
+   * 「몇 번째 문단」이 아니라 문장을 옮기게 하는 이유: 지문이 한 덩어리
+   * 마크다운이라 위치 참조가 불안정하다. 지문 밖에서 생각해야 하는
+   * 문제면 빈 문자열이다.
+   */
+  evidence: z.string(),
+})
+
+export type Solution = z.infer<typeof SolutionSchema>
+
 // ── ① 콘텐츠 생성 ─────────────────────────────────
 
 export const CONTENT_JSON_SCHEMA = {
@@ -48,13 +78,23 @@ export const CONTENT_JSON_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['id', 'type', 'prompt', 'expected_points', 'hint'],
+        required: ['id', 'type', 'prompt', 'expected_points', 'hint', 'solution'],
         properties: {
           id: { type: 'string', enum: ['q1', 'q2', 'q3'] },
           type: { type: 'string', enum: ['recall', 'concept', 'application'] },
           prompt: { type: 'string' },
           expected_points: { type: 'array', items: { type: 'string' } },
           hint: { type: 'string' },
+          solution: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['answer_md', 'steps', 'evidence'],
+            properties: {
+              answer_md: { type: 'string' },
+              steps: { type: 'array', items: { type: 'string' } },
+              evidence: { type: 'string' },
+            },
+          },
         },
       },
     },
@@ -75,6 +115,7 @@ export const ContentSchema = z.object({
     expected_points: z.array(z.string().min(1)).min(1),
     // strict 모드가 선택 필드를 못 만들어서 필수다. 빈 문자열은 허용한다.
     hint: z.string(),
+    solution: SolutionSchema,
   })).length(3),
 })
 
@@ -104,13 +145,23 @@ export const REVIEW_JSON_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['id', 'type', 'prompt', 'expected_points', 'hint'],
+        required: ['id', 'type', 'prompt', 'expected_points', 'hint', 'solution'],
         properties: {
           id: { type: 'string', enum: ['q1', 'q2'] },
           type: { type: 'string', enum: ['recall', 'concept', 'application'] },
           prompt: { type: 'string' },
           expected_points: { type: 'array', items: { type: 'string' } },
           hint: { type: 'string' },
+          solution: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['answer_md', 'steps', 'evidence'],
+            properties: {
+              answer_md: { type: 'string' },
+              steps: { type: 'array', items: { type: 'string' } },
+              evidence: { type: 'string' },
+            },
+          },
         },
       },
     },
@@ -125,6 +176,7 @@ export const ReviewSchema = z.object({
     prompt: z.string().min(1),
     expected_points: z.array(z.string().min(1)).min(1),
     hint: z.string(),
+    solution: SolutionSchema,
   })).length(2),
 })
 
@@ -265,6 +317,17 @@ export interface PublicQuestion {
 
 export function publicQuestions(m: StudyMaterial): PublicQuestion[] {
   return m.questions.map((q) => ({ id: q.id, type: q.type, prompt: q.prompt }))
+}
+
+/**
+ * 해설을 문제 id 로 꺼낸다. **채점 결과 화면에서만 쓴다.**
+ *
+ * ★ `publicQuestions` 를 넓히지 않고 길을 따로 낸 이유: 그 함수의 이름은
+ * 「채점 전에 보여도 되는 것」이라는 뜻이고, 그 뜻이 흐려지면 다음 사람이
+ * 거기에 비밀을 하나 더 얹는다. 해설을 꺼내는 쪽은 이름으로 드러나야 한다.
+ */
+export function solutionsOf(m: StudyMaterial): Record<string, Solution> {
+  return Object.fromEntries(m.questions.map((q) => [q.id, q.solution]))
 }
 
 export function hintFor(m: StudyMaterial, questionId: string): string | null {

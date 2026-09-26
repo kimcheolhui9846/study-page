@@ -1,9 +1,14 @@
-import type { GradedTopic } from '@/lib/llm/schemas'
+import type { GradedTopic, Solution } from '@/lib/llm/schemas'
 
 export interface GradeResultProps {
   /** 화면에 문제 문구를 다시 보여주기 위한 것. 루브릭은 들어 있지 않다 */
   questions: Array<{ id: string; prompt: string }>
   answers: Record<string, string>
+  /**
+   * 문제 id → 해설. 채점을 받은 뒤에만 화면에 온다 —
+   * 학습 화면은 `publicQuestions` 만 받으므로 여기 닿지 않는다.
+   */
+  solutions: Record<string, Solution>
   feedback: GradedTopic
   /** 이 Topic 의 숙련도. lib/mastery/score.ts 가 만든 값이다 */
   masteryScore: number
@@ -24,6 +29,48 @@ const Dash = () => (
 )
 
 /**
+ * 해설.
+ *
+ * ★ 이게 없던 동안 학습자는 「놓침 — 'propose'의 정의」 같은 루브릭 조각만
+ * 보고 같은 지문으로 다시 풀었다. 그 사이에 새로 얻는 정보가 없어서 틀린
+ * 채로 다시 틀렸다 — 6개 Topic 중 5개가 그렇게 `weak` 로 남았다.
+ *
+ * 접지 않는다. 다 맞은 문제도 온전한 답을 한 번 보는 것이 도움이 된다.
+ */
+function Explain({ s }: { s: Solution }) {
+  return (
+    <div className="mt-6 border-t border-rule-soft pt-6">
+      <span className="font-mono text-[10.5px] tracking-[0.18em] text-faint">
+        이렇게 답했어야 한다
+      </span>
+
+      <p className="mt-4 text-pretty text-[14px] leading-[1.85] text-body">{s.answer_md}</p>
+
+      {s.steps.length > 0 && (
+        <ol className="mt-5 flex flex-col gap-2.5">
+          {s.steps.map((step, i) => (
+            <li key={step} className="flex gap-3">
+              <span className="mt-[3px] shrink-0 font-mono text-[11px] text-ghost">{i + 1}</span>
+              <span className="text-pretty text-[13.5px] leading-[1.8] text-body">{step}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {/* 지문 밖에서 생각해야 하는 문제면 비어 있다. 빈 인용부호를 그리지 않는다. */}
+      {s.evidence.trim() !== '' && (
+        <div className="mt-5 rounded-control bg-note px-4 py-3.5">
+          <span className="font-mono text-[10px] tracking-[0.18em] text-faint">지문 근거</span>
+          <p className="mt-2 text-pretty text-[13px] leading-[1.8] text-muted">
+            “{s.evidence}”
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
  * 채점 결과.
  *
  * ★ 큰 숫자는 맞은 포인트 수다. 백분율이 아니다.
@@ -32,7 +79,7 @@ const Dash = () => (
  * 숙련도(0~100)는 여러 날에 걸쳐 섞인 값이라 따로, 작게 적는다.
  */
 export function GradeResult(props: GradeResultProps) {
-  const { questions, answers, feedback, masteryScore, nextReviewAt } = props
+  const { questions, answers, feedback, solutions, masteryScore, nextReviewAt } = props
 
   const total = feedback.questions.reduce(
     (n, q) => n + q.correct_points.length + q.missed_points.length, 0)
@@ -118,6 +165,8 @@ export function GradeResult(props: GradeResultProps) {
               <p className="mt-6 text-pretty text-[13.5px] leading-[1.8] text-muted">
                 {q.feedback_ko}
               </p>
+
+              {solutions[q.id] && <Explain s={solutions[q.id]!} />}
             </div>
           )
         })}

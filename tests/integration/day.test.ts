@@ -44,6 +44,7 @@ class RoutingFake implements LlmClient {
         questions: [1, 2, 3].map((i) => ({
           id: `q${i}`, type: 'concept', prompt: `문제 ${i}`,
           expected_points: ['포인트 A', '포인트 B'], hint: '힌트',
+          solution: { answer_md: '모범답안', steps: ['단계 하나'], evidence: '근거 문장' },
         })),
       }
     } else if (req.route === 'review') {
@@ -52,6 +53,7 @@ class RoutingFake implements LlmClient {
         questions: [1, 2].map((i) => ({
           id: `q${i}`, type: 'recall', prompt: `복습 ${i}`,
           expected_points: ['포인트 A'], hint: '',
+          solution: { answer_md: '모범답안', steps: ['단계 하나'], evidence: '근거 문장' },
         })),
       }
     } else {

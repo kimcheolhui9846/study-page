@@ -61,8 +61,8 @@ function isReviewRound(req: MaterialRequest): boolean {
   return req.kind === 'review' && req.round !== null
 }
 
-const MAX_TOKENS_CONTENT = 2_500
-const MAX_TOKENS_REVIEW = 1_400
+const MAX_TOKENS_CONTENT = 3_200
+const MAX_TOKENS_REVIEW = 1_900
 
 /**
  * 저장된 자료를 읽는다. 없으면 null, 지금 형식으로 못 읽으면 'invalid'.

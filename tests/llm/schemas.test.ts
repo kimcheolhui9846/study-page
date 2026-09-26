@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   CONTENT_JSON_SCHEMA, REVIEW_JSON_SCHEMA, GRADE_JSON_SCHEMA,
   ContentSchema, ReviewSchema, GradeSchema,
-  materialOfContent, materialOfReview,
+  materialOfContent, materialOfReview, publicQuestions, solutionsOf, hintFor,
 } from '../../lib/llm/schemas'
 
 /**
@@ -87,6 +87,7 @@ const validContent = {
     prompt: '설명하라',
     expected_points: ['포인트 하나'],
     hint: '힌트',
+    solution: { answer_md: '모범답안', steps: ['단계 하나'], evidence: '근거 문장' },
   })),
 }
 
@@ -133,6 +134,7 @@ const validReview = {
     prompt: '설명하라',
     expected_points: ['포인트 하나'],
     hint: '',
+    solution: { answer_md: '모범답안', steps: ['단계 하나'], evidence: '근거 문장' },
   })),
 }
 
@@ -229,5 +231,117 @@ describe('GradeSchema', () => {
   it('weak_concepts 가 비어 있어도 통과시킨다 — 힌트일 뿐이다', () => {
     const none = { topics: [{ ...gradedTopic, weak_concepts: [] }] }
     expect(GradeSchema.safeParse(none).success).toBe(true)
+  })
+})
+
+/**
+ * ★ 이 앱에서 가장 위험한 누출 지점이다.
+ *
+ * 모범답안이 학습 화면에 보이면 이 앱은 의미가 없다. 루브릭이 보이면
+ * 답을 맞춰 쓸 수 있고, 힌트가 처음부터 보이면 힌트가 아니다.
+ *
+ * `publicQuestions` 가 그걸 막는 유일한 장치인데 **테스트가 하나도 없었다.**
+ * 해설이 들어오면서 막을 것이 하나 더 늘었으므로 여기서 화이트리스트로
+ * 잠근다 — 앞으로 문제에 무슨 필드를 더하든 이 테스트가 먼저 깨진다.
+ */
+describe('publicQuestions — 채점 전에 보여도 되는 것', () => {
+  const material = materialOfContent(ContentSchema.parse(validContent))
+
+  it('★ id · type · prompt 말고는 아무것도 나가지 않는다', () => {
+    for (const q of publicQuestions(material)) {
+      expect(Object.keys(q).sort()).toEqual(['id', 'prompt', 'type'])
+    }
+  })
+
+  it('★ 해설이 새지 않는다', () => {
+    const json = JSON.stringify(publicQuestions(material))
+    expect(json).not.toContain('모범답안')
+    expect(json).not.toContain('단계 하나')
+    expect(json).not.toContain('근거 문장')
+  })
+
+  it('★ 루브릭과 힌트도 새지 않는다', () => {
+    const json = JSON.stringify(publicQuestions(material))
+    expect(json).not.toContain('포인트 하나')
+    expect(json).not.toContain('힌트')
+  })
+
+  it('복습 자료도 같은 규칙이다', () => {
+    const review = materialOfReview(ReviewSchema.parse(validReview), '제목')
+    for (const q of publicQuestions(review)) {
+      expect(Object.keys(q).sort()).toEqual(['id', 'prompt', 'type'])
+    }
+  })
+})
+
+describe('solutionsOf — 채점 뒤에만 쓰는 길', () => {
+  const material = materialOfContent(ContentSchema.parse(validContent))
+
+  it('문제 id 로 해설을 꺼낸다', () => {
+    const s = solutionsOf(material)
+    expect(Object.keys(s).sort()).toEqual(['q1', 'q2', 'q3'])
+    expect(s.q1!.answer_md).toBe('모범답안')
+    expect(s.q1!.steps).toEqual(['단계 하나'])
+    expect(s.q1!.evidence).toBe('근거 문장')
+  })
+
+  it('힌트와 다른 길이다 — 이름이 하는 일을 드러내야 한다', () => {
+    expect(hintFor(material, 'q1')).toBe('힌트')
+    expect(solutionsOf(material).q1!.answer_md).not.toBe('힌트')
+  })
+})
+
+describe('해설 스키마', () => {
+  /** 해설만 떼어낸다. 구조분해로 버리면 안 쓰는 변수가 생겨 린트가 운다. */
+  function withoutSolution(q: object): Record<string, unknown> {
+    const copy: Record<string, unknown> = { ...q }
+    delete copy.solution
+    return copy
+  }
+
+  it('★ 해설이 없는 응답은 거른다 — 조용히 비어 있으면 안 된다', () => {
+    const missing = {
+      ...validContent,
+      questions: validContent.questions.map(withoutSolution),
+    }
+    expect(ContentSchema.safeParse(missing).success).toBe(false)
+  })
+
+  it('★ 모범답안이 비면 거른다', () => {
+    const empty = {
+      ...validContent,
+      questions: validContent.questions.map((q) => ({
+        ...q, solution: { ...q.solution, answer_md: '' },
+      })),
+    }
+    expect(ContentSchema.safeParse(empty).success).toBe(false)
+  })
+
+  it('★ 풀이 단계가 비면 거른다 — 답만 주는 것은 해설이 아니다', () => {
+    const empty = {
+      ...validContent,
+      questions: validContent.questions.map((q) => ({
+        ...q, solution: { ...q.solution, steps: [] },
+      })),
+    }
+    expect(ContentSchema.safeParse(empty).success).toBe(false)
+  })
+
+  it('지문 근거는 비어도 된다 — 지문 밖에서 생각해야 하는 문제가 있다', () => {
+    const noEvidence = {
+      ...validContent,
+      questions: validContent.questions.map((q) => ({
+        ...q, solution: { ...q.solution, evidence: '' },
+      })),
+    }
+    expect(ContentSchema.safeParse(noEvidence).success).toBe(true)
+  })
+
+  it('복습 자료도 해설을 요구한다', () => {
+    const missing = {
+      ...validReview,
+      questions: validReview.questions.map(withoutSolution),
+    }
+    expect(ReviewSchema.safeParse(missing).success).toBe(false)
   })
 })

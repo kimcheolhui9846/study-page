@@ -27,6 +27,7 @@ const CONTENT_PAYLOAD = {
     prompt: `문제 ${i}`,
     expected_points: ['포인트 A', '포인트 B'],
     hint: '',
+    solution: { answer_md: '모범답안', steps: ['단계 하나'], evidence: '근거 문장' },
   })),
 }
 
@@ -38,6 +39,7 @@ const REVIEW_PAYLOAD = {
     prompt: `복습 문제 ${i}`,
     expected_points: ['포인트 A'],
     hint: '',
+    solution: { answer_md: '모범답안', steps: ['단계 하나'], evidence: '근거 문장' },
   })),
 }
 

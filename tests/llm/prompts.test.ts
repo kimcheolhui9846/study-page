@@ -168,6 +168,7 @@ const material = (): StudyMaterial => ({
   questions: [{
     id: 'q1', type: 'concept', prompt: '설명하라',
     expected_points: ['포인트 A', '포인트 B'], hint: '이건 힌트다',
+    solution: { answer_md: '모범답안', steps: ['단계 하나'], evidence: '근거 문장' },
   }],
 })
 
@@ -305,5 +306,38 @@ describe('실제 커리큘럼과의 정합', () => {
         expect(contentSystem(t.kind), id).toBe(contentSystem(kind as typeof t.kind))
       }
     }
+  })
+})
+
+describe('해설 지시', () => {
+  it('★ 네 성격 모두 해설을 요구한다', () => {
+    for (const kind of TOPIC_KINDS) {
+      expect(contentSystem(kind), kind).toContain('solution 은 채점을 받은 뒤에만')
+    }
+  })
+
+  it('복습에도 해설이 필요하다 — 오히려 더 필요하다', () => {
+    expect(REVIEW_SYSTEM).toContain('solution 은 채점을 받은 뒤에만')
+  })
+
+  it('세 조각을 각각 지시한다', () => {
+    const p = contentSystem('concept')
+    expect(p).toContain('answer_md')
+    expect(p).toContain('steps')
+    expect(p).toContain('evidence')
+  })
+
+  it('★ 루브릭을 다시 나열하지 말라고 못박는다', () => {
+    // 그러지 않으면 expected_points 를 그대로 옮겨 적는다. 그건 해설이 아니다.
+    expect(contentSystem('concept')).toContain('루브릭을 다시 나열하지 마라')
+  })
+
+  it('지문 근거는 요약이 아니라 그대로 옮기게 한다', () => {
+    expect(contentSystem('concept')).toContain('그대로** 옮긴다')
+  })
+
+  it('★ 채점은 학습자가 쓴 문장을 인용하게 한다', () => {
+    // 「~가 빠졌다」로 끝나면 무엇을 고쳐야 할지 알 수 없다.
+    expect(GRADE_SYSTEM).toContain('학습자가 쓴 문장을 직접 인용')
   })
 })

@@ -188,6 +188,7 @@ describe('자료 유무', () => {
         questions: [1, 2, 3].map((i) => ({
           id: `q${i}`, type: 'concept', prompt: `문제 ${i}`,
           expected_points: ['포인트'], hint: '',
+          solution: { answer_md: '모범답안', steps: ['단계 하나'], evidence: '근거 문장' },
         })),
       },
       model: 'gpt-4o-mini',

@@ -11,7 +11,7 @@ import { subjectLabel } from '@/lib/curriculum/overview'
 import { readPlan } from '@/lib/plan/store'
 import { loadUsage } from '@/lib/budget/usage'
 import { loadStoredMaterial } from '@/lib/llm/ensure'
-import { GradedTopicSchema, publicQuestions } from '@/lib/llm/schemas'
+import { GradedTopicSchema, publicQuestions, solutionsOf } from '@/lib/llm/schemas'
 import { SessionBar } from '@/components/SessionBar'
 import { StartTopic } from '@/components/StartTopic'
 import { Passage } from '@/components/Passage'
@@ -110,6 +110,7 @@ export default async function TopicPage(
         ) : graded?.success ? (
           <GradeResult
             questions={publicQuestions(material)}
+            solutions={solutionsOf(material)}
             answers={item.answers ?? {}}
             feedback={graded.data}
             masteryScore={progress?.masteryScore ?? item.score ?? 0}

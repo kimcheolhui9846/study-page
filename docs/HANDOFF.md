@@ -1,6 +1,6 @@
 # 핸드오프
 
-**갱신:** 2026-09-27 · **브랜치:** `docs/agents-rules` · PR #24~#38 머지됨
+**갱신:** 2026-09-27 · **브랜치:** `docs/alternating-agents` · PR #24~#39 머지됨
 
 **배포됨 → https://study-page-kimcheolhui9846s-projects.vercel.app**
 (`main` 에 머지하면 자동 배포된다)
@@ -8,6 +8,10 @@
 > 이 파일은 **현재 상태**만 담는다. 매번 통째로 덮어쓴다.
 > 과거 결정의 이유는 `docs/DECISIONS.md`에 있다.
 > 작업 규칙은 [`AGENTS.md`](../AGENTS.md)에 있다 — 에이전트를 가리지 않는다.
+
+**이 저장소는 Claude Code 와 Codex 가 번갈아 작업한다.** 대화 기록은 다음
+에이전트에게 닿지 않으므로 **이 파일이 유일한 인수인계다.** 넘기기 전에
+반드시 갱신한다.
 
 ## 지금 상태
 

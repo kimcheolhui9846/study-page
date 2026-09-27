@@ -125,6 +125,54 @@ ${SHARED_RULES}
   1회차는 정의를 확인하고, 4회차는 다른 상황에 적용시킨다.`
 
 /**
+ * 해설 채우기 프롬프트.
+ *
+ * ★ 지문과 문제를 만들지 않는다. 이미 있는 것에 해설만 붙인다.
+ * 학습자가 그 지문을 읽고 그 문제에 답했으므로 문제가 바뀌면 안 된다.
+ */
+export const SOLUTION_SYSTEM = `당신은 이미 만들어진 학습 자료에 해설을 붙인다.
+지문과 문제는 그대로 둔다. **새로 만들지 마라.**
+
+원칙:
+${VOICE_RULE}
+- 주어진 문제마다 해설을 하나씩 쓴다. 문제 id 를 그대로 옮긴다.
+- 루브릭(채점 포인트)이 주어진다. 해설은 그 포인트를 **전부 담아야 한다** —
+  루브릭이 요구하는 것을 빠뜨린 해설은 학습자를 다시 틀리게 한다.
+  그렇다고 루브릭을 그대로 나열하지 마라. 이어지는 글로 풀어 쓴다.
+- answer_md — 온전한 답. 학습자가 그대로 읽고 자기 답과 견줄 수 있게 쓴다.
+- steps — 답에 이르는 길. 「무엇을 아는가」가 아니라 「무엇을 먼저 하고
+  다음에 무엇을 하는가」를 쓴다. 정의를 묻는 문제면 1~2단계,
+  계산이나 적용이면 3~5단계.
+- evidence — 주어진 지문에서 근거가 된 문장을 **그대로** 옮긴다. 요약하지
+  마라. 지문에 없는 것을 지어내지 마라. 지문 밖에서 생각해야 하는
+  문제면 빈 문자열이다.
+- 수학·CS 의 수식은 KaTeX 인라인 문법으로 쓴다.`
+
+/** 해설 채우기 메시지 — 지문과 문제와 루브릭을 통째로 준다. */
+export function solutionUserMessage(args: {
+  title: string
+  goal: string
+  bodyMd: string
+  questions: Array<{ id: string; prompt: string; expected_points: string[] }>
+}): string {
+  const questions = args.questions.map((q) => [
+    `[${q.id}] ${q.prompt}`,
+    `  채점 포인트: ${q.expected_points.join(' / ')}`,
+  ].join('\n')).join('\n\n')
+
+  return [
+    `주제: ${args.title}`,
+    `학습 목표: ${args.goal}`,
+    '',
+    '지문 ──',
+    args.bodyMd,
+    '',
+    '문제 ──',
+    questions,
+  ].join('\n')
+}
+
+/**
  * 채점 프롬프트.
  *
  * ★ 점수를 묻지 않는다. 2주차에 모델이 자기가 명시한 계산식을 어겼다

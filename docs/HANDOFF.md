@@ -1,6 +1,6 @@
 # 핸드오프
 
-**갱신:** 2026-09-26 · **브랜치:** `feat/solutions` · PR #24~#34 머지됨
+**갱신:** 2026-09-27 · **브랜치:** `fix/stored-schema` · PR #24~#35 머지됨
 
 **배포됨 → https://study-page-kimcheolhui9846s-projects.vercel.app**
 (`main` 에 머지하면 자동 배포된다)
@@ -14,7 +14,7 @@
 Topic 그래프로 갈아탔다. 설계는
 [`docs/specs/2026-09-01-adaptive-curriculum-design.md`](specs/2026-09-01-adaptive-curriculum-design.md).
 
-- 테스트 **594개 통과** (34파일, ~54초)
+- 테스트 **600개 통과** (34파일, ~52초)
 - `npm run build` 통과 — 라우트 **17개** · 린트 0 · `check:secrets` 통과
 - ✅ **실제 GPT 로 Day 2 를 완주했다** (2026-09-02) — 자료 생성 2회 + 채점 1회,
   누적 **$0.001767**. 진도·복습 예약·취약 개념까지 실제로 기록됐다.
@@ -168,6 +168,22 @@ Topic 을 추가할 때 그래프가 부팅에서 검증한다 — 중복 ID · 
   프롬프트의 레시피가 다르다 (`contentSystem(kind)`). 어휘·독해는 지문을
   **영어**로 쓰게 한다
 - `questionTypes` — 커리큘럼의 슬러그(`vocab-paper`)를 지시문으로 옮겨 넘긴다
+
+## ★ 저장된 자료를 읽는 스키마는 따로다
+
+**모델에게 요구하는 것과 디스크에서 견디는 것은 다르다.**
+
+| | 스키마 | 새 필드 |
+|---|---|---|
+| 모델 응답 검증 | `ContentSchema` · `ReviewSchema` | **필수** |
+| 저장된 행 읽기 | `StoredContentSchema` · `StoredReviewSchema` | 선택 |
+
+`solution` 을 필수로 더했다가 그 전에 저장된 자료 6개가 전부 무효가 되어
+학습이 통째로 막힌 적이 있다. 취약 재학습은 `topic_contents` 를 다시 읽는
+경로라 자료를 새로 만들지 않고, 그래서 스스로 풀리지 않았다.
+
+**필수 필드를 더할 때는 저장 스키마에서 선택으로 두고, 화면이 없는 것을
+안 그리게 한다.** `tests/llm/schemas.test.ts` 가 지킨다.
 
 ## 채점 전에 보여도 되는 것 / 아닌 것
 

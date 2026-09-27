@@ -59,7 +59,7 @@ npm run dev
 ```
 
 ```bash
-npm test            # 600개
+npm test            # 620개
 npm run lint
 npm run check:secrets   # NEXT_PUBLIC_ 비밀이 없는지
 node scripts/peek.mjs   # DB 실측을 본다 (읽기만)

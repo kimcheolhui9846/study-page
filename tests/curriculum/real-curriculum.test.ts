@@ -124,3 +124,75 @@ describe('실제 커리큘럼', () => {
     expect(loadGraph().order).toEqual(first)
   })
 })
+
+/**
+ * 연습(practice) Topic.
+ *
+ * 수학 Topic 의 목표가 전부 "설명한다"로 끝나 있었는데, 학습자가 실제로
+ * 막힌 자리는 「함수의 값 계산 방법」·「기울기 계산 방법」처럼 전부
+ * 계산이었다. 개념을 설명할 줄 아는 것과 손으로 풀 줄 아는 것은 다르다.
+ */
+describe('연습 Topic', () => {
+  const drills = () => [...loadGraph().topics.values()].filter((t) => t.kind === 'practice')
+
+  it('실제로 있다 — 없으면 아래 단언들이 전부 공짜로 통과한다', () => {
+    expect(drills().length).toBeGreaterThan(0)
+  })
+
+  it('★ 선수를 갖지 않는다 — 내려가는 곳이지 올라가는 곳이 아니다', () => {
+    /*
+     * 개념을 못 넘겨서 연습으로 내려오는 것인데, 그 개념을 선수로 걸면
+     * 바로 그 상황에서 연습이 잠긴다(`isUnlocked` 는 선수가 전부 기준점을
+     * 넘어야 연다). 보충 경로가 막다른 길이 된다.
+     */
+    for (const d of drills()) {
+      expect(d.prerequisites, d.id).toEqual([])
+    }
+  })
+
+  it('목표가 "설명한다"로 끝나지 않는다 — 그러면 개념 Topic 과 같아진다', () => {
+    for (const d of drills()) {
+      expect(d.goal.endsWith('설명한다'), `${d.id}: ${d.goal}`).toBe(false)
+    }
+  })
+
+  it('★ 아무도 안 가리키는 연습은 없다 — 그건 죽은 Topic 이다', () => {
+    const pointed = new Set(
+      [...loadGraph().topics.values()].flatMap((t) => t.remediation),
+    )
+    for (const d of drills()) {
+      expect(pointed.has(d.id), `${d.id} 를 remediation 으로 가리키는 Topic 이 없다`).toBe(true)
+    }
+  })
+
+  it('본선을 차지하지 않는다 — optional 이다', () => {
+    for (const d of drills()) {
+      expect(d.required, d.id).toBe('optional')
+    }
+  })
+
+  it('개념보다 짧다', () => {
+    for (const d of drills()) {
+      expect(d.estimatedMinutes, d.id).toBeLessThanOrEqual(20)
+    }
+  })
+})
+
+describe('보충이 실제로 닿는가', () => {
+  it('★ remediation 이 가리키는 Topic 은 전부 열려 있다 (선수가 없거나 기초다)', () => {
+    /*
+     * 보충 대상에 선수가 걸려 있으면, 막혀서 내려온 학습자가 그것마저
+     * 못 열 수 있다. 보충의 보충까지 타고 내려가는 일은 없어야 한다.
+     */
+    const g = loadGraph()
+    for (const t of g.topics.values()) {
+      for (const r of t.remediation) {
+        const target = g.topics.get(r)!
+        for (const p of target.prerequisites) {
+          // 선수가 있다면 그것도 보충 계층(optional) 안에 있어야 한다
+          expect(g.topics.get(p)!.required, `${r} 의 선수 ${p}`).toBe('optional')
+        }
+      }
+    }
+  })
+})

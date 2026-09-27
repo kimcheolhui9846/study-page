@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
+import { TOPIC_KINDS } from '../../lib/curriculum/schema'
 import {
-  CONTENT_JSON_SCHEMA, REVIEW_JSON_SCHEMA, GRADE_JSON_SCHEMA,
+  contentJsonSchema, reviewJsonSchema, GRADE_JSON_SCHEMA, QUESTION_TYPES,
   ContentSchema, ReviewSchema, GradeSchema,
   materialOfContent, materialOfReview, publicQuestions, solutionsOf, hintFor,
   StoredContentSchema, StoredReviewSchema,
@@ -25,6 +26,9 @@ function assertStrictShape(node: unknown, path = 'root') {
   }
   for (const [k, v] of Object.entries(n)) assertStrictShape(v, `${path}.${k}`)
 }
+
+const CONTENT_JSON_SCHEMA = contentJsonSchema('concept')
+const REVIEW_JSON_SCHEMA = reviewJsonSchema('concept')
 
 describe('CONTENT_JSON_SCHEMA', () => {
   it('★ strict 모드 요구사항을 만족한다', () => {
@@ -400,5 +404,65 @@ describe('저장 스키마는 생성 스키마보다 느슨하다', () => {
   it('★ 저장 스키마도 형식이 깨진 것은 거른다 — 아무거나 받지 않는다', () => {
     const broken = { ...validContent, questions: [{ id: 'q1' }] }
     expect(StoredContentSchema.safeParse(broken).success).toBe(false)
+  })
+})
+
+/**
+ * ★ 연습 Topic 의 실호출에서 이렇게 나왔다:
+ *
+ *   [concept] 기울기가 3인 직선의 식을 구할 때 필요한 정보는? 설명하라.
+ *
+ * 계산을 연습시키는 Topic 인데 셋 중 하나가 설명 문제가 됐다. 모델 탓이
+ * 아니라 `concept` 이라는 칸을 준 탓이다. 이 값은 화면에도 「개념」으로
+ * 보이므로 사용자에게 보이는 오류였다.
+ */
+describe('문제 유형은 성격마다 다르다', () => {
+  it('★ 모든 성격에 유형이 셋 있다', () => {
+    for (const kind of TOPIC_KINDS) {
+      expect(QUESTION_TYPES[kind], kind).toHaveLength(3)
+    }
+  })
+
+  it('★ 연습은 개념 학습의 유형을 쓰지 않는다', () => {
+    expect(QUESTION_TYPES.practice).not.toContain('concept')
+    expect(QUESTION_TYPES.practice).not.toContain('recall')
+  })
+
+  it('JSON Schema 가 성격에 맞는 유형만 허용한다', () => {
+    const typeOf = (k: Parameters<typeof contentJsonSchema>[0]) =>
+      contentJsonSchema(k).properties.questions.items.properties.type.enum
+
+    expect(typeOf('practice')).toEqual(['basic', 'combined', 'applied'])
+    expect(typeOf('concept')).toEqual(['recall', 'concept', 'application'])
+  })
+
+  it('복습도 같은 유형을 쓴다 — 연습의 복습이 설명 문제가 되면 안 된다', () => {
+    expect(reviewJsonSchema('practice').properties.questions.items.properties.type.enum)
+      .toEqual(['basic', 'combined', 'applied'])
+  })
+
+  it('★ 읽기 스키마는 모든 유형을 받는다 — 나누기 전에 저장된 것이 있다', () => {
+    for (const t of ['recall', 'concept', 'application', 'basic', 'combined', 'applied']) {
+      const c = {
+        ...validContent,
+        questions: validContent.questions.map((q) => ({ ...q, type: t })),
+      }
+      expect(StoredContentSchema.safeParse(c).success, t).toBe(true)
+    }
+  })
+
+  it('없는 유형은 거른다', () => {
+    const c = {
+      ...validContent,
+      questions: validContent.questions.map((q) => ({ ...q, type: '없는유형' })),
+    }
+    expect(StoredContentSchema.safeParse(c).success).toBe(false)
+  })
+
+  it('문제 개수는 성격과 무관하다 — 신규 3개 · 복습 2개', () => {
+    for (const kind of TOPIC_KINDS) {
+      expect(contentJsonSchema(kind).properties.questions.maxItems, kind).toBe(3)
+      expect(reviewJsonSchema(kind).properties.questions.maxItems, kind).toBe(2)
+    }
   })
 })

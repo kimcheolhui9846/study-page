@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { TopicKind } from '../curriculum/schema'
 
 /**
  * OpenAI Structured Outputs 의 strict 모드는 세 가지를 요구한다:
@@ -12,6 +13,106 @@ import { z } from 'zod'
  * 그건 OpenAI 쪽 디코딩의 보장이다. 우리 DB 에 넣기 전에 우리 코드로도
  * 확인한다 — 스키마를 고쳤는데 한쪽만 고치는 실수를 zod 가 잡는다.
  */
+
+
+// ── ① 콘텐츠 생성 ─────────────────────────────────
+
+/**
+ * ★ 문제 유형은 Topic 의 성격마다 뜻이 다르다.
+ *
+ * 처음에는 `recall / concept / application` 하나로 썼는데, 연습 Topic 의
+ * 실호출에서 이렇게 나왔다:
+ *
+ *   [concept] 기울기가 3인 직선의 식을 구할 때 필요한 정보는? **설명하라.**
+ *
+ * 계산을 연습시키는 Topic 인데 셋 중 하나가 설명 문제가 됐다. 모델 탓이
+ * 아니다 — `concept` 이라는 칸을 주면 개념 문제를 넣는 것이 맞다.
+ *
+ * 이 값은 화면에도 「기억 / 개념 / 적용」으로 보이므로, 계산 문제에
+ * 「개념」이 붙는 것은 사용자에게 보이는 오류다.
+ */
+export const QUESTION_TYPES = {
+  concept: ['recall', 'concept', 'application'],
+  vocabulary: ['recall', 'concept', 'application'],
+  reading: ['recall', 'concept', 'application'],
+  // 연습은 아는 것이 아니라 푸는 것을 잰다. 셋 다 손으로 풀어 답이 나온다.
+  practice: ['basic', 'combined', 'applied'],
+} as const satisfies Record<TopicKind, readonly [string, string, string]>
+
+/**
+ * 저장된 자료가 들고 있을 수 있는 모든 값.
+ *
+ * 읽기 스키마는 예전 것도 받아야 한다 — 유형을 나누기 전에 만들어진
+ * 자료가 `concept` 을 들고 있다 (`StoredContentSchema` 와 같은 이유).
+ */
+const ALL_QUESTION_TYPES = [
+  'recall', 'concept', 'application', 'basic', 'combined', 'applied',
+] as const
+
+const SOLUTION_JSON = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['answer_md', 'steps', 'evidence'],
+  properties: {
+    answer_md: { type: 'string' },
+    steps: { type: 'array', items: { type: 'string' } },
+    evidence: { type: 'string' },
+  },
+} as const
+
+/** 문제 배열의 JSON Schema. 콘텐츠(3개)와 복습(2개)이 같은 모양을 쓴다. */
+function questionsJson(ids: readonly string[], types: readonly string[]) {
+  return {
+    type: 'array',
+    minItems: ids.length,
+    maxItems: ids.length,
+    items: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['id', 'type', 'prompt', 'expected_points', 'hint', 'solution'],
+      properties: {
+        id: { type: 'string', enum: ids },
+        type: { type: 'string', enum: types },
+        prompt: { type: 'string' },
+        expected_points: { type: 'array', items: { type: 'string' } },
+        hint: { type: 'string' },
+        solution: SOLUTION_JSON,
+      },
+    },
+  }
+}
+
+export function contentJsonSchema(kind: TopicKind) {
+  return {
+    type: 'object',
+    additionalProperties: false,
+    required: ['passage', 'questions'],
+    properties: {
+      passage: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['title', 'body_md', 'key_terms'],
+        properties: {
+          title: { type: 'string' },
+          body_md: { type: 'string' },
+          key_terms: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['term', 'definition'],
+              properties: {
+                term: { type: 'string' },
+                definition: { type: 'string' },
+              },
+            },
+          },
+        },
+      },
+      questions: questionsJson(['q1', 'q2', 'q3'], QUESTION_TYPES[kind]),
+    },
+  }
+}
 
 /**
  * 해설. **채점을 받은 뒤에만 보인다.**
@@ -29,7 +130,7 @@ import { z } from 'zod'
 const SolutionSchema = z.object({
   /** 온전한 답이 어떤 모습인지 */
   answer_md: z.string().min(1),
-  /** 답에 이르는 단계. 정의 문제면 1~2, 계산이면 3~5 */
+  /** 답에 이르는 단계. 필요한 만큼만 */
   steps: z.array(z.string().min(1)).min(1),
   /**
    * 지문에서 근거가 된 문장 그대로.
@@ -43,63 +144,15 @@ const SolutionSchema = z.object({
 
 export type Solution = z.infer<typeof SolutionSchema>
 
-// ── ① 콘텐츠 생성 ─────────────────────────────────
-
-export const CONTENT_JSON_SCHEMA = {
-  type: 'object',
-  additionalProperties: false,
-  required: ['passage', 'questions'],
-  properties: {
-    passage: {
-      type: 'object',
-      additionalProperties: false,
-      required: ['title', 'body_md', 'key_terms'],
-      properties: {
-        title: { type: 'string' },
-        body_md: { type: 'string' },
-        key_terms: {
-          type: 'array',
-          items: {
-            type: 'object',
-            additionalProperties: false,
-            required: ['term', 'definition'],
-            properties: {
-              term: { type: 'string' },
-              definition: { type: 'string' },
-            },
-          },
-        },
-      },
-    },
-    questions: {
-      type: 'array',
-      minItems: 3,
-      maxItems: 3,
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['id', 'type', 'prompt', 'expected_points', 'hint', 'solution'],
-        properties: {
-          id: { type: 'string', enum: ['q1', 'q2', 'q3'] },
-          type: { type: 'string', enum: ['recall', 'concept', 'application'] },
-          prompt: { type: 'string' },
-          expected_points: { type: 'array', items: { type: 'string' } },
-          hint: { type: 'string' },
-          solution: {
-            type: 'object',
-            additionalProperties: false,
-            required: ['answer_md', 'steps', 'evidence'],
-            properties: {
-              answer_md: { type: 'string' },
-              steps: { type: 'array', items: { type: 'string' } },
-              evidence: { type: 'string' },
-            },
-          },
-        },
-      },
-    },
-  },
-} as const
+const QuestionShape = {
+  // ★ 읽기는 모든 유형을 받는다. 생성은 JSON Schema 가 성격별로 좁힌다.
+  type: z.enum(ALL_QUESTION_TYPES),
+  prompt: z.string().min(1),
+  // 루브릭이 비면 채점할 근거가 없다. 형식은 맞아도 쓸모가 없으므로 거른다.
+  expected_points: z.array(z.string().min(1)).min(1),
+  // strict 모드가 선택 필드를 못 만들어서 필수다. 빈 문자열은 허용한다.
+  hint: z.string(),
+}
 
 export const ContentSchema = z.object({
   passage: z.object({
@@ -109,12 +162,7 @@ export const ContentSchema = z.object({
   }),
   questions: z.array(z.object({
     id: z.enum(['q1', 'q2', 'q3']),
-    type: z.enum(['recall', 'concept', 'application']),
-    prompt: z.string().min(1),
-    // 루브릭이 비면 채점할 근거가 없다. 형식은 맞아도 쓸모가 없으므로 거른다.
-    expected_points: z.array(z.string().min(1)).min(1),
-    // strict 모드가 선택 필드를 못 만들어서 필수다. 빈 문자열은 허용한다.
-    hint: z.string(),
+    ...QuestionShape,
     solution: SolutionSchema,
   })).length(3),
 })
@@ -132,8 +180,6 @@ export type GeneratedContent = z.infer<typeof ContentSchema>
  * 학습이 통째로 막혔고, 자료를 다시 만들지도 않으므로 스스로 풀리지 않는다.
  *
  * 규칙: **모델에게 요구하는 것과 디스크에서 견디는 것은 다르다.**
- * 새 필드는 생성에서 필수, 읽기에서 선택이다. 옛 자료는 그 칸이 빈 채로
- * 계속 쓰인다 — 화면이 없는 것을 그리지 않으면 그만이다.
  */
 export const StoredContentSchema = ContentSchema.extend({
   questions: z.array(
@@ -154,50 +200,23 @@ export type StoredContent = z.infer<typeof StoredContentSchema>
  * 문제는 2개다. `review_items` 의 CHECK(round BETWEEN 1 AND 4)가 회차를
  * 묶으므로 Topic 당 복습 생성은 최대 4회다.
  */
-export const REVIEW_JSON_SCHEMA = {
-  type: 'object',
-  additionalProperties: false,
-  required: ['recap_md', 'questions'],
-  properties: {
-    recap_md: { type: 'string' },
-    questions: {
-      type: 'array',
-      minItems: 2,
-      maxItems: 2,
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['id', 'type', 'prompt', 'expected_points', 'hint', 'solution'],
-        properties: {
-          id: { type: 'string', enum: ['q1', 'q2'] },
-          type: { type: 'string', enum: ['recall', 'concept', 'application'] },
-          prompt: { type: 'string' },
-          expected_points: { type: 'array', items: { type: 'string' } },
-          hint: { type: 'string' },
-          solution: {
-            type: 'object',
-            additionalProperties: false,
-            required: ['answer_md', 'steps', 'evidence'],
-            properties: {
-              answer_md: { type: 'string' },
-              steps: { type: 'array', items: { type: 'string' } },
-              evidence: { type: 'string' },
-            },
-          },
-        },
-      },
+export function reviewJsonSchema(kind: TopicKind) {
+  return {
+    type: 'object',
+    additionalProperties: false,
+    required: ['recap_md', 'questions'],
+    properties: {
+      recap_md: { type: 'string' },
+      questions: questionsJson(['q1', 'q2'], QUESTION_TYPES[kind]),
     },
-  },
-} as const
+  }
+}
 
 export const ReviewSchema = z.object({
   recap_md: z.string().min(1),
   questions: z.array(z.object({
     id: z.enum(['q1', 'q2']),
-    type: z.enum(['recall', 'concept', 'application']),
-    prompt: z.string().min(1),
-    expected_points: z.array(z.string().min(1)).min(1),
-    hint: z.string(),
+    ...QuestionShape,
     solution: SolutionSchema,
   })).length(2),
 })

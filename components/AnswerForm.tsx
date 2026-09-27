@@ -17,8 +17,16 @@ export interface AnswerFormProps {
   saved: Answers | null
 }
 
+/**
+ * 문제 유형 라벨.
+ *
+ * 성격마다 뜻이 다르다 — 개념 Topic 은 무엇을 아는지, 연습 Topic 은
+ * 얼마나 엮어야 풀리는지를 잰다. 연습 문제에 「개념」이 붙어 있던 적이
+ * 있는데, 그건 사용자에게 보이는 오류였다.
+ */
 const TYPE_LABEL: Record<string, string> = {
   recall: '기억', concept: '개념', application: '적용',
+  basic: '기본', combined: '복합', applied: '응용',
 }
 
 /**

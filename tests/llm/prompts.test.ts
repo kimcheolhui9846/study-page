@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  contentSystem, REVIEW_SYSTEM, GRADE_SYSTEM,
+  contentSystem, reviewSystem, GRADE_SYSTEM,
   contentUserMessage, gradeUserMessage, type GradeTarget,
 } from '../../lib/llm/prompts'
 import { buildTopicContext, knownQuestionTypes } from '../../lib/llm/context'
@@ -16,6 +16,7 @@ const ctx = buildTopicContext(graph, topic, {
 })
 
 const CONTENT_SYSTEM = contentSystem('concept')
+const REVIEW_SYSTEM = reviewSystem('concept')
 
 /** 공통 규칙만 해도 이 길이는 넘는다. 레시피가 빈 문자열이면 여기서 걸린다. */
 const CONTENT_BASE_MIN = 600
@@ -339,5 +340,39 @@ describe('해설 지시', () => {
   it('★ 채점은 학습자가 쓴 문장을 인용하게 한다', () => {
     // 「~가 빠졌다」로 끝나면 무엇을 고쳐야 할지 알 수 없다.
     expect(GRADE_SYSTEM).toContain('학습자가 쓴 문장을 직접 인용')
+  })
+})
+
+describe('연습 레시피 — 실호출에서 나온 결함 둘', () => {
+  it('★ 셋 다 손으로 풀어 답이 나와야 한다고 못박는다', () => {
+    // 실호출에서 셋 중 하나가 "설명하라"로 나왔다.
+    const p = contentSystem('practice')
+    expect(p).toContain('셋 다 손으로 풀어 답이 나와야 한다')
+    expect(p).toContain('"설명하라"')
+  })
+
+  it('★ type 이 난이도라는 것을 설명한다', () => {
+    const p = contentSystem('practice')
+    for (const t of ['basic', 'combined', 'applied']) expect(p).toContain(t)
+  })
+
+  it('★ 단계 수를 채우지 말라고 한다 — "3~5단계"가 빈 단계를 불렀다', () => {
+    /*
+     * 실호출에서 단순 계산에 5단계가 나왔고 그중 둘이 "공식을 사용한다",
+     * "좌표를 확인한다"였다. 아무 결과도 남기지 않는 줄이다.
+     */
+    const p = contentSystem('concept')
+    expect(p).toContain('필요한 만큼만 쓴다')
+    expect(p).toContain('개수를 채우려 하지 마라')
+    expect(p).toContain('결과가 단계 안에 드러나야 한다')
+  })
+
+  it('빈 단계의 예를 들어 보여준다 — 규칙만으로는 안 지켜졌다', () => {
+    expect(contentSystem('concept')).toContain('"공식을 사용한다"')
+  })
+
+  it('★ 복습도 성격별 레시피를 받는다', () => {
+    expect(reviewSystem('practice')).toContain('셋 다 손으로 풀어 답이 나와야 한다')
+    expect(reviewSystem('concept')).not.toContain('셋 다 손으로 풀어')
   })
 })

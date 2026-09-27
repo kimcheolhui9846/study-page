@@ -1,6 +1,6 @@
 # 핸드오프
 
-**갱신:** 2026-09-27 · **브랜치:** `feat/math-drills` · PR #24~#36 머지됨
+**갱신:** 2026-09-27 · **브랜치:** `fix/practice-question-types` · PR #24~#37 머지됨
 
 **배포됨 → https://study-page-kimcheolhui9846s-projects.vercel.app**
 (`main` 에 머지하면 자동 배포된다)
@@ -14,7 +14,7 @@
 Topic 그래프로 갈아탔다. 설계는
 [`docs/specs/2026-09-01-adaptive-curriculum-design.md`](specs/2026-09-01-adaptive-curriculum-design.md).
 
-- 테스트 **620개 통과** (35파일, ~53초)
+- 테스트 **632개 통과** (35파일, ~53초)
 - `npm run build` 통과 — 라우트 **17개** · 린트 0 · `check:secrets` 통과
 - ✅ **실제 GPT 로 Day 2 를 완주했다** (2026-09-02) — 자료 생성 2회 + 채점 1회,
   누적 **$0.001767**. 진도·복습 예약·취약 개념까지 실제로 기록됐다.
@@ -158,6 +158,13 @@ Topic 을 추가할 때 그래프가 부팅에서 검증한다 — 중복 ID · 
 수학 19개가 전부 `kind: concept` 이고 목표가 전부 "설명한다"였는데, 학습자가
 실제로 틀린 것은 전부 **계산**이었다(「함수의 값 계산 방법」·「기울기 계산
 방법」). 연습 Topic 4개를 넣고 개념의 `remediation` 으로 걸었다.
+
+**★ 문제 유형이 성격마다 다르다.** 개념·어휘·독해는
+`recall/concept/application`, 연습은 `basic/combined/applied` 다. 이 값은
+화면에 「기억/개념/적용」·「기본/복합/응용」으로 보이므로, 계산 문제에
+「개념」이 붙으면 사용자에게 보이는 오류다. `contentJsonSchema(kind)` ·
+`reviewJsonSchema(kind)` 가 성격별로 좁힌다. **읽기 스키마는 여섯 값을 전부
+받는다** — 나누기 전에 저장된 자료가 있다.
 
 **★ 연습 Topic 은 선수를 갖지 않는다.** 개념을 못 넘겨서 내려오는 것인데
 선수를 걸면 바로 그 상황에서 잠긴다 — 보충이 막다른 길이 된다.

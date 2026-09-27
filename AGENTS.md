@@ -20,8 +20,22 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## 세션 시작 시
 
-1. **`docs/HANDOFF.md`를 먼저 읽는다.** 코드를 보기 전에.
-2. 설계 근거가 필요하면 `docs/DECISIONS.md`와 `docs/specs/`를 본다.
+1. **`git pull --ff-only`** — 다른 에이전트가 그 사이에 머지했을 수 있다.
+2. **`docs/HANDOFF.md`를 먼저 읽는다.** 코드를 보기 전에.
+3. 설계 근거가 필요하면 `docs/DECISIONS.md`와 `docs/specs/`를 본다.
+
+## ★ 에이전트를 번갈아 쓴다
+
+이 저장소는 Claude Code 와 Codex 가 번갈아 작업한다. 둘이 같은 순간에
+같은 파일을 보지 않도록 **작업 단위를 닫고 넘긴다.**
+
+- **한 번에 PR 하나.** 열어둔 채로 다른 작업을 시작하지 않는다.
+- **커밋하지 않은 변경을 남긴 채 넘기지 않는다.** 다음 에이전트가 그 위에서
+  시작하면 누가 무엇을 바꿨는지 알 수 없게 된다.
+- **넘기기 전에 `docs/HANDOFF.md`를 갱신한다.** 그게 유일한 인수인계다 —
+  대화 기록은 다음 에이전트에게 닿지 않는다.
+- `npm run dev` 를 돌리면 이 파일 위쪽 블록이 다시 쓰여 커밋 안 된 변경이
+  생길 수 있다. 작업과 함께 커밋하면 트리가 깨끗해진다.
 
 ## Next.js 16
 
@@ -101,11 +115,14 @@ subject 불일치 · 연습 Topic의 선수 여부를 잡는다.
 PR 전에 넷을 전부 돌린다.
 
 ```bash
-npm test              # 632개
+npm test              # 개수는 docs/HANDOFF.md 에 있다
 npm run lint          # 0 이어야 한다
 npx tsc --noEmit
 npm run check:secrets
 ```
+
+**린트 경고도 0 이어야 한다.** 계속 빨간 린트는 진짜 오류를 묻는다 —
+끄려면 그 줄에서만 끄고 근거를 주석으로 남긴다.
 
 ## 스택 참조
 

@@ -245,6 +245,45 @@ export function materialOfReview(r: StoredReview, title: string): StudyMaterial 
   return { title, bodyMd: r.recap_md, keyTerms: [], questions: r.questions }
 }
 
+// ── ②-b 해설 채우기 ────────────────────────────
+
+/**
+ * 해설이 없던 시절에 만들어진 자료에 해설만 채워 넣는다.
+ *
+ * ★ 지문과 문제를 다시 만들지 않는다. 학습자가 이미 그 지문을 읽고 그
+ * 문제에 답했다. 새로 만들면 이미 쓴 답과 채점 기록이 가리키는 문제가
+ * 달라진다 — 그건 복구가 아니라 덮어쓰기다.
+ *
+ * 그래서 입력이 다르다: 지문·문제·루브릭을 **주고** 해설만 받는다.
+ */
+export const SOLUTIONS_JSON_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['solutions'],
+  properties: {
+    solutions: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['id', 'answer_md', 'steps', 'evidence'],
+        properties: {
+          id: { type: 'string' },
+          answer_md: { type: 'string' },
+          steps: { type: 'array', items: { type: 'string' } },
+          evidence: { type: 'string' },
+        },
+      },
+    },
+  },
+} as const
+
+export const SolutionsSchema = z.object({
+  solutions: z.array(SolutionSchema.extend({ id: z.string().min(1) })).min(1),
+})
+
+export type GeneratedSolutions = z.infer<typeof SolutionsSchema>
+
 // ── ③ 채점 ─────────────────────────────────────
 
 /**

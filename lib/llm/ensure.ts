@@ -7,9 +7,9 @@ import type { ProgressState } from '../plan/types'
 import { recordUsage, reserve, rollback } from '../budget/reserve'
 import { MODEL } from './pricing'
 import { buildTopicContext } from './context'
-import { contentSystem, REVIEW_SYSTEM, contentUserMessage } from './prompts'
+import { contentSystem, reviewSystem, contentUserMessage } from './prompts'
 import {
-  CONTENT_JSON_SCHEMA, REVIEW_JSON_SCHEMA,
+  contentJsonSchema, reviewJsonSchema,
   ContentSchema, ReviewSchema, StoredContentSchema, StoredReviewSchema,
   materialOfContent, materialOfReview,
   type StudyMaterial,
@@ -138,10 +138,10 @@ export async function ensureMaterial(
   try {
     result = await deps.llm.generate<unknown>({
       route,
-      system: review ? REVIEW_SYSTEM : contentSystem(topic.kind),
+      system: review ? reviewSystem(topic.kind) : contentSystem(topic.kind),
       user: contentUserMessage(ctx),
       schemaName: review ? 'review_content' : 'study_content',
-      jsonSchema: review ? REVIEW_JSON_SCHEMA : CONTENT_JSON_SCHEMA,
+      jsonSchema: review ? reviewJsonSchema(topic.kind) : contentJsonSchema(topic.kind),
       maxTokens: review ? MAX_TOKENS_REVIEW : MAX_TOKENS_CONTENT,
       temperature: 0.6,
     })

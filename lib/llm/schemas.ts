@@ -121,6 +121,28 @@ export const ContentSchema = z.object({
 
 export type GeneratedContent = z.infer<typeof ContentSchema>
 
+/**
+ * ★ 저장된 자료를 **읽을 때** 쓰는 스키마.
+ *
+ * 생성 스키마(`ContentSchema`)와 같을 수 없다. 저장된 행은 **옛날 코드가
+ * 쓴 것**이라 지금 스키마가 요구하는 필드가 없을 수 있다.
+ *
+ * 실제로 그렇게 깨졌다. `solution` 을 필수로 더한 순간, 그 전에 만들어진
+ * 자료 6개가 전부 「저장된 자료를 지금 형식으로 읽을 수 없다」가 됐다.
+ * 학습이 통째로 막혔고, 자료를 다시 만들지도 않으므로 스스로 풀리지 않는다.
+ *
+ * 규칙: **모델에게 요구하는 것과 디스크에서 견디는 것은 다르다.**
+ * 새 필드는 생성에서 필수, 읽기에서 선택이다. 옛 자료는 그 칸이 빈 채로
+ * 계속 쓰인다 — 화면이 없는 것을 그리지 않으면 그만이다.
+ */
+export const StoredContentSchema = ContentSchema.extend({
+  questions: z.array(
+    ContentSchema.shape.questions.element.extend({ solution: SolutionSchema.optional() }),
+  ).length(3),
+})
+
+export type StoredContent = z.infer<typeof StoredContentSchema>
+
 // ── ② 복습 콘텐츠 ───────────────────────────────
 
 /**
@@ -182,6 +204,15 @@ export const ReviewSchema = z.object({
 
 export type GeneratedReview = z.infer<typeof ReviewSchema>
 
+/** 저장된 복습 자료를 읽을 때. 이유는 `StoredContentSchema` 와 같다. */
+export const StoredReviewSchema = ReviewSchema.extend({
+  questions: z.array(
+    ReviewSchema.shape.questions.element.extend({ solution: SolutionSchema.optional() }),
+  ).length(2),
+})
+
+export type StoredReview = z.infer<typeof StoredReviewSchema>
+
 /**
  * 화면과 채점이 보는 공통 모양.
  *
@@ -192,10 +223,16 @@ export interface StudyMaterial {
   title: string
   bodyMd: string
   keyTerms: Array<{ term: string; definition: string }>
-  questions: GeneratedContent['questions'] | GeneratedReview['questions']
+  /**
+   * ★ 저장 쪽(해설이 없을 수 있는) 타입이다.
+   *
+   * 자료는 갓 생성된 것일 수도, 디스크에서 읽은 옛 것일 수도 있다.
+   * 느슨한 쪽으로 좁혀 두면 화면과 채점기가 어느 쪽인지 알 필요가 없다.
+   */
+  questions: StoredContent['questions'] | StoredReview['questions']
 }
 
-export function materialOfContent(c: GeneratedContent): StudyMaterial {
+export function materialOfContent(c: StoredContent): StudyMaterial {
   return {
     title: c.passage.title,
     bodyMd: c.passage.body_md,
@@ -204,7 +241,7 @@ export function materialOfContent(c: GeneratedContent): StudyMaterial {
   }
 }
 
-export function materialOfReview(r: GeneratedReview, title: string): StudyMaterial {
+export function materialOfReview(r: StoredReview, title: string): StudyMaterial {
   return { title, bodyMd: r.recap_md, keyTerms: [], questions: r.questions }
 }
 
@@ -327,7 +364,11 @@ export function publicQuestions(m: StudyMaterial): PublicQuestion[] {
  * 거기에 비밀을 하나 더 얹는다. 해설을 꺼내는 쪽은 이름으로 드러나야 한다.
  */
 export function solutionsOf(m: StudyMaterial): Record<string, Solution> {
-  return Object.fromEntries(m.questions.map((q) => [q.id, q.solution]))
+  // 해설을 넣기 전에 만들어진 자료에는 없다. 없는 것은 빼고 준다 —
+  // 화면은 `solutions[id]` 가 없으면 해설 블록을 그리지 않는다.
+  return Object.fromEntries(
+    m.questions.flatMap((q) => (q.solution ? [[q.id, q.solution]] : [])),
+  )
 }
 
 export function hintFor(m: StudyMaterial, questionId: string): string | null {

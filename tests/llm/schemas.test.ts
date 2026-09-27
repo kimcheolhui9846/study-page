@@ -3,6 +3,7 @@ import {
   CONTENT_JSON_SCHEMA, REVIEW_JSON_SCHEMA, GRADE_JSON_SCHEMA,
   ContentSchema, ReviewSchema, GradeSchema,
   materialOfContent, materialOfReview, publicQuestions, solutionsOf, hintFor,
+  StoredContentSchema, StoredReviewSchema,
 } from '../../lib/llm/schemas'
 
 /**
@@ -244,6 +245,13 @@ describe('GradeSchema', () => {
  * 해설이 들어오면서 막을 것이 하나 더 늘었으므로 여기서 화이트리스트로
  * 잠근다 — 앞으로 문제에 무슨 필드를 더하든 이 테스트가 먼저 깨진다.
  */
+/** 해설만 떼어낸다. 구조분해로 버리면 안 쓰는 변수가 생겨 린트가 운다. */
+function withoutSolution(q: object): Record<string, unknown> {
+  const copy: Record<string, unknown> = { ...q }
+  delete copy.solution
+  return copy
+}
+
 describe('publicQuestions — 채점 전에 보여도 되는 것', () => {
   const material = materialOfContent(ContentSchema.parse(validContent))
 
@@ -292,13 +300,6 @@ describe('solutionsOf — 채점 뒤에만 쓰는 길', () => {
 })
 
 describe('해설 스키마', () => {
-  /** 해설만 떼어낸다. 구조분해로 버리면 안 쓰는 변수가 생겨 린트가 운다. */
-  function withoutSolution(q: object): Record<string, unknown> {
-    const copy: Record<string, unknown> = { ...q }
-    delete copy.solution
-    return copy
-  }
-
   it('★ 해설이 없는 응답은 거른다 — 조용히 비어 있으면 안 된다', () => {
     const missing = {
       ...validContent,
@@ -343,5 +344,61 @@ describe('해설 스키마', () => {
       questions: validReview.questions.map(withoutSolution),
     }
     expect(ReviewSchema.safeParse(missing).success).toBe(false)
+  })
+})
+
+/**
+ * ★ 실제로 앱을 멈춘 회귀다.
+ *
+ * `solution` 을 필수로 더한 순간, 그 전에 만들어진 자료 6개가 전부
+ * 「저장된 자료를 지금 형식으로 읽을 수 없다」가 됐다. 학습이 통째로
+ * 막혔고, 자료를 다시 만들지 않는 경로라 스스로 풀리지도 않았다.
+ *
+ * 원인은 **읽기와 생성이 같은 스키마를 쓴 것**이다. 저장된 행은 옛날
+ * 코드가 쓴 것이라 지금 요구하는 필드가 없을 수 있다.
+ *
+ * 이 테스트는 「예전 형식으로 저장된 자료가 계속 읽히는가」를 지킨다.
+ * 앞으로 필수 필드를 더하면 여기서 먼저 깨진다.
+ */
+describe('저장 스키마는 생성 스키마보다 느슨하다', () => {
+  /** 해설을 넣기 전에 저장됐던 모양 그대로. */
+  function oldContent() {
+    return {
+      ...validContent,
+      questions: validContent.questions.map(withoutSolution),
+    }
+  }
+
+  it('★ 해설이 없던 시절의 자료가 계속 읽힌다', () => {
+    expect(StoredContentSchema.safeParse(oldContent()).success).toBe(true)
+  })
+
+  it('★ 그래도 모델에게는 해설을 요구한다 — 새 자료는 빠짐없이 나온다', () => {
+    expect(ContentSchema.safeParse(oldContent()).success).toBe(false)
+  })
+
+  it('옛 자료를 읽으면 해설이 0개다 — 화면은 없는 것을 그리지 않는다', () => {
+    const m = materialOfContent(StoredContentSchema.parse(oldContent()))
+    expect(solutionsOf(m)).toEqual({})
+    expect(publicQuestions(m)).toHaveLength(3)
+  })
+
+  it('새 자료를 읽으면 해설이 그대로 온다', () => {
+    const m = materialOfContent(StoredContentSchema.parse(validContent))
+    expect(Object.keys(solutionsOf(m))).toEqual(['q1', 'q2', 'q3'])
+  })
+
+  it('복습 자료도 같은 규칙이다', () => {
+    const old = {
+      ...validReview,
+      questions: validReview.questions.map(withoutSolution),
+    }
+    expect(StoredReviewSchema.safeParse(old).success).toBe(true)
+    expect(ReviewSchema.safeParse(old).success).toBe(false)
+  })
+
+  it('★ 저장 스키마도 형식이 깨진 것은 거른다 — 아무거나 받지 않는다', () => {
+    const broken = { ...validContent, questions: [{ id: 'q1' }] }
+    expect(StoredContentSchema.safeParse(broken).success).toBe(false)
   })
 })

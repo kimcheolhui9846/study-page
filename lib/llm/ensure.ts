@@ -10,7 +10,7 @@ import { buildTopicContext } from './context'
 import { contentSystem, REVIEW_SYSTEM, contentUserMessage } from './prompts'
 import {
   CONTENT_JSON_SCHEMA, REVIEW_JSON_SCHEMA,
-  ContentSchema, ReviewSchema,
+  ContentSchema, ReviewSchema, StoredContentSchema, StoredReviewSchema,
   materialOfContent, materialOfReview,
   type StudyMaterial,
 } from './schemas'
@@ -76,7 +76,9 @@ export async function loadStoredMaterial(
       .where(and(eq(reviewItems.topicId, topic.id), eq(reviewItems.round, req.round!)))
     if (!row) return null
 
-    const parsed = ReviewSchema.safeParse(row.content)
+    // ★ 읽을 때는 저장 스키마다. 생성 스키마로 읽으면 필드를 더할 때마다
+    // 그 전에 저장된 자료가 전부 무효가 된다 (실제로 그렇게 깨졌다).
+    const parsed = StoredReviewSchema.safeParse(row.content)
     return parsed.success ? materialOfReview(parsed.data, topic.title) : 'invalid'
   }
 
@@ -84,7 +86,7 @@ export async function loadStoredMaterial(
     .where(eq(topicContents.topicId, topic.id))
   if (!row) return null
 
-  const parsed = ContentSchema.safeParse(row.content)
+  const parsed = StoredContentSchema.safeParse(row.content)
   return parsed.success ? materialOfContent(parsed.data) : 'invalid'
 }
 

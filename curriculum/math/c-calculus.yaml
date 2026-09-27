@@ -13,7 +13,7 @@ modules:
         difficulty: 1
         estimatedMinutes: 20
         keywords: [평균변화율, 순간변화율, 할선, 접선]
-        remediation: [math.foundation.functions]
+        remediation: [math.foundation.functions, math.calc.rate-drill]
 
       - id: math.calc.derivative
         title: 미분
@@ -46,3 +46,17 @@ modules:
         estimatedMinutes: 35
         prerequisites: [math.calc.partial, math.la.vector-ops]
         keywords: [기울기, 경사, 방향미분]
+
+  # 계산 연습. 선수를 갖지 않는 이유는 `a-foundation.yaml` 의 drill 모듈과 같다.
+  - id: drill
+    label: 계산 연습
+    topics:
+      - id: math.calc.rate-drill
+        title: 변화율 계산 연습
+        goal: 구간이 주어졌을 때 평균변화율을 계산한다
+        kind: practice
+        difficulty: 1
+        estimatedMinutes: 15
+        required: optional
+        keywords: [평균변화율, 구간, 함숫값 차이]
+        questionTypes: [calculation]

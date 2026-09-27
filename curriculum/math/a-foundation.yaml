@@ -19,6 +19,7 @@ modules:
         difficulty: 1
         estimatedMinutes: 20
         required: optional
+        remediation: [math.foundation.expression-drill]
         keywords: [분배법칙, 인수분해, 동류항]
 
       - id: math.foundation.functions
@@ -28,6 +29,7 @@ modules:
         estimatedMinutes: 25
         required: optional
         prerequisites: [math.foundation.expressions]
+        remediation: [math.foundation.function-drill]
         keywords: [정의역, 치역, 대응, 그래프]
 
       - id: math.foundation.coordinates
@@ -36,6 +38,7 @@ modules:
         difficulty: 1
         estimatedMinutes: 20
         required: optional
+        remediation: [math.foundation.slope-drill]
         keywords: [좌표평면, 순서쌍, 기울기]
 
       - id: math.foundation.exp-log
@@ -46,3 +49,44 @@ modules:
         required: optional
         prerequisites: [math.foundation.functions]
         keywords: [지수법칙, 로그, 밑, 역함수]
+
+  # ★ 계산 연습.
+  #
+  # 수학 Topic 의 목표가 전부 "설명한다"로 끝나 있었다. 그런데 실제로 막히는
+  # 자리는 「함수의 값 계산 방법」·「기울기 계산 방법」처럼 전부 계산이었다.
+  # 개념을 설명할 줄 아는 것과 손으로 풀 줄 아는 것은 다르다.
+  #
+  # ★ 선수를 갖지 않는다. 못 넘겨서 여기로 내려오는 것인데 선수를 걸면
+  # 바로 그 상황에서 잠긴다 — 보충 경로가 막다른 길이 된다.
+  - id: drill
+    label: 계산 연습
+    topics:
+      - id: math.foundation.expression-drill
+        title: 식 계산 연습
+        goal: 주어진 식을 전개하고 인수분해해서 결과를 쓴다
+        kind: practice
+        difficulty: 1
+        estimatedMinutes: 15
+        required: optional
+        keywords: [전개, 인수분해, 동류항, 공통인수]
+        questionTypes: [calculation, procedure]
+
+      - id: math.foundation.function-drill
+        title: 함수값 계산 연습
+        goal: 함수식에 값을 넣어 결과를 구하고 정의역과 치역을 찾는다
+        kind: practice
+        difficulty: 1
+        estimatedMinutes: 15
+        required: optional
+        keywords: [함수값, 대입, 정의역, 치역]
+        questionTypes: [calculation]
+
+      - id: math.foundation.slope-drill
+        title: 기울기 계산 연습
+        goal: 두 점이 주어졌을 때 기울기를 계산하고 직선의 식을 쓴다
+        kind: practice
+        difficulty: 1
+        estimatedMinutes: 15
+        required: optional
+        keywords: [기울기, 두 점, 직선의 식, y절편]
+        questionTypes: [calculation, procedure]

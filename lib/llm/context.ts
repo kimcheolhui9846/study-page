@@ -170,6 +170,9 @@ const QUESTION_TYPE: Record<string, string> = {
   notation: '기호와 표기를 정확히 쓰게 한다',
   explain: '왜 그런지 설명하게 한다',
   concept: '개념의 정의와 경계를 묻는다',
+  // 연습 Topic 용. 설명이 아니라 손으로 풀어 답이 나오는 것을 묻는다.
+  calculation: '직접 계산해서 답을 내게 한다. 답만이 아니라 과정도 쓰게 한다',
+  procedure: '푸는 절차를 순서대로 쓰게 한다',
 }
 
 /** 커리큘럼이 쓰는 문제 유형 슬러그. 테스트가 이걸로 커리큘럼을 검사한다. */

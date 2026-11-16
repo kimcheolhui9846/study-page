@@ -53,6 +53,6 @@ describe('API 키의 경계', () => {
 
   it('FakeLlmClient 가 남아 있다 — 모든 통합 테스트가 이걸 주입한다', async () => {
     const fake = await import('../lib/llm/fake')
-    expect(Object.keys(fake).sort()).toEqual(['FailingLlmClient', 'FakeLlmClient'])
+    expect(Object.keys(fake).sort()).toEqual(['FailingLlmClient', 'FakeLlmClient', 'ScriptedLlmClient'])
   })
 })

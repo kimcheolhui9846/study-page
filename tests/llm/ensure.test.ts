@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { dailyCallCap } from '../../lib/budget/caps'
 import { eq } from 'drizzle-orm'
 import { createTestDb } from '../helpers/testDb'
 import { fixedClock } from '../helpers/clock'
@@ -179,7 +180,7 @@ describe('예산 (③겹)', () => {
   it('★ 예산이 없으면 LLM 을 부르지 않는다', async () => {
     // 일일 캡을 다 써버린 상태를 만든다
     await db.insert(budgetCounters).values({
-      periodKey: 'day:2026-09-01', calls: 5, capCalls: 5, capMicros: 3_000_000,
+      periodKey: 'day:2026-09-01', calls: dailyCallCap(), capCalls: dailyCallCap(), capMicros: 3_000_000,
     })
 
     const llm = new FakeLlmClient(CONTENT_PAYLOAD)

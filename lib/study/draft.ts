@@ -44,3 +44,29 @@ export function clearDraft(topicId: string): void {
     // 무시
   }
 }
+
+// ── 자유학습 ─────────────────────────────────────
+//
+// 답안·코드·채팅 입력을 칸마다 문자열로 남긴다. 실패·인증 만료·새로고침에도
+// 쓰던 것을 잃지 않게 하는 것이 목적이다. 위 함수들과 같은 이유로 전부 삼킨다.
+
+export function studyDraftKey(scope: string): string {
+  return `study-page:study:${scope}`
+}
+
+export function loadText(key: string): string {
+  try {
+    return localStorage.getItem(key) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+export function saveText(key: string, value: string): void {
+  try {
+    if (value) localStorage.setItem(key, value)
+    else localStorage.removeItem(key)
+  } catch {
+    // 저장 못 해도 화면은 계속 돈다
+  }
+}

@@ -114,7 +114,7 @@ describe('비용 원장', () => {
 
     const r = await loadUsageReport(db, clock)
     expect(r.dailyCalls).toBe(2)
-    expect(r.dailyCap).toBe(3)
+    expect(r.dailyCap).toBe(10)
   })
 })
 

@@ -39,12 +39,48 @@
   --color-stop-tint: #fceae7;
   --color-stop-rule: #edbdb5;
 
+  /* 과목 색 넷 (2026-11-16 자유학습). 상태색과 같은 채도·명도대에 둔다 —
+     과목 색이 「맞음·틀림」보다 크게 외치면 피드백이 묻힌다. */
+  --color-english: #2f5aa8;
+  --color-english-tint: #e6edf8;
+  --color-math: #7a3f8c;
+  --color-math-tint: #f2e8f5;
+  --color-cs: #12707a;
+  --color-cs-tint: #dff0f1;
+  --color-coding: #a4501b;
+  --color-coding-tint: #f8e9de;
+
+  --animate-rise: rise 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-blink: blink 1.2s ease-in-out infinite;
+
   --font-serif: var(--font-gowun-batang), Georgia, "Times New Roman", serif;
   --font-sans: var(--font-plex-sans-kr), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, Menlo, monospace;
 
   --radius-card: 6px;
   --radius-control: 5px;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* 공책 줄. 시작 입력칸이 「쓰는 자리」로 보이게 한다 */
+.ruled {
+  background-image: linear-gradient(to bottom, transparent calc(2.1rem - 1px), var(--color-rule) calc(2.1rem - 1px));
+  background-size: 100% 2.1rem;
+  background-attachment: local;
+  line-height: 2.1rem;
 }
 
 /*

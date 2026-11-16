@@ -67,12 +67,16 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 `lib/budget/reserve.ts`, `lib/session/guard.ts`, `topic_contents`·`review_items`의
 UNIQUE 제약, `plan_items`의 CHECK 제약 — 이 넷이 비용 방어선이다.
+자유학습에서는 여기에 `lib/study/call.ts`(유일한 유료 호출 지점·실패 정산),
+`ai_requests` PK(멱등성), `study_submissions`의 시도 CHECK 가 더해진다.
 고치기 전에 아래를 읽고, 고친 뒤에는 반드시 테스트를 돌린다.
 
 - [`2026-08-31-ai-study-page-design.md`](docs/specs/2026-08-31-ai-study-page-design.md)
   **§3** 보안·세션·비용 차단 · **§4.5** 예산 예약(레이스 없는 원자적 차감)
 - [`2026-09-01-adaptive-curriculum-design.md`](docs/specs/2026-09-01-adaptive-curriculum-design.md)
   **§0.3** ③겹의 계산 근거 · **§7.4** 예산에 맞춰 자르기
+- [`2026-11-16-free-study-modes-design.md`](docs/specs/2026-11-16-free-study-modes-design.md)
+  **§5** 멱등성 · **§6** 비용·실패 정산
 
 **캡은 환경에서 온다. 카운터 행에 굳어 있지 않다** (`lib/budget/caps.ts`).
 스크립트가 돈을 쓸 때도 `reserve()`를 지나야 한다 — 방어선에 뒷문을 내면
@@ -84,16 +88,30 @@ UNIQUE 제약, `plan_items`의 CHECK 제약 — 이 넷이 비용 방어선이�
 
 | | 스키마 | 새 필드 |
 |---|---|---|
-| 모델 응답 검증 | `ContentSchema` · `ReviewSchema` | **필수** |
-| 저장된 행 읽기 | `StoredContentSchema` · `StoredReviewSchema` | 선택 |
+| 모델 응답 검증 | `ContentSchema` · `ReviewSchema` · 자유학습 `…Gen` | **필수** |
+| 저장된 행 읽기 | `StoredContentSchema` · `StoredReviewSchema` · 자유학습 `Stored…` | 선택 |
 
 필수 필드를 더했다가 그 전에 저장된 자료가 전부 무효가 되어 학습이 통째로
 막힌 적이 있다. **새 필드는 생성에서 필수, 읽기에서 선택으로 둔다.**
 
-## 커리큘럼을 고칠 때
+## 자유학습을 고칠 때
 
-`curriculum/**/*.yaml`이 유일한 출처다. **GPT는 Topic을 만들지 않는다** —
-지문과 문제만 만든다. Topic 추가·수정은 PR로만 한다.
+기본 진입 경로다 (`/` → `/study/[id]`). 설계는
+[`2026-11-16-free-study-modes-design.md`](docs/specs/2026-11-16-free-study-modes-design.md).
+
+- **비공개(정답·루브릭·해설·힌트)는 `study_problems.private` 에만.** 밖으로는
+  `publicProblem()` · `publicFeedback()` 투영만 나간다. 필드를 더하면
+  `tests/study/schemas.test.ts` 의 화이트리스트가 먼저 깨진다 — 그게 의도다.
+- **대화 모델(luna)에는 미공개 해설을 넘기지 않는다** (`lib/study/context.ts`).
+- 세션 경계는 `lib/study/store.ts` 가 강제한다. 문제를 찾는 함수는 sessionId 를 받는다.
+- 하네스는 `lib/study/modes/` 의 데이터다. 모드를 더하면 DB 의 `study_mode` CHECK 도 고친다.
+- 코드 실행기는 없다. 「실행·통과·AC」라는 말을 화면과 프롬프트에 쓰지 않는다.
+
+## 커리큘럼을 고칠 때 (보조 경로)
+
+`curriculum/**/*.yaml`이 유일한 출처다. **커리큘럼 경로에서 GPT는 Topic을 만들지 않는다** —
+지문과 문제만 만든다. Topic 추가·수정은 PR로만 한다. (자유학습은 Topic 이 아니라
+학습 세션을 만든다 — YAML 과 무관하다.)
 
 검증은 레포 안에 있다. `npm test`가 중복 ID · 없는 선수 참조 · 사이클 ·
 subject 불일치 · 연습 Topic의 선수 여부를 잡는다.
@@ -127,6 +145,8 @@ npm run check:secrets
 ## 스택 참조
 
 Next.js 16 (App Router) · TypeScript · Tailwind 4 · Drizzle ORM ·
-Neon Postgres · Vercel · OpenAI `gpt-4o-mini` (Structured Outputs)
+Neon Postgres · Vercel · OpenAI Structured Outputs
+(자유학습 `gpt-6-luna`·`gpt-6.1-terra`, 커리큘럼 `gpt-4o-mini` — 단가는 `lib/llm/pricing.ts`)
 
-전체 설계는 [`docs/specs/2026-09-01-adaptive-curriculum-design.md`](docs/specs/2026-09-01-adaptive-curriculum-design.md).
+자유학습 설계는 [`docs/specs/2026-11-16-free-study-modes-design.md`](docs/specs/2026-11-16-free-study-modes-design.md),
+커리큘럼 설계는 [`docs/specs/2026-09-01-adaptive-curriculum-design.md`](docs/specs/2026-09-01-adaptive-curriculum-design.md).

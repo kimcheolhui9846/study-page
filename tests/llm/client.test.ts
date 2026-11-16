@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { OpenAiLlmClient } from '../../lib/llm/client'
+import { LlmHttpError, LlmTransportError, LlmTruncatedError, OpenAiLlmClient } from '../../lib/llm/client'
 import type { LlmRequest } from '../../lib/llm/types'
 
 /**
@@ -157,4 +157,60 @@ describe('OpenAiLlmClient', () => {
     expect(r.promptTokens).toBe(0)
     expect(r.costMicros).toBe(0)
   })
+
+  it('★ HTTP 오류는 LlmHttpError 다 — 서버가 거절했으니 돈이 나가지 않았다', async () => {
+    stubFetch(async () => new Response('x', { status: 500 }))
+    const err = await new OpenAiLlmClient().generate(req).catch((e: unknown) => e)
+    expect(err).toBeInstanceOf(LlmHttpError)
+    expect((err as LlmHttpError).status).toBe(500)
+  })
+
+  it('★ 연결이 끊기거나 시간이 넘으면 LlmTransportError 다 — 돈이 나갔을 수 있다', async () => {
+    stubFetch(async () => { throw new DOMException('timeout', 'TimeoutError') })
+    const err = await new OpenAiLlmClient().generate(req).catch((e: unknown) => e)
+    expect(err).toBeInstanceOf(LlmTransportError)
+  })
+
+  it('★ 잘린 응답은 LlmTruncatedError 이고 실제 사용량을 들고 있다', async () => {
+    stubFetch(async () => new Response(JSON.stringify({
+      choices: [{ message: { content: '{"a":' }, finish_reason: 'length' }],
+      usage: { prompt_tokens: 1000, completion_tokens: 4000 },
+    }), { status: 200 }))
+    const err = await new OpenAiLlmClient()
+      .generate({ ...req, model: 'gpt-6-luna' }).catch((e: unknown) => e)
+    expect(err).toBeInstanceOf(LlmTruncatedError)
+    expect((err as LlmTruncatedError).costMicros).toBe(100 + 2000)
+  })
 })
+
+describe('OpenAiLlmClient — 추론 모델', () => {
+  const reasoningReq: LlmRequest = {
+    ...req, model: 'gpt-6.1-terra', reasoningEffort: 'low', temperature: undefined, maxTokens: 12_000,
+  }
+
+  it('★ max_completion_tokens 와 reasoning_effort 를 보내고 temperature·max_tokens 는 보내지 않는다', async () => {
+    let sent: Record<string, unknown> = {}
+    stubFetch(async (_url, init) => {
+      sent = JSON.parse(init.body as string)
+      return new Response(JSON.stringify(okBody({ ok: true })), { status: 200 })
+    })
+
+    await new OpenAiLlmClient().generate(reasoningReq)
+
+    expect(sent.model).toBe('gpt-6.1-terra')
+    expect(sent.max_completion_tokens).toBe(12_000)
+    expect(sent.reasoning_effort).toBe('low')
+    expect(sent).not.toHaveProperty('temperature')
+    expect(sent).not.toHaveProperty('max_tokens')
+  })
+
+  it('비용은 요청한 모델의 단가로 계산한다', async () => {
+    stubFetch(async () => new Response(
+      JSON.stringify(okBody({ ok: true }, { prompt_tokens: 1000, completion_tokens: 1000 })),
+      { status: 200 },
+    ))
+    const r = await new OpenAiLlmClient().generate(reasoningReq)
+    expect(r.costMicros).toBe(1000 + 5000)
+  })
+})
+

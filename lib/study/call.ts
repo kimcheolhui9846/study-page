@@ -94,7 +94,7 @@ export async function paidCall<T>(deps: StudyDeps, i: {
     costMicros: result.costMicros,
   }
 
-  const parsed = i.parse(result.data)
+  const parsed = i.parse(stripControl(result.data))
   if (!parsed.success) {
     // 응답을 받았으니 돈은 나갔다. 예약을 돌려주면 계속 틀리는 응답이 캡에 안 걸린다.
     await recordUsage(deps.db, deps.clock, { ...usage, ok: false })
@@ -103,4 +103,19 @@ export async function paidCall<T>(deps: StudyDeps, i: {
 
   await recordUsage(deps.db, deps.clock, { ...usage, ok: true })
   return { ok: true, data: parsed.data }
+}
+
+// ANSI 이스케이프(ESC [ … 글자)와 줄바꿈·탭을 뺀 C0 제어 문자·DEL.
+// 2026-11-16 실호출에서 모델이 수식 안에 「ESC[0m」을 섞어 낸 적이 있다.
+const ANSI = /\x1b\[[0-9;?]*[ -/]*[@-~]/g
+const CONTROL = /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g
+
+/** 모델 응답의 모든 문자열에서 화면을 깨는 제어 문자를 지운다. 구조는 그대로 둔다. */
+export function stripControl(x: unknown): unknown {
+  if (typeof x === 'string') return x.replace(ANSI, '').replace(CONTROL, '')
+  if (Array.isArray(x)) return x.map(stripControl)
+  if (x && typeof x === 'object') {
+    return Object.fromEntries(Object.entries(x).map(([k, v]) => [k, stripControl(v)]))
+  }
+  return x
 }

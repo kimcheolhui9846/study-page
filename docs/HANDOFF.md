@@ -16,7 +16,7 @@
 ## ⚠ 다음 에이전트가 먼저 알아야 할 것
 
 **머지하기 전에 운영 DB 에 `drizzle/0001` 을 적용해야 한다.** 안 하면 배포된 `/` 가 500 이다.
-실호출은 아직 0건이다 — 첫 실호출에서 추론 모델 파라미터가 받아들여지는지 확인한다.
+실호출 평가는 로컬 PGlite DB 에서 13회 돌렸다 (`docs/evals/free-study.md`). **운영 DB·Neon 브랜치에는 아직 마이그레이션을 걸지 않았다.**
 
 ## 지금 상태
 
@@ -32,13 +32,13 @@
 
 | 명령 | 결과 |
 |---|---|
-| `npm test` | **778개 통과** (45파일) — 그중 자유학습 `tests/study/` 11파일 |
+| `npm test` | **779개 통과** (45파일) — 그중 자유학습 `tests/study/` 11파일 |
 | `npm run lint` | 0 |
 | `npx tsc --noEmit` | 0 |
 | `npm run check:secrets` | 통과 |
 | `npm run build` | 통과 — 라우트 26개 |
 | 화면 | DB 없는 임시 미리보기 경로에 가짜 데이터를 넣어 데스크톱(1360)·모바일(390)에서 확인 후 삭제. **실제 DB·로그인을 거친 화면 흐름은 확인 안 함** (아래 「운영 반영」) |
-| **실제 모델 호출** | **안 함.** `gpt-6-luna`·`gpt-6.1-terra` 의 추론 파라미터가 400 없이 받아들여지는지조차 미확인. 평가 입력: [`docs/evals/free-study.md`](evals/free-study.md) |
+| **실제 모델 호출** | 13회, 전부 성공 (로컬 PGlite DB, 엔진 직접 호출 — 화면·라우트는 안 거침). 추론 파라미터 수락 확인. 결함 2개 발견해 고침. 자세히: [`docs/evals/free-study.md`](evals/free-study.md) |
 
 ```
 ƒ /                                   모드 선택 + 최근 학습       ← 0원 (읽기만)
@@ -88,7 +88,7 @@ components/study/    ModePicker · StudyRoom · ProblemCard · ChatPanel · Md �
 커리큘럼 경로 `gpt-4o-mini` 그대로. 단가는 2026-11-16 공식 가격표 조회값.
 출력 상한 terra 12,000 · luna 4,000 (추론 토큰 포함), effort low, 타임아웃 60초, 재시도 0.
 
-예상 1회: terra 약 $0.01~0.03, luna 약 $0.001. **실측 없음.**
+실측 1회: terra $0.004~0.010 (12~22초), luna ≈ $0.0003 (3~4초).
 
 실패 정산: HTTP 오류 → 롤백·0원 / 타임아웃 → 예약 유지·**상한 비용** / 잘림·형식 오류 →
 예약 유지·실사용량. `tests/study/call.test.ts`.
@@ -98,9 +98,7 @@ components/study/    ModePicker · StudyRoom · ProblemCard · ChatPanel · Md �
 1. **테스트용 Neon 브랜치**를 만들어 `DATABASE_URL` 을 그쪽으로 두고 `npm run db:migrate` →
    `npm run dev` 로 시작·질문·제출·새로고침을 손으로 확인한다. (`.env.local` 의 DB 가
    운영과 같을 수 있어 이번에는 마이그레이션을 걸지 않았다)
-2. 확인되면 `docs/evals/free-study.md` 의 입력 몇 개를 실호출로 돌려 본다 — **첫 호출에서
-   추론 모델 파라미터가 받아들여지는지가 드러난다.** 400 이 나면 `lib/llm/client.ts` 의
-   `limits` 를 고친다.
+2. ~~실호출 평가~~ — 2026-11-16 로컬 DB 에서 했다. 남은 평가 입력은 `docs/evals/free-study.md` 「아직 안 본 것」.
 3. 커밋 → PR → 머지 전에 **운영 DB 에 `drizzle/0001` 적용** (`npm run db:migrate`, 운영 URL).
    안 하면 배포된 `/` 가 `study_sessions` 없음으로 500 이 난다.
 4. Vercel 환경변수 변경 없음. **OpenAI 대시보드의 월 하드 리밋**(④겹)이 $3 근처라면
@@ -111,7 +109,7 @@ components/study/    ModePicker · StudyRoom · ProblemCard · ChatPanel · Md �
 | | |
 |---|---|
 | **머지** | 운영 반영 절차 1~3 뒤에 |
-| **실호출 평가** | `docs/evals/free-study.md` — 아직 0건 |
+| **실호출 평가** | 4모드 대표 입력은 했다. 남은 5개 입력은 `docs/evals/free-study.md` |
 | 자유학습 진도 | `topic_progress` 와 연결하지 않았다 (범위 밖). 기록은 세션별로만 남는다 |
 | 코드 실행기 | 없다. `lib/study/runner.ts` 에 경계만. 격리 샌드박스로만 붙인다 |
 | 오래된 pending | 서버가 처리 중에 죽으면 그 `ai_requests` 행이 pending 으로 남는다. 같은 ID 만 막히고 「다시 시도」는 새 ID 라 학습은 막히지 않는다. 정리 작업은 없다 |

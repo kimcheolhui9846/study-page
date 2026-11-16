@@ -87,3 +87,21 @@ describe('paidCall — 정산 다섯 갈래', () => {
     expect(led.costMicros).toBeGreaterThan(0)
   })
 })
+
+describe('paidCall — 제어 문자 제거', () => {
+  // 2026-11-16 실호출에서 모델이 「$\x1b[0m\mathbb R^2$」 처럼 ANSI 이스케이프를 섞어 냈다.
+  // 화면에서 깨진 글자가 되고 KaTeX 가 수식을 못 읽는다.
+  it('문자열 속 ANSI 이스케이프와 C0 제어 문자를 지우고, 줄바꿈·탭은 남긴다', async () => {
+    const Text = z.object({ a: z.string(), list: z.array(z.object({ b: z.string() })) })
+    const llm = new ScriptedLlmClient(() => ({
+      a: '공역 $\x1b[0m\mathbb R^2$\x07 끝',
+      list: [{ b: '첫 줄\n\t둘째\x00 줄\x1b[31m' }],
+    }))
+    const r = await paidCall({ db, clock, llm }, {
+      route: 'study-chat', model: WORK_MODEL, reasoningEffort: 'low', maxTokens: 100,
+      system: 'S', user: 'U', schemaName: 'x', jsonSchema: {},
+      parse: (x) => Text.safeParse(x), subject: 'math', requestId: 'req-ctl', sessionId: 1,
+    })
+    expect(r).toEqual({ ok: true, data: { a: '공역 $\mathbb R^2$ 끝', list: [{ b: '첫 줄\n\t둘째 줄' }] } })
+  })
+})

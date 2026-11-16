@@ -56,7 +56,7 @@ export default async function SettingsPage() {
 
         <div className="mt-6 flex justify-center">
           <Link
-            href="/"
+            href="/dashboard"
             className="text-[12.5px] text-muted underline underline-offset-4 hover:text-body"
           >
             대시보드로

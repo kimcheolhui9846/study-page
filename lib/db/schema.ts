@@ -181,4 +181,121 @@ export const usageLedger = pgTable('usage_ledger', {
   completionTokens: integer('completion_tokens'),
   costMicros:       bigint('cost_micros', { mode: 'number' }),
   ok:               boolean('ok').notNull(),
+  // 2026-11-16 자유학습. nullable — 그 전에 쌓인 행은 그대로 읽힌다.
+  requestId:        text('request_id'),
+  studySessionId:   bigint('study_session_id', { mode: 'number' }),
 })
+
+// ── 자유학습 ─────────────────────────────────────
+//
+// 설계: docs/specs/2026-11-16-free-study-modes-design.md §2
+// 커리큘럼 경로의 테이블과 공유하지 않는다. `sessions` 는 로그인이고
+// 학습 세션은 `study_sessions` 다.
+
+/** 과목 모드. 커리큘럼의 `mode`(new·review·remediation)·`kind` 와 다른 축이다 */
+export const studySessions = pgTable('study_sessions', {
+  id:        bigserial('id', { mode: 'number' }).primaryKey(),
+  studyMode: text('study_mode').notNull(),
+  title:     text('title').notNull(),
+  /** 처음 입력한 요청 원문 */
+  request:   text('request').notNull(),
+  /** 수준·활동·도움 선호. 모델의 note 와 사용자 조정이 쌓인다 */
+  prefs:     jsonb('prefs').notNull().default({}),
+  /** 긴 대화를 다 보내지 않기 위한 누적 요약 */
+  summary:   text('summary').notNull().default(''),
+  status:    text('status').notNull().default('active'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  check('study_mode_valid', sql`${t.studyMode} IN ('english','math','cs','coding')`),
+  check('study_status_valid', sql`${t.status} IN ('active','archived')`),
+  index('study_sessions_updated_idx').on(t.updatedAt.desc()),
+])
+
+export const studyMaterials = pgTable('study_materials', {
+  id:            bigserial('id', { mode: 'number' }).primaryKey(),
+  sessionId:     bigint('session_id', { mode: 'number' }).notNull().references(() => studySessions.id),
+  version:       integer('version').notNull(),
+  /** 이 자료가 어느 자료에서 이어졌는가. 덮어쓰지 않고 쌓는다 */
+  parentId:      bigint('parent_id', { mode: 'number' }),
+  activity:      text('activity').notNull(),
+  /** 공개부만. 문제의 정답·해설은 study_problems.private 에 있다 */
+  content:       jsonb('content').notNull(),
+  schemaVersion: integer('schema_version').notNull().default(1),
+  requestId:     text('request_id').notNull(),
+  createdAt:     timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex('one_material_per_version').on(t.sessionId, t.version),
+])
+
+/**
+ * ★ 비공개부는 컬럼이 다르다. `private` 는 정답·루브릭·해설·단계 힌트이며
+ * 밖으로는 `publicProblem()` 투영만 나간다 (lib/study/schemas.ts).
+ */
+export const studyProblems = pgTable('study_problems', {
+  id:               bigserial('id', { mode: 'number' }).primaryKey(),
+  sessionId:        bigint('session_id', { mode: 'number' }).notNull().references(() => studySessions.id),
+  materialId:       bigint('material_id', { mode: 'number' }).notNull().references(() => studyMaterials.id),
+  /** 세션 전체 일련번호. 「2번 문제」가 자료 버전을 넘어 같은 것을 가리킨다 */
+  number:           integer('number').notNull(),
+  public:           jsonb('public').notNull(),
+  private:          jsonb('private').notNull(),
+  hintsRevealed:    integer('hints_revealed').notNull().default(0),
+  solutionRevealed: boolean('solution_revealed').notNull().default(false),
+  createdAt:        timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  check('hints_revealed_range', sql`${t.hintsRevealed} BETWEEN 0 AND 3`),
+  uniqueIndex('one_problem_per_number').on(t.sessionId, t.number),
+])
+
+export const studyMessages = pgTable('study_messages', {
+  id:         bigserial('id', { mode: 'number' }).primaryKey(),
+  sessionId:  bigint('session_id', { mode: 'number' }).notNull().references(() => studySessions.id),
+  role:       text('role').notNull(),
+  kind:       text('kind').notNull(),
+  bodyMd:     text('body_md').notNull(),
+  requestId:  text('request_id'),
+  materialId: bigint('material_id', { mode: 'number' }),
+  problemId:  bigint('problem_id', { mode: 'number' }),
+  createdAt:  timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  check('message_role_valid', sql`${t.role} IN ('user','assistant')`),
+  check('message_kind_valid', sql`${t.kind} IN ('chat','material','feedback','notice')`),
+  index('study_messages_session_idx').on(t.sessionId, t.id),
+])
+
+export const studySubmissions = pgTable('study_submissions', {
+  id:           bigserial('id', { mode: 'number' }).primaryKey(),
+  problemId:    bigint('problem_id', { mode: 'number' }).notNull().references(() => studyProblems.id),
+  attemptNo:    integer('attempt_no').notNull(),
+  answer:       text('answer').notNull(),
+  language:     text('language'),
+  feedbackMode: text('feedback_mode').notNull(),
+  feedback:     jsonb('feedback').notNull(),
+  verdict:      text('verdict').notNull(),
+  requestId:    text('request_id').notNull(),
+  createdAt:    timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  // 문제당 제출 상한. 제출마다 유료 피드백이 나가므로 비용 게이트다.
+  check('submission_attempt_cap', sql`${t.attemptNo} BETWEEN 1 AND 20`),
+  check('feedback_mode_valid', sql`${t.feedbackMode} IN ('full','errors-only')`),
+  uniqueIndex('one_submission_per_attempt').on(t.problemId, t.attemptNo),
+])
+
+/**
+ * ★ 자유학습의 멱등성 자리. 화면이 전송마다 만든 UUID 가 PK 다.
+ * 같은 ID 가 다시 오면 처리하지 않고 저장된 결과를 돌려준다.
+ */
+export const aiRequests = pgTable('ai_requests', {
+  requestId:  text('request_id').primaryKey(),
+  sessionId:  bigint('session_id', { mode: 'number' }),
+  action:     text('action').notNull(),
+  status:     text('status').notNull().default('pending'),
+  /** 공개 가능한 결과만 (ID 들). 자료 본문을 담지 않는다 */
+  result:     jsonb('result'),
+  errorCode:  text('error_code'),
+  createdAt:  timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  finishedAt: timestamp('finished_at', { withTimezone: true }),
+}, (t) => [
+  check('ai_request_status_valid', sql`${t.status} IN ('pending','done','failed')`),
+])

@@ -279,7 +279,7 @@ export default async function UsagePage() {
 
         <div className="mt-6 flex flex-col items-center gap-3">
           <Link
-            href="/"
+            href="/dashboard"
             className="text-[12.5px] text-muted underline underline-offset-4 hover:text-body"
           >
             대시보드로

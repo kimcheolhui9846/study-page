@@ -8,6 +8,13 @@
       "when": 1788264730364,
       "tag": "0000_big_thanos",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794833474200,
+      "tag": "0001_dry_shatterstar",
+      "breakpoints": true
     }
   ]
 }

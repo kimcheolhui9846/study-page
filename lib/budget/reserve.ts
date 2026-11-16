@@ -16,6 +16,9 @@ export interface UsageEntry {
   completionTokens: number | null
   costMicros: number
   ok: boolean
+  /** 자유학습 경로만. 어느 요청·학습 세션의 호출인지 원장에서 거슬러 찾는다 */
+  requestId?: string
+  studySessionId?: number | null
 }
 
 /** 일일 캡은 호출 수로, 월간 캡은 비용으로 건다. 월간 호출 수는 사실상 무제한. */
@@ -107,6 +110,8 @@ export async function recordUsage(db: Db, clock: Clock, entry: UsageEntry): Prom
     completionTokens: entry.completionTokens,
     costMicros: entry.costMicros,
     ok: entry.ok,
+    requestId: entry.requestId ?? null,
+    studySessionId: entry.studySessionId ?? null,
   })
 
   await db

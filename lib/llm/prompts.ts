@@ -18,7 +18,7 @@ import { contextToMessage, type TopicContext } from './context'
  * 이미 만들어진 자료는 UNIQUE 때문에 다시 안 만들어진다 — 이 규칙의 효과는
  * 다음 Topic 부터다.
  */
-const VOICE_RULE = `- **문체는 평서체다. "~다"로 끝낸다.**
+export const VOICE_RULE = `- **문체는 평서체다. "~다"로 끝낸다.**
   존댓말("~합니다", "~입니다", "~하세요", "~해요")을 한 문장도 쓰지 마라.
   예) "변수는 값에 붙인 이름입니다" → "변수는 값에 붙인 이름이다"
       "먼저 주어를 찾으세요"       → "먼저 주어를 찾는다"

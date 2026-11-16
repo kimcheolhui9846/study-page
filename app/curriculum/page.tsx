@@ -180,7 +180,7 @@ export default async function CurriculumPage({
             오늘의 학습
           </Link>
           <Link
-            href="/"
+            href="/dashboard"
             className="text-[12.5px] text-muted underline underline-offset-4 hover:text-body"
           >
             대시보드로

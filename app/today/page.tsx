@@ -195,7 +195,7 @@ export default async function TodayPage() {
             앞으로 쓸 AI 호출 {toGenerate + (plan.items.length > done ? 1 : 0)} · 오늘 남은 {callsLeft}
           </span>
           <Link
-            href="/"
+            href="/dashboard"
             className="text-[12.5px] text-muted underline underline-offset-4 hover:text-body"
           >
             대시보드로

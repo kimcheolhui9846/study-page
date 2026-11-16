@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { dailyCallCap } from '../../lib/budget/caps'
 import { eq } from 'drizzle-orm'
 import { createTestDb } from '../helpers/testDb'
 import { fixedClock } from '../helpers/clock'
@@ -207,7 +208,7 @@ describe('부르지 않는 경우', () => {
   it('★ 예산이 없으면 부르지 않는다', async () => {
     const plan = await seedPlan([A])
     await db.insert(budgetCounters).values({
-      periodKey: 'day:2026-09-01', calls: 5, capCalls: 5, capMicros: 3_000_000,
+      periodKey: 'day:2026-09-01', calls: dailyCallCap(), capCalls: dailyCallCap(), capMicros: 3_000_000,
     })
 
     const llm = new FakeLlmClient({ topics: [gradedTopic(A, 1)] })

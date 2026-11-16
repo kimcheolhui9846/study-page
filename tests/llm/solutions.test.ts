@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { dailyCallCap } from '../../lib/budget/caps'
 import { eq } from 'drizzle-orm'
 import { createTestDb } from '../helpers/testDb'
 import { fixedClock } from '../helpers/clock'
@@ -50,7 +51,7 @@ const clock = fixedClock('2026-09-27T10:00:00+09:00')
 
 beforeEach(async () => {
   ;({ db, close } = await createTestDb())
-  vi.stubEnv('APP_ENV', 'production') // 일일 캡 20
+  vi.stubEnv('APP_ENV', 'production') // 운영 캡 (lib/budget/caps.ts)
 })
 afterEach(async () => { await close(); vi.unstubAllEnvs() })
 
@@ -152,7 +153,7 @@ describe('해설 채우기', () => {
     await seed(TOPIC, oldContent())
     await db.insert(budgetCounters).values({
       periodKey: 'day:2026-09-27',
-      calls: 20, capCalls: 20, costMicros: 0, capMicros: 3_000_000,
+      calls: dailyCallCap(), capCalls: dailyCallCap(), costMicros: 0, capMicros: 3_000_000,
     })
 
     const out = await backfillSolutions(deps(new FakeLlmClient(solutionsPayload())), TOPIC)

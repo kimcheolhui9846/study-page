@@ -155,18 +155,18 @@ describe('recordUsage', () => {
 })
 
 describe('캡 값', () => {
-  it('production 은 20, 그 외는 3', () => {
+  it('production 은 100, 그 외는 10 (2026-11-16 자유학습 전환)', () => {
     vi.stubEnv('APP_ENV', 'production')
-    expect(dailyCallCap()).toBe(20)
+    expect(dailyCallCap()).toBe(100)
     vi.stubEnv('APP_ENV', 'preview')
-    expect(dailyCallCap()).toBe(3)
+    expect(dailyCallCap()).toBe(10)
     vi.stubEnv('APP_ENV', 'local')
-    expect(dailyCallCap()).toBe(3)
+    expect(dailyCallCap()).toBe(10)
   })
 
   it('APP_ENV 가 없으면 낮은 캡을 쓴다 — 안전한 기본값', () => {
     vi.stubEnv('APP_ENV', '')
-    expect(dailyCallCap()).toBe(3)
+    expect(dailyCallCap()).toBe(10)
   })
 })
 
@@ -177,29 +177,31 @@ describe('캡은 행이 아니라 환경에서 온다', () => {
    * 내내 로컬 캡에 묶였다.
    */
   it('★ 행에 굳은 낮은 캡이 환경 캡을 이기지 않는다', async () => {
-    for (let i = 0; i < 3; i++) expect(await reserve(db, clock)).not.toBeNull()
-    expect(await reserve(db, clock)).toBeNull()   // 로컬 캡 3 에서 막힌다
+    const local = dailyCallCap()
+    for (let i = 0; i < local; i++) expect(await reserve(db, clock)).not.toBeNull()
+    expect(await reserve(db, clock)).toBeNull()   // 로컬 캡에서 막힌다
 
-    vi.stubEnv('APP_ENV', 'production')           // 같은 행, 캡만 20 으로
+    vi.stubEnv('APP_ENV', 'production')           // 같은 행, 캡만 운영 값으로
     expect(await reserve(db, clock)).not.toBeNull()
-    expect((await counter(DAY_KEY)).calls).toBe(4)
+    expect((await counter(DAY_KEY)).calls).toBe(local + 1)
   })
 
   it('★ 환경 캡이 낮아지면 즉시 막힌다 — 완화 쪽으로만 움직이지 않는다', async () => {
     vi.stubEnv('APP_ENV', 'production')
-    for (let i = 0; i < 4; i++) expect(await reserve(db, clock)).not.toBeNull()
+    const over = 11 // 로컬 캡(10)보다 하나 많이
+    for (let i = 0; i < over; i++) expect(await reserve(db, clock)).not.toBeNull()
 
-    vi.stubEnv('APP_ENV', 'local')                // 캡 3 < 이미 쓴 4
+    vi.stubEnv('APP_ENV', 'local')                // 캡 10 < 이미 쓴 11
     expect(await reserve(db, clock)).toBeNull()
   })
 
   it('행의 cap 컬럼은 마지막으로 예약한 환경을 남긴다', async () => {
     await reserve(db, clock)
-    expect((await counter(DAY_KEY)).capCalls).toBe(3)
+    expect((await counter(DAY_KEY)).capCalls).toBe(10)
 
     vi.stubEnv('APP_ENV', 'production')
     await reserve(db, clock)
-    expect((await counter(DAY_KEY)).capCalls).toBe(20)
+    expect((await counter(DAY_KEY)).capCalls).toBe(100)
   })
 
   it('★ 월 비용 캡도 환경에서 온다', async () => {
@@ -210,7 +212,7 @@ describe('캡은 행이 아니라 환경에서 온다', () => {
     })
     expect(await reserve(db, clock)).toBeNull()   // 로컬 캡 $0.50 초과
 
-    vi.stubEnv('APP_ENV', 'production')           // $3.00
+    vi.stubEnv('APP_ENV', 'production')           // $20.00
     expect(await reserve(db, clock)).not.toBeNull()
   })
 })

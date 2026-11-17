@@ -3,7 +3,7 @@
 영어 · 수학 · CS · 코딩테스트를 **지금 공부하고 싶은 주제로 바로** 공부하는 1인용 학습 플랫폼.
 과목을 고르고 원하는 것을 적으면 자료와 문제가 나오고, 같은 자리에서 묻고 제출하고 피드백을 받는다.
 
-**→ [study-page-kimcheolhui9846s-projects.vercel.app](https://study-page-kimcheolhui9846s-projects.vercel.app)**
+**→ [study-page-six.vercel.app](https://study-page-six.vercel.app)**
 (비밀번호 필요)
 
 - **자유학습 설계:** [`docs/specs/2026-11-16-free-study-modes-design.md`](docs/specs/2026-11-16-free-study-modes-design.md)

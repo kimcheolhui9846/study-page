@@ -2,7 +2,7 @@
 
 **갱신:** 2026-11-16 · **`main` 에 머지됨** (PR #41 「모드별 자유학습」, squash)
 
-**배포됨 → https://study-page-kimcheolhui9846s-projects.vercel.app**
+**배포됨 → https://study-page-six.vercel.app** (공개 주소. `study-page-kimcheolhui9846s-projects.vercel.app` 은 Vercel 로그인을 요구하는 팀 주소다)
 (`main` 에 머지하면 자동 배포된다. 자유학습이 배포된 상태다)
 
 > 이 파일은 **현재 상태**만 담는다. 매번 통째로 덮어쓴다.
@@ -20,7 +20,7 @@
   접속 문자열을 출력에 찍었기 때문이다. `.env.local` 과 Vercel `DATABASE_URL`(Production) 둘 다 새 값이다.
   **DB 를 스크립트로 들여다볼 때는 오류 메시지에서 `postgres://…` 를 가린다** — `@neondatabase/serverless`
   는 URL 파싱 실패 시 문자열 전체를 메시지에 넣는다.
-- 배포된 사이트에는 Vercel 배포 보호(SSO)가 켜져 있어 curl 로는 앱까지 닿지 않는다. 확인은 브라우저로 한다.
+- 팀 주소(`…-projects.vercel.app`)에는 Vercel 배포 보호(SSO)가 켜져 있어 curl 로는 앱까지 닿지 않는다. 공개 주소 `study-page-six.vercel.app` 으로 확인한다.
 
 ## 지금 상태
 
@@ -131,4 +131,12 @@ components/study/    ModePicker · StudyRoom · ProblemCard · ChatPanel · Md �
 
 환경변수 4개가 **Production 환경에만** 있다 — `DATABASE_URL` · `AUTH_PASSWORD_HASH` ·
 `OPENAI_API_KEY` · `APP_ENV=production`. Preview 에는 없다 → 프리뷰는 낮은 캡.
-함수 리전이 Neon 리전과 같은지는 여전히 미확인.
+함수 리전은 `iad1`(워싱턴 D.C.), Neon 은 `us-east-2`(오하이오) — 같지는 않지만 둘 다 미국 동부다
+(2026-11-16 응답 헤더 `x-vercel-id` 로 확인).
+
+**`AUTH_PASSWORD_HASH` 는 `.env.local` 과 Vercel(Production) 이 같은 값이어야 한다.** 다르면 로컬에서
+통하는 비밀번호가 사이트에서는 틀린다. 2026-11-16 에 어긋나 있었고 Vercel 쪽을 로컬 값으로 맞췄다.
+해시를 새로 만들면(`npm run hash:password`) 두 곳을 같이 바꾸고 Redeploy 한다.
+
+**로그인이 잠기면** (15분 안 실패 5회) 15분을 기다리거나 `login_attempts` 에서 그날의 실패 행을 지운다.
+해시가 어긋난 채로 지우면 다시 잠기므로 해시부터 맞춘다.
